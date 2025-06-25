@@ -8,14 +8,15 @@
   <h1>ユーザー一覧</h1>
   <ul>
     <% users.forEach(user => { %>
-      <li><%= user.name %></li>
+      <li><%= user.name %> - 年齢: <%= user.age ? user.age : '未設定' %></li>
     <% }) %>
   </ul>
 
   <h2>ユーザー追加</h2>
-  <form action="/users" method="post">
-    <input type="text" name="name" placeholder="ユーザー名を入力" required>
+    <form action="/users" method="post">
+    <input type="text" name="name" placeholder="ユーザー名" required>
+    <input type="number" name="age" placeholder="年齢">
     <button type="submit">追加</button>
-  </form>
+    </form>
 </body>
 </html>
