@@ -1,22 +1,66 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>ユーザー一覧</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>株式投資学習ロードマップ</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>ユーザー一覧</h1>
-  <ul>
-    <% users.forEach(user => { %>
-      <li><%= user.name %> - 年齢: <%= user.age ? user.age : '未設定' %></li>
-    <% }) %>
-  </ul>
 
-  <h2>ユーザー追加</h2>
-    <form action="/users" method="post">
-    <input type="text" name="name" placeholder="ユーザー名" required>
-    <input type="number" name="age" placeholder="年齢">
-    <button type="submit">追加</button>
-    </form>
+    <header class="site-header">
+        <div class="container">
+            <h1>株式投資学習ロードマップ</h1>
+            <p>0から始める株式投資の学び方</p>
+        </div>
+    </header>
+
+    <main class="site-main">
+        <div class="container">
+            <section class="chapter">
+                <h2>第1章: 株式投資の基礎知識</h2>
+                <ul class="lesson-list">
+                    <li><a href="#">1-1. 株式とは何か？</a></li>
+                    <li><a href="#">1-2. 証券口座の開設方法</a></li>
+                    <li><a href="#">1-3. 株の買い方・売り方</a></li>
+                </ul>
+            </section>
+
+            <section class="chapter">
+                <h2>第2章: 銘柄選びの基本</h2>
+                <ul class="lesson-list">
+                    <li><a href="#">2-1. 企業分析の第一歩（ファンダメンタルズ分析）</a></li>
+                    <li><a href="#">2-2. チャートの読み方（テクニカル分析）</a></li>
+                    <li><a href="#">2-3. 投資指標（PER, PBR, ROE）の見方</a></li>
+                </ul>
+            </section>
+
+            <section class="chapter">
+                <h2>第3章: 投資戦略とリスク管理</h2>
+                <ul class="lesson-list">
+                    <li><a href="#">3-1. 長期投資と短期投資</a></li>
+                    <li><a href="#">3-2. 分散投資の重要性</a></li>
+                    <li><a href="#">3-3. 損切りルールの設定</a></li>
+                </ul>
+            </section>
+
+            <section class="chapter">
+                <h2>第4章: 実践と応用</h2>
+                <ul class="lesson-list">
+                    <li><a href="#">4-1. NISA・iDeCoの活用法</a></li>
+                    <li><a href="#">4-2. 経済ニュースの読み解き方</a></li>
+                    <li><a href="#">4-3. 自分の投資スタイルを見つける</a></li>
+                </ul>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2024 株式投資ロードマップ. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
 </html>
