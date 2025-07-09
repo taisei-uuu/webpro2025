@@ -22,6 +22,50 @@
                 <div class="lesson-body">
                     <p><%= lesson.content %></p>
                 </div>
+
+                <% if (lesson.questions && lesson.questions.length > 0 && locals.quizResult) { %>
+                    <section class="quiz-section">
+                        <h3>理解度チェックテスト</h3>
+                        <% lesson.questions.forEach(question => { %>
+                            <div class="question">
+                                <p class="question-text"><%= question.text %></p>
+
+                                <% if (clearedQuestionIds.has(question.id) && quizResult.questionId !== question.id) { %>
+                                    <div class="quiz-feedback cleared">
+                                        <p><strong>クリア済み！</strong></p>
+                                    </div>
+                                <% } else if (quizResult && quizResult.questionId === question.id) { %>
+                                    <div class="quiz-feedback <%= quizResult.result %>">
+                                        <% if (quizResult.result === 'correct') { %>
+                                            <p><strong>正解！</strong></p>
+                                        <% } else { %>
+                                            <p><strong>不正解...</strong> もう一度挑戦してみましょう！</p>
+                                        <% } %>
+                                    </div>
+                                <% } %>
+
+                                <form action="/lessons/<%= lesson.id %>/quiz/submit" method="POST" class="options-list" id="quiz-form-<%= question.id %>">
+                                    <input type="hidden" name="questionId" value="<%= question.id %>">
+                                    <% question.options.forEach(option => { %>
+                                        <%
+                                           let btnClass = 'option-btn';
+                                           const isAnswered = quizResult && quizResult.questionId === question.id;
+                                           const isCleared = clearedQuestionIds.has(question.id);
+                                           if (isAnswered || isCleared) {
+                                               if (option.id === quizResult.correctId) btnClass += ' correct';
+                                               else if (option.id === quizResult.selectedId) btnClass += ' incorrect';
+                                           }
+                                        %>
+                                        <button type="submit" name="selectedOptionId" value="<%= option.id %>" class="<%= btnClass %>" <%- (isAnswered || isCleared) ? 'disabled' : '' %>>
+                                            <%= option.text %>
+                                        </button>
+                                    <% }); %>
+                                </form>
+                            </div>
+                        <% }); %>
+                    </section>
+                <% } %>
+
                 <a href="/" class="back-link">&larr; ロードマップに戻る</a>
             </article>
         </div>

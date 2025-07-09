@@ -21,5 +21,45 @@ model Lesson {
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  questions Question[] // Lessonは複数のQuestionを持つ
 }
 
+model Question {
+  id        Int      @id @default(autoincrement())
+  text      String // 問題文
+  lessonId  Int
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  options   Option[] // Questionは複数のOptionを持つ
+  attempts  QuizAttempt[] // Questionは複数のQuizAttemptを持つ
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Option {
+  id         Int      @id @default(autoincrement())
+  text       String // 選択肢のテキスト
+  isCorrect  Boolean  // この選択肢が正解かどうか
+  questionId Int
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model QuizAttempt {
+  id               Int      @id @default(autoincrement())
+  userId           Int?
+  user             User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId       Int
+  question         Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOptionId Int      // ユーザーが選択した選択肢のID
+  isCorrect        Boolean  // 提出された回答が正解だったか
+  submittedAt      DateTime @default(now())
+}
+
+model User {
+  id        Int           @id @default(autoincrement())
+  email     String        @unique
+  name      String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  attempts  QuizAttempt[]
+}

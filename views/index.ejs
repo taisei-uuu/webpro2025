@@ -29,7 +29,15 @@
             </div>
             <% chapters.forEach(chapter => { %>
                 <section class="chapter">
-                    <h2>第<%= chapter.chapter %>章: <%= chapter.title %></h2>
+                    <div class="chapter-header">
+                        <h2>第<%= chapter.chapter %>章: <%= chapter.title %></h2>
+                        <% if (chapter.totalQuestions > 0) { %>
+                            <div class="progress-container">
+                                <div class="progress-bar" style="width: <%= chapter.progressPercentage %>%;"></div>
+                                <span class="progress-text"><%= chapter.clearedQuestions %> / <%= chapter.totalQuestions %> 問クリア</span>
+                            </div>
+                        <% } %>
+                    </div>
                     <ul class="lesson-list">
                         <% chapter.lessons.forEach(lesson => { %>
                             <li><a href="/lessons/<%= lesson.id %>"><%= lesson.title %></a></li>
