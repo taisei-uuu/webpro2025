@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>検索結果: <%= query %> | 株式投資学習ロードマップ</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="container">
+            <h1>株式投資学習ロードマップ</h1>
+            <p>0から始める株式投資の学び方</p>
+        </div>
+    </header>
+
+    <main class="site-main">
+        <div class="container">
+            <section class="search-results-section">
+                <h2>「<%= query %>」の検索結果</h2>
+                <% if (lessons.length > 0) { %>
+                    <p><%= lessons.length %>件のレッスンが見つかりました。</p>
+                    <ul class="lesson-list">
+                        <% lessons.forEach(lesson => { %>
+                            <li>
+                                <a href="/lessons/<%= lesson.id %>">
+                                    <strong><%= lesson.title %></strong>
+                                    <small>第<%= lesson.chapter %>章</small>
+                                </a>
+                            </li>
+                        <% }); %>
+                    </ul>
+                <% } else { %>
+                    <p>「<%= query %>」に一致するレッスンは見つかりませんでした。</p>
+                <% } %>
+                <a href="/" class="back-link">&larr; ロードマップに戻る</a>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2024 株式投資ロードマップ. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

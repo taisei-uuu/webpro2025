@@ -17,6 +17,16 @@
 
     <main class="site-main">
         <div class="container">
+            <div class="search-container">
+                <form action="/search" method="GET" class="search-form">
+                    <input type="search" name="q" class="search-input" placeholder="キーワードで検索 (例: NISA, 分析)">
+                    <button type="submit" class="btn search-btn">検索</button>
+                </form>
+            </div>
+
+            <div class="admin-link-container">
+                <a href="/admin/lessons/new" class="btn">＋ 新規レッスンを作成する</a>
+            </div>
             <% chapters.forEach(chapter => { %>
                 <section class="chapter">
                     <h2>第<%= chapter.chapter %>章: <%= chapter.title %></h2>
@@ -39,4 +49,3 @@
     <script src="/script.js"></script>
 </body>
 </html>
-

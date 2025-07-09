@@ -17,6 +17,9 @@ app.set('view engine', 'ejs');
 // viewsディレクトリのパスを絶対パスで指定
 app.set('views', path.join(__dirname, 'views'));
 
+// POSTリクエストのbodyを解釈するためのミドルウェア
+app.use(express.urlencoded({ extended: true }));
+
 // publicディレクトリを静的ファイルとして配信
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -51,6 +54,57 @@ app.get('/', async (req, res) => {
   }, {} as Record<number, { chapter: number; title: string; lessons: typeof lessons }>);
 
   res.render('index', { chapters: Object.values(chapters) });
+});
+
+// 新規レッスン作成フォームを表示するルート
+app.get('/admin/lessons/new', (req, res) => {
+  res.render('new-lesson');
+});
+
+// 新規レッスンを作成するルート
+app.post('/admin/lessons', async (req, res) => {
+  const { title, content, chapter } = req.body;
+
+  await prisma.lesson.create({
+    data: {
+      title,
+      content,
+      chapter: parseInt(chapter, 10),
+    },
+  });
+
+  res.redirect('/');
+});
+
+// 検索結果ページ
+app.get('/search', async (req, res) => {
+  const query = req.query.q as string;
+
+  // クエリがない場合は空の結果を返す
+  if (!query) {
+    return res.render('search-results', { lessons: [], query: '' });
+  }
+
+  const lessons = await prisma.lesson.findMany({
+    where: {
+      OR: [
+        {
+          title: {
+            contains: query,
+            mode: 'insensitive', // 大文字・小文字を区別しない
+          },
+        },
+        {
+          content: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+      ],
+    },
+  });
+
+  res.render('search-results', { lessons, query });
 });
 
 // レッスン詳細ページ
