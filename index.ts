@@ -1,6 +1,7 @@
 import express from 'express';
 // 生成した Prisma Client をインポート
-import { PrismaClient } from './generated/prisma/client';
+import { PrismaClient } from '@prisma/client';
+import path from 'path';
 
 const prisma = new PrismaClient({
   // 開発中は、実行されたクエリをログに表示する
@@ -13,38 +14,55 @@ const PORT = process.env.PORT || 8888;
 
 // EJS をビューエンジンとして設定する
 app.set('view engine', 'ejs');
-// EJS のテンプレートファイルが置かれているディレクトリを指定する
-app.set('views', './views');
+// viewsディレクトリのパスを絶対パスで指定
+app.set('views', path.join(__dirname, 'views'));
 
-// POSTリクエストで送信されたフォームのデータを受け取れるようにする設定
-app.use(express.urlencoded({ extended: true }));
+// publicディレクトリを静的ファイルとして配信
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ルートURL ("/") にGETリクエストが来たときの処理
 app.get('/', async (req, res) => {
-  // データベースからすべてのユーザーを取得
-  const users = await prisma.user.findMany();
-  // 'index.ejs' というテンプレートを描画し、'users' という名前でデータを渡す
-  res.render('index', { users });
+  const lessons = await prisma.lesson.findMany({
+    orderBy: {
+      id: 'asc',
+    },
+  });
+
+  // 章の情報を定義
+  const chapterInfo: Record<number, string> = {
+    1: '株式投資の基礎知識',
+    2: '銘柄選びの基本',
+    3: '投資戦略とリスク管理',
+    4: '実践と応用',
+  };
+
+  // 章ごとにレッスンをグループ化
+  const chapters = lessons.reduce((acc, lesson) => {
+    const chapterNum = lesson.chapter;
+    if (!acc[chapterNum]) {
+      acc[chapterNum] = {
+        chapter: chapterNum,
+        title: chapterInfo[chapterNum] || `第${chapterNum}章`,
+        lessons: [],
+      };
+    }
+    acc[chapterNum].lessons.push(lesson);
+    return acc;
+  }, {} as Record<number, { chapter: number; title: string; lessons: typeof lessons }>);
+
+  res.render('index', { chapters: Object.values(chapters) });
 });
 
-// "/users" にPOSTリクエストが来たときの処理（ユーザー追加）
-app.post('/users', async (req, res) => {
-  const { name, age } = req.body; // nameとageを両方取得
-
-  // ageが文字列で送られてくるので、数値に変換する
-  // 入力がない場合は null になるようにする
-  const ageInt = age ? parseInt(age, 10) : null;
-
-  if (name) {
-    await prisma.user.create({
-      data: {
-        name,
-        age: ageInt, // 年齢も保存
-      },
-    });
-    console.log('新しいユーザーを追加しました:', { name, age: ageInt });
+// レッスン詳細ページ
+app.get('/lessons/:id', async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const lesson = await prisma.lesson.findUnique({
+    where: { id },
+  });
+  if (!lesson) {
+    return res.status(404).send('Lesson not found');
   }
-  res.redirect('/');
+  res.render('lesson', { lesson });
 });
 
 // 指定したポートでサーバーを起動し、リクエストを待ち始める

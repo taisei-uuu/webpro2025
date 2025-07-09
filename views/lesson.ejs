@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>株式投資学習ロードマップ</title>
+    <title><%= lesson.title %> | 株式投資学習ロードマップ</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -17,16 +17,13 @@
 
     <main class="site-main">
         <div class="container">
-            <% chapters.forEach(chapter => { %>
-                <section class="chapter">
-                    <h2>第<%= chapter.chapter %>章: <%= chapter.title %></h2>
-                    <ul class="lesson-list">
-                        <% chapter.lessons.forEach(lesson => { %>
-                            <li><a href="/lessons/<%= lesson.id %>"><%= lesson.title %></a></li>
-                        <% }); %>
-                    </ul>
-                </section>
-            <% }); %>
+            <article class="lesson-content">
+                <h2 class="lesson-title"><%= lesson.title %></h2>
+                <div class="lesson-body">
+                    <p><%= lesson.content %></p>
+                </div>
+                <a href="/" class="back-link">&larr; ロードマップに戻る</a>
+            </article>
         </div>
     </main>
 
@@ -36,7 +33,5 @@
         </div>
     </footer>
 
-    <script src="/script.js"></script>
 </body>
 </html>
-

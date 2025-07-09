@@ -98,6 +98,29 @@ body {
     font-size: 0.9rem;
 }
 
+/* レッスン詳細ページ */
+.lesson-content {
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.lesson-title {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+}
+
+.lesson-body {
+    margin-bottom: 2rem;
+}
+
+.back-link {
+    color: var(--link-color);
+}
+
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
     .site-header h1 {
