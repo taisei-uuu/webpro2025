@@ -4,8 +4,8 @@
   "description": "Webpro 2025",
   "main": "index.js",
   "scripts": {
-    "start": "tsx index.ts",
-    "db:dev": "prisma dev"
+    "build": "prisma generate && prisma migrate deploy && prisma db seed",
+    "start": "tsx index.ts"
   },
   "keywords": [],
   "author": "",
