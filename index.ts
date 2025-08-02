@@ -26,6 +26,39 @@ const MOCK_USER_ID = 1;
 // publicディレクトリを静的ファイルとして配信
 app.use(express.static(path.join(__dirname, 'public')));
 
+// JSONリクエストボディをパースするためのミドルウェア
+app.use(express.json());
+
+// Gemini APIの初期化
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+// APIキーを環境変数から取得
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-pro-latest",
+      systemInstruction: "あなたは、株式投資の学習をサポートするAIアシスタント『株の学びば』です。ユーザーからの質問に対して、常に親切・丁寧に、そして正確な情報を提供してください。難しい専門用語は避け、初心者にも理解しやすいように、平易な言葉で説明することを心がけてください。また、必要に応じて具体例や比喩を用いることで、より直感的な理解を促してください。",
+    });
+
+    const chat = model.startChat();
+    const result = await chat.sendMessage(message);
+    const response = await result.response;
+    const text = response.text();
+
+    res.json({ reply: text });
+  } catch (error) {
+    console.error('Error in /api/chat:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // ルートURL ("/") にGETリクエストが来たときの処理
 app.get('/', async (req, res) => {
   // 1. 全てのレッスンと、それに紐づく問題を取得
@@ -114,51 +147,35 @@ app.post('/admin/lessons', async (req, res) => {
 // クイズの回答を処理するルート
 app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
   const lessonId = parseInt(req.params.lessonId, 10);
-  // questionId と selectedOptionId は文字列として送られてくる
   const { questionId, selectedOptionId } = req.body;
-
-  // バリデーション: questionId と selectedOptionId が存在するか確認
-  if (!questionId || !selectedOptionId) {
-    // 何も選択されずにフォームが送信された場合など
-    return res.status(400).send('問題と選択肢の両方を選択してください。');
-  }
-
-  // 文字列を数値に変換
-  const questionIdNum = parseInt(questionId, 10);
-  const selectedOptionIdNum = parseInt(selectedOptionId, 10);
-
-  // 数値変換が成功したか確認
-  if (isNaN(questionIdNum) || isNaN(selectedOptionIdNum)) {
-    return res.status(400).send('不正なIDです。');
-  }
 
   // 選択された選択肢が正しいか確認
   const selectedOption = await prisma.option.findUnique({
-    where: { id: selectedOptionIdNum },
+    where: { id: parseInt(selectedOptionId, 10) },
   });
 
   if (!selectedOption) {
-    return res.status(404).send('選択肢が見つかりません。');
+    return res.status(404).send('Option not found');
   }
 
   const isCorrect = selectedOption.isCorrect;
 
-  // QuizAttemptに記録
+  // QuizAttemptに記録 (UserモデルがまだないのでuserIdはコメントアウト)
   await prisma.quizAttempt.create({
     data: {
       userId: MOCK_USER_ID,
-      questionId: questionIdNum,
-      selectedOptionId: selectedOptionIdNum,
+      questionId: parseInt(questionId, 10),
+      selectedOptionId: parseInt(selectedOptionId, 10),
       isCorrect: isCorrect,
     },
   });
 
   // 正解の選択肢IDを取得
   const correctOption = await prisma.option.findFirst({
-    where: { questionId: questionIdNum, isCorrect: true },
+    where: { questionId: parseInt(questionId, 10), isCorrect: true },
   });
 
-  const resultQuery = `?result=${isCorrect ? 'correct' : 'incorrect'}&selected=${selectedOptionIdNum}&correct=${correctOption?.id}&question=${questionIdNum}`;
+  const resultQuery = `?result=${isCorrect ? 'correct' : 'incorrect'}&selected=${selectedOptionId}&correct=${correctOption?.id}&question=${questionId}`;
   res.redirect(`/lessons/${lessonId}${resultQuery}`);
 });
 
