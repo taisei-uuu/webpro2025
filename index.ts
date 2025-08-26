@@ -4,8 +4,6 @@ import { PrismaClient } from '@prisma/client';
 import path from 'path';
 import bcrypt from 'bcryptjs';
 import session from 'express-session';
-import pg from 'pg';
-import pgSimple from 'connect-pg-simple';
 
 // セッションの型定義を拡張
 declare module 'express-session' {
@@ -37,23 +35,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 // JSONリクエストボディをパースするためのミドルウェア
 app.use(express.json());
 
-// PostgreSQLセッションストアの設定
-const PostgresStore = pgSimple(session);
-
 // セッションミドルウェアを設定
 app.use(session({
-  store: new PostgresStore({
-    conObject: {
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    },
-    tableName: 'sessions', // セッションテーブル名
-  }),
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // 本番環境ではtrue
+    secure: false, // 開発環境ではfalse
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24時間
   }

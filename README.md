@@ -5,9 +5,9 @@ Webpro 2025 プロジェクト - 株式投資学習のためのロードマッ�
 ## 技術スタック
 
 - **Backend**: Node.js + Express + TypeScript
-- **Database**: Prisma + PostgreSQL
+- **Database**: Prisma + SQLite
 - **Frontend**: EJS + CSS
-- **Session Store**: PostgreSQL (本番環境対応)
+- **Session Store**: MemoryStore (開発環境)
 - **Authentication**: Express Session + bcrypt
 
 ## 新しく追加されたコンポーネント
@@ -65,9 +65,9 @@ npm start
 
 ## 本番環境での注意点
 
-- **セッション管理**: PostgreSQLベースのセッションストアを使用（MemoryStoreの警告を回避）
+- **セッション管理**: MemoryStoreを使用（開発・小規模運用向け）
 - **セキュリティ**: 本番環境では`secure: true`でHTTPS必須
-- **データベース**: PostgreSQLの接続設定を適切に行う
+- **データベース**: SQLiteを使用（ファイルベース）
 
 ## プロジェクト構造
 

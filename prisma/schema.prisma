@@ -10,8 +10,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Lesson {
@@ -65,11 +65,4 @@ model User {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   quizAttempts QuizAttempt[]
-}
-
-// セッション管理用テーブル
-model Session {
-  sid    String   @id
-  sess   Json
-  expire DateTime @db.Timestamptz(6)
 }
