@@ -2,6 +2,15 @@ import express from 'express';
 // 生成した Prisma Client をインポート
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
+import bcrypt from 'bcryptjs';
+import session from 'express-session';
+
+// セッションの型定義を拡張
+declare module 'express-session' {
+  interface SessionData {
+    userId: number;
+  }
+}
 
 const prisma = new PrismaClient({
   // 開発中は、実行されたクエリをログに表示する
@@ -20,14 +29,47 @@ app.set('views', path.join(__dirname, 'views'));
 // POSTリクエストのbodyを解釈するためのミドルウェア
 app.use(express.urlencoded({ extended: true }));
 
-// 簡易的な認証: 常にユーザーID 1 として扱う
-const MOCK_USER_ID = 1;
-
 // publicディレクトリを静的ファイルとして配信
 app.use(express.static(path.join(__dirname, 'public')));
 
 // JSONリクエストボディをパースするためのミドルウェア
 app.use(express.json());
+
+// セッションミドルウェアを設定
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // 開発環境ではfalse
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24時間
+  }
+}));
+
+// 認証ミドルウェア
+const requireAuth = (req: any, res: any, next: any) => {
+  if (req.session.userId) {
+    next();
+  } else {
+    res.redirect('/login');
+  }
+};
+
+// ログイン済みユーザーの情報を取得するミドルウェア
+const getUserInfo = async (req: any, res: any, next: any) => {
+  if (req.session.userId) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: req.session.userId }
+      });
+      req.user = user;
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  }
+  next();
+};
 
 // Gemini APIの初期化
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -80,7 +122,7 @@ app.get('/', async (req, res) => {
   // 2. 現在のユーザーの正解した回答履歴を取得
   const correctAttempts = await prisma.quizAttempt.findMany({
     where: {
-      userId: MOCK_USER_ID,
+      userId: req.session.userId || 1, // セッションからユーザーIDを取得、なければ1
       isCorrect: true,
     },
     select: {
@@ -127,7 +169,19 @@ app.get('/', async (req, res) => {
     progressPercentage: chapter.totalQuestions > 0 ? (chapter.clearedQuestions / chapter.totalQuestions) * 100 : 0,
   }));
 
-  res.render('index', { chapters: chaptersWithProgress });
+  // ユーザー情報を取得（ログインしている場合のみ）
+  let user = null;
+  if (req.session && req.session.userId) {
+    try {
+      user = await prisma.user.findUnique({
+        where: { id: req.session.userId }
+      });
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  }
+
+  res.render('index', { chapters: chaptersWithProgress, user: user });
 });
 
 // 新規レッスン作成フォームを表示するルート
@@ -166,10 +220,10 @@ app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
 
   const isCorrect = selectedOption.isCorrect;
 
-  // QuizAttemptに記録 (UserモデルがまだないのでuserIdはコメントアウト)
+  // QuizAttemptに記録
   await prisma.quizAttempt.create({
     data: {
-      userId: MOCK_USER_ID,
+      userId: req.session.userId || 1, // セッションからユーザーIDを取得、なければ1
       questionId: parseInt(questionId, 10),
       selectedOptionId: parseInt(selectedOptionId, 10),
       isCorrect: isCorrect,
@@ -183,6 +237,80 @@ app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
 
   const resultQuery = `?result=${isCorrect ? 'correct' : 'incorrect'}&selected=${selectedOptionId}&correct=${correctOption?.id}&question=${questionId}`;
   res.redirect(`/lessons/${lessonId}${resultQuery}`);
+});
+
+// ログインページ
+app.get('/login', (req, res) => {
+  res.render('login', { error: null });
+});
+
+// サインアップページ
+app.get('/signup', (req, res) => {
+  res.render('signup', { error: null });
+});
+
+// ログイン処理
+app.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.render('login', { error: 'メールアドレスまたはパスワードが正しくありません' });
+    }
+
+    req.session.userId = user.id;
+    res.redirect('/');
+  } catch (error) {
+    console.error('Login error:', error);
+    res.render('login', { error: 'ログイン中にエラーが発生しました' });
+  }
+});
+
+// サインアップ処理
+app.post('/signup', async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    
+    // 既存ユーザーのチェック
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (existingUser) {
+      return res.render('signup', { error: 'このメールアドレスは既に使用されています' });
+    }
+
+    // パスワードのハッシュ化
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        name: name || null
+      }
+    });
+
+    req.session.userId = user.id;
+    res.redirect('/');
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.render('signup', { error: 'サインアップ中にエラーが発生しました' });
+  }
+});
+
+// ログアウト処理
+app.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Logout error:', err);
+    }
+    res.redirect('/login');
+  });
 });
 
 // 検索結果ページ
@@ -232,7 +360,7 @@ app.get('/lessons/:id', async (req, res) => {
   // ユーザーの回答履歴を取得
   const attempts = await prisma.quizAttempt.findMany({
     where: {
-      userId: MOCK_USER_ID,
+      userId: req.session.userId || 1, // セッションからユーザーIDを取得、なければ1
       question: {
         lessonId: id,
       },

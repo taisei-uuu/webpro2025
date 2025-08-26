@@ -25,9 +25,14 @@ async function main() {
   await prisma.user.deleteMany();
   console.log("Deleted old data.");
 
+  // パスワードをハッシュ化
+  const bcrypt = require('bcryptjs');
+  const hashedPassword = await bcrypt.hash("password123", 10);
+  
   const user = await prisma.user.create({
     data: {
       email: "test@example.com",
+      password: hashedPassword,
       name: "Test User",
     },
   });
