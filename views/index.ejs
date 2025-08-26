@@ -10,7 +10,7 @@
 
     <header class="site-header">
         <div class="container">
-            <h1>株式投資学習ロードマップ</h1>
+            <h1><a href="/" class="home-link">株式投資学習ロードマップ</a></h1>
             <p>0から始める株式投資の学び方</p>
         </div>
     </header>
@@ -20,17 +20,21 @@
             <div class="search-container">
                 <form action="/search" method="GET" class="search-form">
                     <input type="search" name="q" class="search-input" placeholder="キーワードで検索 (例: NISA, 分析)">
-                    <button type="submit" class="btn search-btn">検索</button>
+                    <button type="button" class="btn search-btn" id="search-button">検索</button>
                 </form>
             </div>
 
             <div class="admin-link-container">
                 <a href="/admin/lessons/new" class="btn">＋ 新規レッスンを作成する</a>
             </div>
-            <% chapters.forEach(chapter => { %>
+            <% chapters.forEach((chapter, index) => { %>
                 <section class="chapter">
                     <div class="chapter-header">
-                        <h2>第<%= chapter.chapter %>章: <%= chapter.title %></h2>
+                        <div class="chapter-title-container">
+                            <button class="chapter-toggle" data-chapter="<%= index %>" aria-expanded="false">
+                                <h2>Stage<%= chapter.chapter %>: <%= chapter.title %></h2>
+                            </button>
+                        </div>
                         <% if (chapter.totalQuestions > 0) { %>
                             <div class="progress-container">
                                 <div class="progress-bar" style="width: <%= chapter.progressPercentage %>%;"></div>
@@ -38,11 +42,13 @@
                             </div>
                         <% } %>
                     </div>
-                    <ul class="lesson-list">
-                        <% chapter.lessons.forEach(lesson => { %>
-                            <li><a href="/lessons/<%= lesson.id %>"><%= lesson.title %></a></li>
-                        <% }); %>
-                    </ul>
+                    <div class="chapter-content" id="chapter-<%= index %>" style="display: none;">
+                        <ul class="lesson-list">
+                            <% chapter.lessons.forEach(lesson => { %>
+                                <li><a href="/lessons/<%= lesson.id %>"><%= lesson.title %></a></li>
+                            <% }); %>
+                        </ul>
+                    </div>
                 </section>
             <% }); %>
         </div>
@@ -56,5 +62,71 @@
 
     <%- include('_chatbot') %>
     <script src="/chatbot.js"></script>
+    <script>
+        // ドロップダウン機能と検索機能のJavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // ドロップダウン機能
+            const chapterToggles = document.querySelectorAll('.chapter-toggle');
+            
+            chapterToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const chapterIndex = this.getAttribute('data-chapter');
+                    const chapterContent = document.getElementById(`chapter-${chapterIndex}`);
+                    const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                    
+                    if (isExpanded) {
+                        // 閉じる
+                        chapterContent.style.display = 'none';
+                        this.setAttribute('aria-expanded', 'false');
+                    } else {
+                        // 開く
+                        chapterContent.style.display = 'block';
+                        this.setAttribute('aria-expanded', 'true');
+                    }
+                });
+            });
+
+            // 検索機能の改善
+            const searchForm = document.querySelector('.search-form');
+            const searchBtn = document.getElementById('search-button');
+            const searchInput = document.querySelector('.search-input');
+
+            console.log('Search elements found:', { searchForm, searchBtn, searchInput });
+
+            // 検索ボタンのクリックイベント
+            if (searchBtn) {
+                searchBtn.addEventListener('click', function(e) {
+                    console.log('Search button clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const query = searchInput.value.trim();
+                    console.log('Search query:', query);
+                    if (query) {
+                        window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                    }
+                });
+            }
+
+            // Enterキーでの検索（既存の動作を保持）
+            if (searchForm) {
+                searchForm.addEventListener('submit', function(e) {
+                    console.log('Search form submitted');
+                    e.preventDefault();
+                    const query = searchInput.value.trim();
+                    console.log('Search query:', query);
+                    if (query) {
+                        window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                    }
+                });
+            }
+
+            // デバッグ用：検索ボタンが存在するか確認
+            setTimeout(() => {
+                console.log('Search button element:', document.querySelector('.search-btn'));
+                console.log('Search button text:', document.querySelector('.search-btn')?.textContent);
+                console.log('Search button visible:', document.querySelector('.search-btn')?.offsetParent !== null);
+            }, 1000);
+        });
+    </script>
 </body>
 </html>

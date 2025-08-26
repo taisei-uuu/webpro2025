@@ -42,6 +42,21 @@ body {
     font-size: 2.5rem;
 }
 
+.home-link {
+    color: white;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.home-link:hover {
+    color: var(--secondary-color);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.home-link:active {
+    transform: scale(0.98);
+}
+
 /* メインコンテンツ */
 .site-main {
     padding-bottom: 2rem;
@@ -71,6 +86,42 @@ body {
     padding-bottom: 0.5rem;
     margin-bottom: 1rem;
     border-bottom: 2px solid var(--secondary-color);
+}
+
+.chapter-title-container {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.chapter-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    text-align: left;
+    border: 2px solid transparent;
+}
+
+.chapter-toggle:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--primary-color);
+}
+
+.chapter-toggle:active {
+    transform: translateY(1px);
+}
+
+.chapter-content {
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
 }
 
 .progress-container {
@@ -395,10 +446,6 @@ body {
     .container {
         padding: 0 15px;
     }
-}
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
-    font-size: 1.8rem;
 }
 
 /* レッスンリスト */
