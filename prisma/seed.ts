@@ -105,49 +105,48 @@ async function main() {
     },
     {
       chapter: 2,
-      title: "2-1. 企業分析の第一歩（ファンダメンタルズ分析）",
-      content: "企業の財務状況や成長性から株価の価値を分析する方法です。",
+      title: "2-1. 株価とは",
+      content: "株価とは、株式（企業の一部の所有権）の市場での取引価格です。簡単に言えば、「その会社の株を1株買うためにいくら払えばいいか」を示す金額です。\n\n株価の決まり方：株価は需要と供給のバランスで決まります。\n• 買いたい人が多い（需要が高い）→株価は上がる\n• 売りたい人が多い（供給が多い）→株価は下がる\n\nつまり、その株を買いたいチームと売りたいチームの綱引きのようなものです！",
       questions: [
         {
-          text: "企業の収益性や資産状況を分析する手法を何と呼びますか？",
+          text: "株価とは？",
           options: [
-            { text: "テクニカル分析", isCorrect: false },
-            { text: "ファンダメンタルズ分析", isCorrect: true },
-            { text: "センチメント分析", isCorrect: false },
-            { text: "クオンツ分析", isCorrect: false },
+            { text: "企業の利益", isCorrect: false },
+            { text: "株式の市場での取引価格", isCorrect: true },
+            { text: "企業の資産", isCorrect: false },
+            { text: "配当金", isCorrect: false },
           ],
         },
       ],
     },
     {
       chapter: 2,
-      title: "2-2. チャートの読み方（テクニカル分析）",
-      content:
-        "株価のチャートパターンや指標から将来の値動きを予測する方法です。",
+      title: "2-2. 株価を見る道具",
+      content: "株価を見る道具には次の2つがあるよ！\n\n• 「板」：現在、株を売りたいチームと買いたいチームの人数をまとめた表。それぞれどの値段で売買したいと思っているのかを一目で確認できる。\n• 「チャート」：株価の時間的変化をグラフにしたもの。過去の値動きから将来を予測する参考になる。",
       questions: [
         {
-          text: "株価チャートで、短期の移動平均線が長期の移動平均線を下から上に突き抜ける現象を何と呼びますか？",
+          text: "株価の時間的変化をグラフにしたものはどれ？",
           options: [
-            { text: "デッドクロス", isCorrect: false },
-            { text: "ゴールデンクロス", isCorrect: true },
-            { text: "ダウントレンド", isCorrect: false },
-            { text: "レンジ相場", isCorrect: false },
+            { text: "板", isCorrect: false },
+            { text: "チャート", isCorrect: true },
+            { text: "トランジション", isCorrect: false },
+            { text: "配当", isCorrect: false },
           ],
         },
       ],
     },
     {
       chapter: 2,
-      title: "2-3. 投資指標（PER, PBR, ROE）の見方",
-      content: "企業の株価が割安か割高かを判断するための代表的な指標を学びます。",
+      title: "2-3. 株式売買の単元",
+      content: "株式売買の単元：日本市場では100株単位で売買されているよ！これを単元という！だからもし、株価が1000円の企業の株を買いたいと思ったら、1000円×100株=10万円用意しなければならないんだ！でも、証券会社によっては、1株単位で売買できる「単元未満株」を提供しているものもあるよ！",
       questions: [
         {
-          text: "株価収益率（PER）が低いほど、一般的に株価はどのように評価されますか？",
+          text: "日本市場において取引される単位は何株？",
           options: [
-            { text: "割高", isCorrect: false },
-            { text: "割安", isCorrect: true },
-            { text: "適正価格", isCorrect: false },
-            { text: "評価不能", isCorrect: false },
+            { text: "1株", isCorrect: false },
+            { text: "10株", isCorrect: false },
+            { text: "100株", isCorrect: true },
+            { text: "1000株", isCorrect: false },
           ],
         },
       ],

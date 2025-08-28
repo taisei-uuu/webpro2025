@@ -122,7 +122,7 @@ app.get('/', async (req, res) => {
   // 2. 現在のユーザーの正解した回答履歴を取得
   const correctAttempts = await prisma.quizAttempt.findMany({
     where: {
-      userId: req.session.userId || 1, // セッションからユーザーIDを取得、なければ1
+      userId: req.session.userId || null, // セッションからユーザーIDを取得、なければnull
       isCorrect: true,
     },
     select: {
@@ -209,6 +209,15 @@ app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
   const lessonId = parseInt(req.params.lessonId, 10);
   const { questionId, selectedOptionId } = req.body;
 
+  // デバッグ用ログ
+  console.log('Quiz submission:', {
+    lessonId,
+    questionId,
+    selectedOptionId,
+    sessionUserId: req.session.userId,
+    session: req.session
+  });
+
   // 選択された選択肢が正しいか確認
   const selectedOption = await prisma.option.findUnique({
     where: { id: parseInt(selectedOptionId, 10) },
@@ -223,7 +232,7 @@ app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
   // QuizAttemptに記録
   await prisma.quizAttempt.create({
     data: {
-      userId: req.session.userId || 1, // セッションからユーザーIDを取得、なければ1
+      userId: req.session.userId || null, // セッションからユーザーIDを取得、なければnull
       questionId: parseInt(questionId, 10),
       selectedOptionId: parseInt(selectedOptionId, 10),
       isCorrect: isCorrect,
@@ -360,7 +369,7 @@ app.get('/lessons/:id', async (req, res) => {
   // ユーザーの回答履歴を取得
   const attempts = await prisma.quizAttempt.findMany({
     where: {
-      userId: req.session.userId || 1, // セッションからユーザーIDを取得、なければ1
+      userId: req.session.userId || null, // セッションからユーザーIDを取得、なければnull
       question: {
         lessonId: id,
       },
