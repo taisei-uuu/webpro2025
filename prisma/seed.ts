@@ -41,50 +41,64 @@ async function main() {
   const lessonsWithQuestions = [
     {
       chapter: 1,
-      title: "1-1. 株式とは何か？",
-      content: "株式の基本的な概念、株式会社の仕組みについて学びます。",
+      title: "1-1. 証券口座について",
+      content: "株式投資を始める第一歩は「証券口座」を開設することです。\n\n1. 証券口座とは\n   • 株式や投資信託などの金融商品を売買するための専用の口座\n   • 普段使っている銀行口座とは別物\n   • 株を買ったり売ったりするためには必ず必要\n\n2. 証券口座の重要性\n   • 投資を始めるための必須条件\n   • 安全で確実な取引の基盤\n   • 資産形成の第一歩",
       questions: [
         {
-          text: "株式会社が資金調達のために発行するものは何ですか？",
-          options: [
-            { text: "債券", isCorrect: false },
-            { text: "株式", isCorrect: true },
-            { text: "手形", isCorrect: false },
-            { text: "投資信託", isCorrect: false },
-          ],
-        },
-      ],
-    },
-    {
-      chapter: 1,
-      title: "1-2. 証券口座の開設方法",
-      content:
-        "株式投資を始めるために必要な証券口座の選び方と開設手順を解説します。",
-      questions: [
-        {
-          text: "株式の売買を行うために、まず開設する必要があるものは何ですか？",
+          text: "株式投資を始める第一歩として必要なものは何ですか？",
           options: [
             { text: "銀行口座", isCorrect: false },
             { text: "証券口座", isCorrect: true },
             { text: "FX口座", isCorrect: false },
-            { text: "当座預金口座", isCorrect: false },
+            { text: "クレジットカード", isCorrect: false },
           ],
         },
       ],
     },
     {
       chapter: 1,
-      title: "1-3. 株の買い方・売り方",
-      content:
-        "実際の株式取引の基本となる、注文方法（成行・指値など）を学びます。",
+      title: "1-2. 証券会社の選び方",
+      content: "証券会社は大きく分けて2種類あります。\n\n1. 対面型証券会社\n   • 店舗で担当者と直接相談しながら取引\n   • 初心者には心強い\n   • 手数料が高め\n\n2. ネット証券\n   • インターネットで全て完結\n   • 手数料が安い\n   • スマホでも簡単に取引可能",
       questions: [
         {
-          text: "価格を指定せずに現在の市場価格で売買する注文方法を何と呼びますか？",
+          text: "手数料が安く、スマホでも簡単に取引できる証券会社の種類は何ですか？",
           options: [
-            { text: "指値注文", isCorrect: false },
-            { text: "逆指値注文", isCorrect: false },
-            { text: "成行注文", isCorrect: true },
-            { text: "IOC注文", isCorrect: false },
+            { text: "対面型証券会社", isCorrect: false },
+            { text: "ネット証券", isCorrect: true },
+            { text: "銀行系証券会社", isCorrect: false },
+            { text: "保険系証券会社", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    {
+      chapter: 1,
+      title: "1-3. 証券会社選びのポイント",
+      content: "証券会社選びの重要なポイントは以下の通りです。\n\n1. 取引手数料\n   • 安い方が利益を出しやすい\n   • 最近はネット証券で株式取引が無料のところも増加\n\n2. 使いやすさ\n   • 特に初心者にはアプリやウェブサイトの使いやすさが重要\n   • 直感的な操作ができるかチェック\n\n3. 銀行との連携\n   • 普段使っている銀行と連携している証券会社\n   • お金の入出金がスムーズ\n\n4. 投資情報の充実度\n   • 銘柄情報や投資に役立つコンテンツが充実しているか\n   • 学習コンテンツの質も確認",
+      questions: [
+        {
+          text: "証券会社を選ぶ際に、初心者にとって特に重要なポイントは何ですか？",
+          options: [
+            { text: "取引手数料の安さ", isCorrect: false },
+            { text: "アプリやウェブサイトの使いやすさ", isCorrect: true },
+            { text: "店舗の数", isCorrect: false },
+            { text: "設立年数", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    {
+      chapter: 1,
+      title: "1-4. 口座開設の流れ",
+      content: "証券口座開設の手続きは以下の流れで進みます。\n\n1. 申し込み手続き\n   • 証券会社のウェブサイトやアプリから申し込み\n   • 必要事項を入力\n\n2. 本人確認書類の提出\n   • 運転免許証やマイナンバーカードなど\n   • 書類をアップロード\n\n3. 審査期間\n   • 数日〜1週間程度\n   • 口座開設完了の連絡が来る\n\n4. 口座開設完了\n   • 口座に入金\n   • いよいよ株式投資のスタート！",
+      questions: [
+        {
+          text: "証券口座開設の手続きで、本人確認書類として使用できないものは何ですか？",
+          options: [
+            { text: "運転免許証", isCorrect: false },
+            { text: "マイナンバーカード", isCorrect: false },
+            { text: "パスポート", isCorrect: false },
+            { text: "学生証", isCorrect: true },
           ],
         },
       ],
