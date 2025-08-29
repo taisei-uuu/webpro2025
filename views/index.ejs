@@ -44,7 +44,7 @@
             <!-- 学習進捗ステッパー -->
             <div class="stepper">
                 <% chapters.forEach((chapter, index) => { %>
-                    <div class="stepper-item" data-chapter="<%= index %>">
+                    <div class="stepper-item clickable" data-chapter="<%= index %>">
                         <div class="stepper-indicator"><%= index + 1 %></div>
                         <div class="stepper-title">Stage<%= chapter.chapter %></div>
                         <div class="stepper-description"><%= chapter.title %></div>
@@ -56,7 +56,7 @@
                 <a href="/admin/lessons/new" class="btn">＋ 新規レッスンを作成する</a>
             </div>
             <% chapters.forEach((chapter, index) => { %>
-                <section class="chapter">
+                <section class="chapter" data-chapter="<%= index %>">
                     <div class="chapter-header">
                         <div class="chapter-title-container">
                             <button class="chapter-toggle" data-chapter="<%= index %>" aria-expanded="false">
@@ -114,6 +114,59 @@
                 });
             });
 
+            // ステッパーのナビゲーション機能
+            const stepperItems = document.querySelectorAll('.stepper-item');
+            
+            stepperItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    console.log('Stepper item clicked!');
+                    const chapterIndex = this.getAttribute('data-chapter');
+                    console.log('Chapter index:', chapterIndex);
+                    
+                    const targetChapter = document.querySelector(`section.chapter[data-chapter="${chapterIndex}"]`);
+                    console.log('Target chapter found:', targetChapter);
+                    
+                    if (targetChapter) {
+                        // 対応するChapterを開く
+                        const chapterToggle = targetChapter.querySelector('.chapter-toggle');
+                        const chapterContent = targetChapter.querySelector('.chapter-content');
+                        
+                        if (chapterToggle && chapterContent) {
+                            // Chapterが閉じている場合は開く
+                            if (chapterContent.style.display === 'none') {
+                                chapterContent.style.display = 'block';
+                                chapterToggle.setAttribute('aria-expanded', 'true');
+                                console.log('Chapter opened');
+                            }
+                        }
+                        
+                        // 画面中央にスクロール（より正確な位置計算）
+                        const targetRect = targetChapter.getBoundingClientRect();
+                        const windowHeight = window.innerHeight;
+                        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                        const targetTop = targetRect.top + scrollTop;
+                        const offset = (windowHeight - targetRect.height) / 2;
+                        
+                        console.log('Scroll calculation:', {
+                            targetRect: targetRect,
+                            windowHeight: windowHeight,
+                            scrollTop: scrollTop,
+                            targetTop: targetTop,
+                            offset: offset
+                        });
+                        
+                        window.scrollTo({
+                            top: targetTop - offset,
+                            behavior: 'smooth'
+                        });
+                        
+                        console.log('Scrolling to:', targetTop - offset);
+                    } else {
+                        console.log('Target chapter not found!');
+                    }
+                });
+            });
+
             // 検索機能の改善
             const searchForm = document.querySelector('.search-form');
             const searchBtn = document.getElementById('search-button');
@@ -152,38 +205,59 @@
             function updateStepperProgress() {
                 const stepperItems = document.querySelectorAll('.stepper-item');
                 const chapterElements = document.querySelectorAll('.chapter');
-                let completedCount = 0;
-                
-                // 完了した章の数をカウント
-                chapterElements.forEach((chapter, index) => {
-                    const progressText = chapter.querySelector('.progress-text');
-                    if (progressText) {
-                        const match = progressText.textContent.match(/(\d+) \/ (\d+) 問クリア/);
-                        if (match) {
-                            const clearedQuestions = parseInt(match[1]);
-                            const totalQuestions = parseInt(match[2]);
-                            if (totalQuestions > 0 && clearedQuestions === totalQuestions) {
-                                completedCount++;
-                            }
-                        }
-                    }
-                });
-                
-                console.log('Completed chapters:', completedCount);
                 
                 // ステッパーの状態を更新（データ属性を使用）
                 stepperItems.forEach((item) => {
                     const chapterIndex = parseInt(item.getAttribute('data-chapter'));
                     item.classList.remove('active', 'completed');
                     
-                    if (chapterIndex < completedCount) {
-                        item.classList.add('completed');
-                        console.log(`Chapter ${chapterIndex + 1}: completed`);
-                    } else if (chapterIndex === completedCount) {
-                        item.classList.add('active');
-                        console.log(`Chapter ${chapterIndex + 1}: active`);
-                    } else {
-                        console.log(`Chapter ${chapterIndex + 1}: inactive`);
+                    // 対応するChapterの進捗状況を確認
+                    const chapter = chapterElements[chapterIndex];
+                    if (chapter) {
+                        const progressText = chapter.querySelector('.progress-text');
+                        if (progressText) {
+                            const match = progressText.textContent.match(/(\d+) \/ (\d+) 問クリア/);
+                            if (match) {
+                                const clearedQuestions = parseInt(match[1]);
+                                const totalQuestions = parseInt(match[2]);
+                                if (totalQuestions > 0 && clearedQuestions === totalQuestions) {
+                                    // 全問クリアした場合のみ青色（completed）で表示
+                                    item.classList.add('completed');
+                                    console.log(`Chapter ${chapterIndex + 1}: completed`);
+                                } else {
+                                    // 未完了の場合はグレー（デフォルト）で表示
+                                    console.log(`Chapter ${chapterIndex + 1}: incomplete`);
+                                }
+                            } else {
+                                // 進捗情報がない場合もグレー（デフォルト）で表示
+                                console.log(`Chapter ${chapterIndex + 1}: no progress info`);
+                            }
+                        } else {
+                            // 進捗表示がない場合もグレー（デフォルト）で表示
+                            console.log(`Chapter ${chapterIndex + 1}: no progress display`);
+                        }
+                    }
+                });
+                
+                // 線の色を更新（両側のChapterアイコンが青の時のみ線を青くする）
+                updateStepperLines();
+            }
+            
+            // ステッパーの線の色を更新する関数
+            function updateStepperLines() {
+                const stepperItems = document.querySelectorAll('.stepper-item');
+                
+                stepperItems.forEach((item, index) => {
+                    if (index < stepperItems.length - 1) { // 最後のアイテム以外
+                        const currentItem = item;
+                        const nextItem = stepperItems[index + 1];
+                        
+                        // 両側のChapterアイコンが青（completed）の場合のみ線を青くする
+                        if (currentItem.classList.contains('completed') && nextItem.classList.contains('completed')) {
+                            currentItem.style.setProperty('--line-color', 'var(--primary-color)');
+                        } else {
+                            currentItem.style.setProperty('--line-color', 'var(--border-color)');
+                        }
                     }
                 });
             }

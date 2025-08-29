@@ -135,7 +135,7 @@ body {
 
 .chapter-toggle {
     background: white;
-    border: 2px solid var(--border-color);
+    border: none;
     cursor: pointer;
     padding: 0.75rem 1rem;
     border-radius: 8px;
@@ -166,7 +166,6 @@ body {
 .chapter-toggle:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 25px rgba(0, 93, 155, 0.15);
-    border-color: var(--primary-color);
 }
 
 .chapter-toggle:hover::before {
@@ -594,7 +593,8 @@ body {
     background-color: #1e40af;
     border-color: #1e40af;
     color: white;
-    transform: translateY(-2px);
+    transform: tr
+    anslateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
@@ -1237,12 +1237,8 @@ body {
     left: 50%;
     width: 100%;
     height: 2px;
-    background-color: var(--border-color);
+    background-color: var(--line-color, var(--border-color));
     z-index: 1;
-}
-
-.stepper-item.completed:not(:last-child)::after {
-    background-color: var(--primary-color);
 }
 
 .stepper-indicator {
@@ -1325,4 +1321,19 @@ body {
     .stepper-description {
         max-width: 200px;
     }
+}
+
+/* ステッパーのナビゲーション機能 */
+.stepper-item.clickable {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.stepper-item.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 82, 155, 0.15);
+}
+
+.stepper-item.clickable:active {
+    transform: translateY(0);
 }
