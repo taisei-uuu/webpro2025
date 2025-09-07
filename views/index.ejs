@@ -34,22 +34,41 @@
 
     <main class="site-main">
         <div class="container">
-            <div class="search-container">
-                <form action="/search" method="GET" class="search-form">
-                    <input type="search" name="q" class="search-input" placeholder="キーワードで検索 (例: NISA, 分析)">
-                    <button type="button" class="btn search-btn" id="search-button">検索</button>
-                </form>
+            <!-- 検索機能 -->
+            <div id="search-container">
+                <!-- 検索アイコンのみ表示（初期状態） -->
+                <div id="search-indicator" class="search-indicator">
+                    <div class="search-icon">🔍</div>
+                    <div class="search-text">検索</div>
+                </div>
+                
+                <!-- 検索フォーム（初期状態では非表示） -->
+                <div class="search-form-container hidden">
+                    <form action="/search" method="GET" class="search-form">
+                        <input type="search" name="q" class="search-input" placeholder="キーワードで検索 (例: NISA, 分析)">
+                        <button type="button" class="btn search-btn" id="search-button">検索</button>
+                    </form>
+                </div>
             </div>
 
             <!-- 学習進捗ステッパー -->
-            <div class="stepper">
-                <% chapters.forEach((chapter, index) => { %>
-                    <div class="stepper-item clickable" data-chapter="<%= index %>">
-                        <div class="stepper-indicator"><%= index + 1 %></div>
-                        <div class="stepper-title">Stage<%= chapter.chapter %></div>
-                        <div class="stepper-description"><%= chapter.title %></div>
-                    </div>
-                <% }); %>
+            <div id="stepper-container">
+                <!-- 進捗アイコンのみ表示（初期状態） -->
+                <div id="progress-indicator" class="progress-indicator">
+                    <div class="progress-icon">👣</div>
+                    <div class="progress-text">進捗</div>
+                </div>
+                
+                <!-- ステッパー全体（初期状態では非表示） -->
+                <div class="stepper hidden">
+                    <% chapters.forEach((chapter, index) => { %>
+                        <div class="stepper-item" data-chapter="<%= index %>">
+                            <div class="stepper-indicator clickable" data-chapter="<%= index %>"><%= index + 1 %></div>
+                            <div class="stepper-title">Stage<%= chapter.chapter %></div>
+                            <div class="stepper-description"><%= chapter.title %></div>
+                        </div>
+                    <% }); %>
+                </div>
             </div>
 
             <div class="admin-link-container">
@@ -114,12 +133,51 @@
                 });
             });
 
-            // ステッパーのナビゲーション機能
-            const stepperItems = document.querySelectorAll('.stepper-item');
+            // 進捗アイコンのクリックイベント（Stepperの表示/非表示）
+            const progressIndicator = document.getElementById('progress-indicator');
+            const stepperContainer = document.getElementById('stepper-container');
+            const stepper = document.querySelector('.stepper');
             
-            stepperItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    console.log('Stepper item clicked!');
+            progressIndicator.addEventListener('click', function() {
+                console.log('Progress indicator clicked!');
+                
+                if (stepper.classList.contains('hidden')) {
+                    // Stepperを表示
+                    stepper.classList.remove('hidden');
+                    stepperContainer.classList.add('active');
+                    console.log('Stepper displayed');
+                } else {
+                    // Stepperを非表示
+                    stepper.classList.add('hidden');
+                    stepperContainer.classList.remove('active');
+                    console.log('Stepper hidden');
+                }
+            });
+            
+            // 検索アイコンのクリックイベント（検索フォームの表示/非表示）
+            const searchIndicator = document.getElementById('search-indicator');
+            const searchFormContainer = document.querySelector('.search-form-container');
+            
+            searchIndicator.addEventListener('click', function() {
+                console.log('Search indicator clicked!');
+                
+                if (searchFormContainer.classList.contains('hidden')) {
+                    // 検索フォームを表示
+                    searchFormContainer.classList.remove('hidden');
+                    console.log('Search form displayed');
+                } else {
+                    // 検索フォームを非表示
+                    searchFormContainer.classList.add('hidden');
+                    console.log('Search form hidden');
+                }
+            });
+            
+            // ステッパーのナビゲーション機能
+            const stepperIndicators = document.querySelectorAll('.stepper-indicator.clickable');
+            
+            stepperIndicators.forEach(indicator => {
+                indicator.addEventListener('click', function() {
+                    console.log('Stepper indicator clicked!');
                     const chapterIndex = this.getAttribute('data-chapter');
                     console.log('Chapter index:', chapterIndex);
                     

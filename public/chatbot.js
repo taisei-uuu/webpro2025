@@ -8,13 +8,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // 会話の履歴を保持する配列    
     let chatHistory = [];    
     const toggleChatWindow = () => {        
-    chatWindow.classList.toggle('hidden');        
-    // チャットを開いたときに最初のメッセージを表示        
+        chatWindow.classList.toggle('hidden');        
+        
+        // z座標を動的に制御
+        const chatbotContainer = document.getElementById('chatbot-container');
+        if (!chatWindow.classList.contains('hidden')) {
+            // チャットウィンドウが開いている時
+            chatbotContainer.classList.add('active');
+        } else {
+            // チャットウィンドウが閉じている時
+            chatbotContainer.classList.remove('active');
+        }
+        
+        // チャットを開いたときに最初のメッセージを表示        
         if (!chatWindow.classList.contains('hidden') && chatHistory.length === 0) {            
-    // 初期メッセージを送信する            
-        handleInitialMessage();        
-    }    
-};    
+            // 初期メッセージを送信する            
+            handleInitialMessage();        
+        }    
+    };    
 chatToggleButton.addEventListener('click', toggleChatWindow);    
 closeChatButton.addEventListener('click', toggleChatWindow);    
 const addMessage = (message, sender) => {        
