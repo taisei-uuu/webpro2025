@@ -8,18 +8,18 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .hero-section {
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
-                        url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') center/cover no-repeat;
-            color: white;
-            padding: 100px 0;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #212529;
+            padding: 120px 0 100px 0;
             position: relative;
+            margin-top: 76px;
         }
         .hero-section h1 {
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            color: #0d6efd;
             font-weight: 700;
         }
         .hero-section .lead {
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            color: #6c757d;
             font-weight: 500;
         }
         .feature-card {
@@ -59,14 +59,25 @@
             font-weight: bold;
             font-size: 1.5rem;
         }
+        .section-title {
+            color: #0d6efd;
+            font-weight: 700;
+        }
+        .section-subtitle {
+            color: #6c757d;
+        }
+        .cta-section .section-title {
+            color: white;
+        }
     </style>
 </head>
 <body>
     <!-- ナビゲーションバー -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
         <div class="container">
             <a class="navbar-brand text-primary" href="/">
-                <i class="fas fa-chart-line me-2"></i>Stock with
+                <img src="/logo.png" alt="Stock with" height="40" class="me-2">
+                Stock with
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -74,16 +85,15 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#features">特徴</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#about">会社概要</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="/login">ログイン</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-primary ms-2" href="/learning">学習を始める</a>
+                        <a class="nav-link" href="https://www.instagram.com/utsubo_zmoney?igsh=NTJsa3pkZnZzNXd1&utm_source=qr" target="_blank" rel="noopener noreferrer" title="Instagram">
+                            <i class="fab fa-instagram fa-2x text-danger"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-3" href="/learning">学習を始める</a>
                     </li>
                 </ul>
             </div>
@@ -95,6 +105,9 @@
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
+                    <div class="mb-4">
+                        <img src="/logo.png" alt="Stock with" height="80" class="mb-3">
+                    </div>
                     <h1 class="display-4 fw-bold mb-4">
                         株式投資を学ぶなら<br>
                         <span class="text-warning">Stock with</span>
@@ -119,8 +132,8 @@
         <div class="container">
             <div class="row text-center mb-5">
                 <div class="col-lg-8 mx-auto">
-                    <h2 class="display-5 fw-bold mb-3">なぜStock withなのか？</h2>
-                    <p class="lead text-muted">初心者でも安心して学べる3つの特徴</p>
+                    <h2 class="display-5 fw-bold mb-3 section-title">なぜStock withなのか？</h2>
+                    <p class="lead section-subtitle">初心者でも安心して学べる3つの特徴</p>
                 </div>
             </div>
             <div class="row g-4">
@@ -169,7 +182,7 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
-                    <h2 class="display-5 fw-bold mb-4">会社概要</h2>
+                    <h2 class="display-5 fw-bold mb-4 section-title">会社概要</h2>
                     <p class="lead mb-4">
                         Stock with株式会社は、株式投資の知識を正しく、分かりやすく伝えることを使命としています。
                     </p>
@@ -188,11 +201,11 @@
     </section>
 
     <!-- CTAセクション -->
-    <section class="py-5 bg-primary text-white">
+    <section class="py-5 bg-primary text-white cta-section">
         <div class="container text-center">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
-                    <h2 class="display-5 fw-bold mb-4">今すぐ学習を始めませんか？</h2>
+                    <h2 class="display-5 fw-bold mb-4 section-title">今すぐ学習を始めませんか？</h2>
                     <p class="lead mb-4">
                         無料でアカウントを作成して、株式投資の学習を始めましょう。
                     </p>
@@ -212,7 +225,10 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5><i class="fas fa-chart-line me-2"></i>Stock with</h5>
+                    <div class="d-flex align-items-center mb-2">
+                        <img src="/logo.png" alt="Stock with" height="30" class="me-2">
+                        <h5 class="mb-0">Stock with</h5>
+                    </div>
                     <p class="text-muted">株式投資学習プラットフォーム</p>
                 </div>
                 <div class="col-md-6 text-md-end">

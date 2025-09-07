@@ -12,11 +12,17 @@
         <div class="container">
             <div class="header-content">
                 <div class="header-left">
-                    <h1><a href="/learning" class="home-link">Stock with - 株式投資学習ロードマップ</a></h1>
+                    <h1><a href="/learning" class="home-link">
+                        <img src="/logo.png" alt="Stock with" height="40" class="me-2" style="vertical-align: middle;">
+                        Stock with - 株式投資学習ロードマップ
+                    </a></h1>
                     <p>0から始める株式投資の学び方</p>
                 </div>
                 <div class="header-right">
                     <a href="/" class="btn btn-outline me-2">ホーム</a>
+                    <a href="https://www.instagram.com/utsubo_zmoney?igsh=NTJsa3pkZnZzNXd1&utm_source=qr" target="_blank" rel="noopener noreferrer" title="Instagram" class="btn btn-outline me-2">
+                        <i class="fab fa-instagram"></i>
+                    </a>
                     <% if (user) { %>
                         <div class="user-info">
                             <span>こんにちは、<%= user.name || user.email %>さん</span>
@@ -108,8 +114,9 @@
         </div>
     </footer>
 
-    <%- include('_chatbot') %>
-    <script src="/chatbot.js"></script>
+    <!-- チャットボット機能（一時的にコメントアウト） -->
+    <!-- <%- include('_chatbot') %> -->
+    <!-- <script src="/chatbot.js"></script> -->
     <script>
         // ドロップダウン機能と検索機能のJavaScript
         document.addEventListener('DOMContentLoaded', function() {
