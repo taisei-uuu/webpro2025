@@ -19,11 +19,27 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .hero-section {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            color: #212529;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             padding: 120px 0 100px 0;
             position: relative;
             margin-top: 76px;
+            overflow: hidden;
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="%23ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="200" r="300" fill="url(%23a)"/><circle cx="800" cy="300" r="200" fill="url(%23a)"/><circle cx="400" cy="700" r="250" fill="url(%23a)"/></svg>') no-repeat center center;
+            background-size: cover;
+            opacity: 0.3;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
         }
         .hero-section h1 {
             color: #0d6efd;
@@ -42,7 +58,7 @@
             transform: translateY(-5px);
         }
         .cta-button {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
             border: none;
             padding: 15px 30px;
             font-size: 1.2rem;
@@ -50,10 +66,12 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             font-weight: 600;
+            color: #333 !important;
         }
         .cta-button:hover {
             transform: scale(1.05);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            color: #333 !important;
         }
         .btn-outline-light {
             border: 2px solid rgba(255, 255, 255, 0.8);
@@ -96,7 +114,10 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/login">ログイン</a>
+                        <a class="nav-link" href="/login">
+                            <i class="fas fa-right-to-bracket me-1" style="color: #0d6efd;"></i>
+                            ログイン
+                        </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="https://www.instagram.com/utsubo_zmoney?igsh=NTJsa3pkZnZzNXd1&utm_source=qr" target="_blank" rel="noopener noreferrer" title="Instagram">
@@ -115,17 +136,17 @@
     <section class="hero-section text-center">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-lg-8">
+                <div class="col-lg-8 hero-content">
                     <div class="mb-4">
-                        <img src="/logo.png" alt="Stock with" height="80" class="mb-3">
+                        <img src="/logo.png" alt="Stock with" height="80" class="mb-3" style="filter: brightness(0) invert(1);">
                     </div>
-                    <h1 class="display-4 fw-bold mb-4">
-                        株式投資を学ぶなら<br>
-                        <span class="text-warning">Stock with</span>
+                    <h1 class="display-3 fw-bold mb-4" style="line-height: 1.2; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                        誰でもこれ一つで、<br>
+                        <span class="text-warning">投資家になれる</span>
                     </h1>
-                    <p class="lead mb-5">
-                        初心者でも安心して学べる株式投資学習プラットフォーム。<br>
-                        段階的なレッスンとAIアシスタントで、あなたの投資知識をサポートします。
+                    <p class="lead mb-5 fs-4" style="color: rgba(255,255,255,0.9); font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+                        コスパ×タイパ×わかりやすさを追求した<br>
+                        <span class="text-warning fw-bold">最高の投資家ガイド</span>
                     </p>
                     <a href="/learning" class="btn cta-button text-white me-3">
                         <i class="fas fa-play me-2"></i>今すぐ始める
