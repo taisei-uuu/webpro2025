@@ -1,16 +1,12 @@
+import 'dotenv/config';
 import express from 'express';
+import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
 // 生成した Prisma Client をインポート
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
-import bcrypt from 'bcryptjs';
-import session from 'express-session';
+// bcryptjsとexpress-sessionは削除済み - Clerkを使用
 
-// セッションの型定義を拡張
-declare module 'express-session' {
-  interface SessionData {
-    userId: number;
-  }
-}
+// セッションの型定義は削除済み - Clerkを使用
 
 const prisma = new PrismaClient({
   // 開発中は、実行されたクエリをログに表示する
@@ -35,41 +31,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 // JSONリクエストボディをパースするためのミドルウェア
 app.use(express.json());
 
-// セッションミドルウェアを設定
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: false, // 開発環境ではfalse
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24時間
-  }
-}));
+// Clerkミドルウェアを追加
+app.use(clerkMiddleware());
 
-// 認証ミドルウェア
-const requireAuth = (req: any, res: any, next: any) => {
-  if (req.session.userId) {
-    next();
-  } else {
-    res.redirect('/login');
-  }
-};
+// セッションミドルウェアは削除済み - Clerkを使用
 
-// ログイン済みユーザーの情報を取得するミドルウェア
-const getUserInfo = async (req: any, res: any, next: any) => {
-  if (req.session.userId) {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id: req.session.userId }
-      });
-      req.user = user;
-    } catch (error) {
-      console.error('Error fetching user:', error);
-    }
-  }
-  next();
-};
+// 古い認証ミドルウェアは削除済み - Clerkを使用
 
 // Gemini APIの初期化（一時的にコメントアウト）
 // import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -109,11 +76,13 @@ const getUserInfo = async (req: any, res: any, next: any) => {
 
 // 自社ホームページ
 app.get('/', (req, res) => {
-  res.render('home');
+  res.render('home', { 
+    CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+  });
 });
 
-// 株学習プラットフォームのメインページ
-app.get('/learning', async (req, res) => {
+// 株学習プラットフォームのメインページ（Clerkで保護）
+app.get('/learning', requireAuth(), async (req, res) => {
   // 1. 全てのレッスンと、それに紐づく問題を取得
   const lessonsWithQuestions = await prisma.lesson.findMany({
     include: {
@@ -125,9 +94,10 @@ app.get('/learning', async (req, res) => {
   });
 
   // 2. 現在のユーザーの正解した回答履歴を取得
+  const { userId } = getAuth(req); // ClerkからユーザーIDを取得
   const correctAttempts = await prisma.quizAttempt.findMany({
     where: {
-      userId: req.session.userId || null, // セッションからユーザーIDを取得、なければnull
+      userId: userId ? parseInt(userId) : null, // ClerkのuserIdを数値に変換
       isCorrect: true,
     },
     select: {
@@ -174,19 +144,19 @@ app.get('/learning', async (req, res) => {
     progressPercentage: chapter.totalQuestions > 0 ? (chapter.clearedQuestions / chapter.totalQuestions) * 100 : 0,
   }));
 
-  // ユーザー情報を取得（ログインしている場合のみ）
+  // ユーザー情報を取得（Clerkから）
   let user: any = null;
-  if (req.session && req.session.userId) {
-    try {
-      user = await prisma.user.findUnique({
-        where: { id: req.session.userId }
-      });
-    } catch (error) {
-      console.error('Error fetching user:', error);
-    }
+  try {
+    user = await clerkClient.users.getUser(userId);
+  } catch (error) {
+    console.error('Error fetching user from Clerk:', error);
   }
 
-  res.render('index', { chapters: chaptersWithProgress, user: user });
+  res.render('index', { 
+    chapters: chaptersWithProgress, 
+    user: user,
+    CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+  });
 });
 
 // 新規レッスン作成フォームを表示するルート
@@ -209,18 +179,18 @@ app.post('/admin/lessons', async (req, res) => {
   res.redirect('/learning');
 });
 
-// クイズの回答を処理するルート
-app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
+// クイズの回答を処理するルート（Clerkで保護）
+app.post('/lessons/:lessonId/quiz/submit', requireAuth(), async (req, res) => {
   const lessonId = parseInt(req.params.lessonId, 10);
   const { questionId, selectedOptionId } = req.body;
 
   // デバッグ用ログ
+  const { userId } = getAuth(req);
   console.log('Quiz submission:', {
     lessonId,
     questionId,
     selectedOptionId,
-    sessionUserId: req.session.userId,
-    session: req.session
+    clerkUserId: userId
   });
 
   // 選択された選択肢が正しいか確認
@@ -237,7 +207,7 @@ app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
   // QuizAttemptに記録
   await prisma.quizAttempt.create({
     data: {
-      userId: req.session.userId || null, // セッションからユーザーIDを取得、なければnull
+      userId: userId ? parseInt(userId) : null, // ClerkのuserIdを数値に変換
       questionId: parseInt(questionId, 10),
       selectedOptionId: parseInt(selectedOptionId, 10),
       isCorrect: isCorrect,
@@ -251,80 +221,6 @@ app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
 
   const resultQuery = `?result=${isCorrect ? 'correct' : 'incorrect'}&selected=${selectedOptionId}&correct=${correctOption?.id}&question=${questionId}`;
   res.redirect(`/lessons/${lessonId}${resultQuery}`);
-});
-
-// ログインページ
-app.get('/login', (req, res) => {
-  res.render('login', { error: null });
-});
-
-// サインアップページ
-app.get('/signup', (req, res) => {
-  res.render('signup', { error: null });
-});
-
-// ログイン処理
-app.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    
-    const user = await prisma.user.findUnique({
-      where: { email }
-    });
-
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.render('login', { error: 'メールアドレスまたはパスワードが正しくありません' });
-    }
-
-    req.session.userId = user.id;
-    res.redirect('/learning');
-  } catch (error) {
-    console.error('Login error:', error);
-    res.render('login', { error: 'ログイン中にエラーが発生しました' });
-  }
-});
-
-// サインアップ処理
-app.post('/signup', async (req, res) => {
-  try {
-    const { email, password, name } = req.body;
-    
-    // 既存ユーザーのチェック
-    const existingUser = await prisma.user.findUnique({
-      where: { email }
-    });
-
-    if (existingUser) {
-      return res.render('signup', { error: 'このメールアドレスは既に使用されています' });
-    }
-
-    // パスワードのハッシュ化
-    const hashedPassword = await bcrypt.hash(password, 10);
-    
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name: name || null
-      }
-    });
-
-    req.session.userId = user.id;
-    res.redirect('/learning');
-  } catch (error) {
-    console.error('Signup error:', error);
-    res.render('signup', { error: 'サインアップ中にエラーが発生しました' });
-  }
-});
-
-// ログアウト処理
-app.get('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Logout error:', err);
-    }
-    res.redirect('/login');
-  });
 });
 
 // 検索結果ページ
@@ -366,15 +262,16 @@ app.get('/search', async (req, res) => {
   }
 });
 
-// レッスン詳細ページ
-app.get('/lessons/:id', async (req, res) => {
+// レッスン詳細ページ（Clerkで保護）
+app.get('/lessons/:id', requireAuth(), async (req, res) => {
   const id = parseInt(req.params.id, 10);
   const { result, selected, correct, question: answeredQuestionId } = req.query;
 
   // ユーザーの回答履歴を取得
+  const { userId } = getAuth(req);
   const attempts = await prisma.quizAttempt.findMany({
     where: {
-      userId: req.session.userId || null, // セッションからユーザーIDを取得、なければnull
+      userId: userId ? parseInt(userId) : null, // ClerkのuserIdを数値に変換
       question: {
         lessonId: id,
       },

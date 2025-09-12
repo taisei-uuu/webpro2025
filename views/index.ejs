@@ -6,6 +6,13 @@
     <title>Stock with - 株式投資学習ロードマップ</title>
     <link rel="stylesheet" href="/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Clerk認証スクリプト -->
+    <script>
+        window.Clerk = window.Clerk || {};
+        window.Clerk.publishableKey = '<%= process.env.CLERK_PUBLISHABLE_KEY %>';
+    </script>
+    <script async crossorigin="anonymous" data-clerk-publishable-key="<%= process.env.CLERK_PUBLISHABLE_KEY %>" src="https://<%= process.env.CLERK_PUBLISHABLE_KEY.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
 </head>
 <body>
 
@@ -24,20 +31,15 @@
                     <a href="https://www.instagram.com/utsubo_zmoney?igsh=NTJsa3pkZnZzNXd1&utm_source=qr" target="_blank" rel="noopener noreferrer" title="Instagram" class="btn btn-outline me-2">
                         <i class="fab fa-instagram"></i>
                     </a>
-                    <% if (user) { %>
-                        <div class="user-info">
-                            <span>こんにちは、<%= user.name || user.email %>さん</span>
-                            <a href="/logout" class="btn btn-outline">ログアウト</a>
-                        </div>
-                    <% } else { %>
-                        <div class="auth-links">
-                            <a href="/login" class="btn btn-primary">
-                                <i class="fas fa-right-to-bracket"></i>
-                                ログイン
-                            </a>
-                            <a href="/signup" class="btn btn-outline">サインアップ</a>
-                        </div>
-                    <% } %>
+                    <div class="user-info">
+                        <span id="user-greeting" style="display: none;">こんにちは、<span id="user-name"></span>さん</span>
+                        <button id="logout-btn" class="btn btn-outline" style="display: none;" onclick="window.Clerk.signOut()">ログアウト</button>
+                        <button id="login-btn" class="btn btn-primary" onclick="window.Clerk.openSignIn()">
+                            <i class="fas fa-right-to-bracket"></i>
+                            ログイン
+                        </button>
+                        <button id="signup-btn" class="btn btn-outline" onclick="window.Clerk.openSignUp()">サインアップ</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -122,6 +124,49 @@
     <!-- <%- include('_chatbot') %> -->
     <!-- <script src="/chatbot.js"></script> -->
     <script>
+        // Clerkの初期化とユーザー状態管理
+        window.addEventListener('load', async () => {
+            try {
+                await window.Clerk.load();
+                console.log('Clerk loaded successfully');
+                updateAuthUI();
+            } catch (error) {
+                console.error('Error loading Clerk:', error);
+            }
+        });
+        
+        // 認証UIの更新関数
+        function updateAuthUI() {
+            const user = window.Clerk.user;
+            const userGreeting = document.getElementById('user-greeting');
+            const userName = document.getElementById('user-name');
+            const logoutBtn = document.getElementById('logout-btn');
+            const loginBtn = document.getElementById('login-btn');
+            const signupBtn = document.getElementById('signup-btn');
+            
+            if (user) {
+                // ログイン済みの場合
+                if (userGreeting && userName) {
+                    userName.textContent = user.firstName || user.emailAddresses[0]?.emailAddress || 'ユーザー';
+                    userGreeting.style.display = 'inline';
+                }
+                if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (signupBtn) signupBtn.style.display = 'none';
+            } else {
+                // 未ログインの場合
+                if (userGreeting) userGreeting.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                if (loginBtn) loginBtn.style.display = 'inline-block';
+                if (signupBtn) signupBtn.style.display = 'inline-block';
+            }
+        }
+        
+        // ユーザー状態の変更を監視
+        window.Clerk.addListener(({ user }) => {
+            updateAuthUI();
+        });
+        
         // ドロップダウン機能と検索機能のJavaScript
         document.addEventListener('DOMContentLoaded', function() {
             // ドロップダウン機能
