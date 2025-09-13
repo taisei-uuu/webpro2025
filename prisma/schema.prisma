@@ -62,7 +62,22 @@ model User {
   email     String        @unique
   password  String        // パスワードフィールドを追加
   name      String?
+  clerkId   String?       @unique // ClerkのユーザーID
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   quizAttempts QuizAttempt[]
+  subscriptions Subscription[] // ユーザーのサブスクリプション
+}
+
+model Subscription {
+  id                Int      @id @default(autoincrement())
+  userId            Int
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeCustomerId  String   @unique
+  stripeSubscriptionId String @unique
+  status            String   // active, canceled, past_due, etc.
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }

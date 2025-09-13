@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
+// import Stripe from 'stripe';
 // 生成した Prisma Client をインポート
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
@@ -12,6 +13,11 @@ const prisma = new PrismaClient({
   // 開発中は、実行されたクエリをログに表示する
   log: ['query'],
 });
+
+// Stripeの初期化（コメントアウト）
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+//   apiVersion: '2024-12-18.acacia',
+// });
 
 const app = express();
 // 環境変数 PORT があればそれを使う。なければ 8888 を使う
@@ -37,6 +43,198 @@ app.use(clerkMiddleware());
 // セッションミドルウェアは削除済み - Clerkを使用
 
 // 古い認証ミドルウェアは削除済み - Clerkを使用
+
+// Stripe関連のコード（コメントアウト）
+// サブスクリプションページ
+// app.get('/subscription', (req, res) => {
+//   res.render('subscription', { 
+//     CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY,
+//     STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY 
+//   });
+// });
+
+// サブスクリプション作成API
+// app.post('/api/create-subscription', requireAuth(), async (req, res) => {
+//   try {
+//     const { userId } = getAuth(req);
+//     
+//     // ユーザー情報を取得または作成
+//     let user = await prisma.user.findUnique({
+//       where: { clerkId: userId }
+//     });
+//     
+//     if (!user) {
+//       // Clerkのユーザー情報を取得
+//       const clerkUser = await clerkClient.users.getUser(userId);
+//       
+//       // データベースにユーザーを作成
+//       user = await prisma.user.create({
+//         data: {
+//           clerkId: userId,
+//           email: clerkUser.emailAddresses[0]?.emailAddress || '',
+//           name: clerkUser.firstName || null,
+//           password: '' // Clerkを使用するため空文字
+//         }
+//       });
+//     }
+//     
+//     // Stripe顧客を作成または取得
+//     let customer;
+//     const existingCustomers = await stripe.customers.list({
+//       email: user.email,
+//       limit: 1
+//     });
+//     
+//     if (existingCustomers.data.length > 0) {
+//       customer = existingCustomers.data[0];
+//     } else {
+//       customer = await stripe.customers.create({
+//         email: user.email,
+//         name: user.name || undefined,
+//         metadata: {
+//           clerkId: userId,
+//           userId: user.id.toString()
+//         }
+//       });
+//     }
+//     
+//     // 価格ID（Stripeダッシュボードで作成した価格のID）
+//     const priceId = process.env.STRIPE_PRICE_ID || 'price_1234567890'; // 実際の価格IDに置き換え
+//     
+//     // チェックアウトセッションを作成
+//     const session = await stripe.checkout.sessions.create({
+//       customer: customer.id,
+//       payment_method_types: ['card'],
+//       line_items: [
+//         {
+//           price: priceId,
+//           quantity: 1,
+//         },
+//       ],
+//       mode: 'subscription',
+//       success_url: `${req.protocol}://${req.get('host')}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+//       cancel_url: `${req.protocol}://${req.get('host')}/subscription`,
+//       metadata: {
+//         userId: user.id.toString(),
+//         clerkId: userId
+//       }
+//     });
+//     
+//     res.json({ clientSecret: session.id });
+//   } catch (error) {
+//     console.error('Error creating subscription:', error);
+//     res.status(500).json({ error: 'Failed to create subscription' });
+//   }
+// });
+
+// サブスクリプション成功ページ
+// app.get('/subscription/success', requireAuth(), async (req, res) => {
+//   const { session_id } = req.query;
+//   
+//   try {
+//     const session = await stripe.checkout.sessions.retrieve(session_id as string);
+//     
+//     if (session.payment_status === 'paid') {
+//       res.render('subscription-success', {
+//         sessionId: session_id,
+//         customerEmail: session.customer_details?.email
+//       });
+//     } else {
+//       res.redirect('/subscription?error=payment_failed');
+//     }
+//   } catch (error) {
+//     console.error('Error retrieving session:', error);
+//     res.redirect('/subscription?error=session_error');
+//   }
+// });
+
+// Stripe Webhook
+// app.post('/webhook/stripe', express.raw({type: 'application/json'}), async (req, res) => {
+//   const sig = req.headers['stripe-signature'];
+//   let event;
+
+//   try {
+//     event = stripe.webhooks.constructEvent(req.body, sig!, process.env.STRIPE_WEBHOOK_SECRET!);
+//   } catch (err) {
+//     console.error('Webhook signature verification failed:', err);
+//     return res.status(400).send('Webhook Error');
+//   }
+
+//   try {
+//     switch (event.type) {
+//       case 'checkout.session.completed':
+//         const session = event.data.object;
+//         await handleSubscriptionCreated(session);
+//         break;
+//       case 'customer.subscription.updated':
+//         const subscription = event.data.object;
+//         await handleSubscriptionUpdated(subscription);
+//         break;
+//       case 'customer.subscription.deleted':
+//         const deletedSubscription = event.data.object;
+//         await handleSubscriptionDeleted(deletedSubscription);
+//         break;
+//       default:
+//         console.log(`Unhandled event type: ${event.type}`);
+//     }
+//   } catch (error) {
+//     console.error('Error handling webhook:', error);
+//     return res.status(500).send('Webhook handler error');
+//   }
+
+//   res.json({received: true});
+// });
+
+// サブスクリプション作成処理
+// async function handleSubscriptionCreated(session: any) {
+//   const { userId, clerkId } = session.metadata;
+//   
+//   if (!userId || !clerkId) {
+//     console.error('Missing user metadata in session');
+//     return;
+//   }
+
+//   const subscription = await stripe.subscriptions.retrieve(session.subscription);
+//   
+//   await prisma.subscription.create({
+//     data: {
+//       userId: parseInt(userId),
+//       stripeCustomerId: session.customer,
+//       stripeSubscriptionId: subscription.id,
+//       status: subscription.status,
+//       currentPeriodStart: new Date(subscription.current_period_start * 1000),
+//       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+//     }
+//   });
+//   
+//   console.log(`Subscription created for user ${userId}`);
+// }
+
+// サブスクリプション更新処理
+// async function handleSubscriptionUpdated(subscription: any) {
+//   await prisma.subscription.update({
+//     where: { stripeSubscriptionId: subscription.id },
+//     data: {
+//       status: subscription.status,
+//       currentPeriodStart: new Date(subscription.current_period_start * 1000),
+//       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+//     }
+//   });
+//   
+//   console.log(`Subscription updated: ${subscription.id}`);
+// }
+
+// サブスクリプション削除処理
+// async function handleSubscriptionDeleted(subscription: any) {
+//   await prisma.subscription.update({
+//     where: { stripeSubscriptionId: subscription.id },
+//     data: {
+//       status: 'canceled',
+//     }
+//   });
+//   
+//   console.log(`Subscription canceled: ${subscription.id}`);
+// }
 
 // Gemini APIの初期化（一時的にコメントアウト）
 // import { GoogleGenerativeAI } from "@google/generative-ai";
