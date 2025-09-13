@@ -18,22 +18,20 @@ async function main() {
   console.log(`Start seeding ...`);
 
   // 既存のデータをクリア (依存関係の深いものから削除)
-  // QuizAttemptはまだUserモデルがないため、コメントアウトのまま
   await prisma.quizAttempt.deleteMany();
+  await prisma.subscription.deleteMany();
   await prisma.question.deleteMany(); // Questionを削除すると、関連するOptionもカスケード削除されます
   await prisma.lesson.deleteMany();
   await prisma.user.deleteMany();
   console.log("Deleted old data.");
 
-  // パスワードをハッシュ化
-  const bcrypt = require('bcryptjs');
-  const hashedPassword = await bcrypt.hash("password123", 10);
-  
+  // テストユーザーを作成（Clerkを使用するため、パスワードは不要）
   const user = await prisma.user.create({
     data: {
       email: "test@example.com",
-      password: hashedPassword,
+      password: "", // Clerkを使用するため空文字
       name: "Test User",
+      clerkId: "test_clerk_id", // テスト用のClerk ID
     },
   });
   console.log(`Created user with id: ${user.id}`);
