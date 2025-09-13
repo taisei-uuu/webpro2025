@@ -49,6 +49,7 @@ model QuizAttempt {
   id               Int      @id @default(autoincrement())
   userId           Int?
   user             User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId        String?  // ゲストユーザーのセッションID
   questionId       Int
   question         Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   selectedOptionId Int?     // ユーザーが選択した選択肢のID（オプショナル）

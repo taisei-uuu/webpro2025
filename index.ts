@@ -1,13 +1,19 @@
 import 'dotenv/config';
 import express from 'express';
 import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
+import session from 'express-session';
 // import Stripe from 'stripe';
 // 生成した Prisma Client をインポート
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
-// bcryptjsとexpress-sessionは削除済み - Clerkを使用
+import { v4 as uuidv4 } from 'uuid';
 
-// セッションの型定義は削除済み - Clerkを使用
+// セッションの型定義
+declare module 'express-session' {
+  interface SessionData {
+    guestSessionId?: string;
+  }
+}
 
 const prisma = new PrismaClient({
   // 開発中は、実行されたクエリをログに表示する
@@ -37,12 +43,37 @@ app.use(express.static(path.join(__dirname, 'public')));
 // JSONリクエストボディをパースするためのミドルウェア
 app.use(express.json());
 
+// セッションミドルウェアを追加（ゲストモード用）
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24時間
+  }
+}));
+
 // Clerkミドルウェアを追加
 app.use(clerkMiddleware());
 
-// セッションミドルウェアは削除済み - Clerkを使用
+// ゲストセッション管理のヘルパー関数
+function getOrCreateGuestSession(req: express.Request): string {
+  if (!req.session.guestSessionId) {
+    req.session.guestSessionId = uuidv4();
+  }
+  return req.session.guestSessionId;
+}
 
-// 古い認証ミドルウェアは削除済み - Clerkを使用
+// ユーザーIDまたはセッションIDを取得するヘルパー関数
+function getUserIdentifier(req: express.Request): { userId?: number; sessionId?: string } {
+  const { userId } = getAuth(req);
+  if (userId) {
+    return { userId: parseInt(userId) };
+  } else {
+    return { sessionId: getOrCreateGuestSession(req) };
+  }
+}
 
 // Stripe関連のコード（コメントアウト）
 // サブスクリプションページ
@@ -283,8 +314,8 @@ app.get('/', (req, res) => {
   });
 });
 
-// 株学習プラットフォームのメインページ（Clerkで保護）
-app.get('/learning', requireAuth(), async (req, res) => {
+// 株学習プラットフォームのメインページ（ゲストモード対応）
+app.get('/learning', async (req, res) => {
   // 1. 全てのレッスンと、それに紐づく問題を取得
   const lessonsWithQuestions = await prisma.lesson.findMany({
     include: {
@@ -295,11 +326,14 @@ app.get('/learning', requireAuth(), async (req, res) => {
     },
   });
 
-  // 2. 現在のユーザーの正解した回答履歴を取得
-  const { userId } = getAuth(req); // ClerkからユーザーIDを取得
+  // 2. 現在のユーザー（ログイン済みまたはゲスト）の正解した回答履歴を取得
+  const { userId, sessionId } = getUserIdentifier(req);
   const correctAttempts = await prisma.quizAttempt.findMany({
     where: {
-      userId: userId ? parseInt(userId) : null, // ClerkのuserIdを数値に変換
+      OR: [
+        userId ? { userId: userId } : {},
+        sessionId ? { sessionId: sessionId } : {}
+      ],
       isCorrect: true,
     },
     select: {
@@ -346,17 +380,20 @@ app.get('/learning', requireAuth(), async (req, res) => {
     progressPercentage: chapter.totalQuestions > 0 ? (chapter.clearedQuestions / chapter.totalQuestions) * 100 : 0,
   }));
 
-  // ユーザー情報を取得（Clerkから）
+  // ユーザー情報を取得（ログイン済みの場合のみ）
   let user: any = null;
-  try {
-    user = await clerkClient.users.getUser(userId);
-  } catch (error) {
-    console.error('Error fetching user from Clerk:', error);
+  if (userId) {
+    try {
+      user = await clerkClient.users.getUser(userId.toString());
+    } catch (error) {
+      console.error('Error fetching user from Clerk:', error);
+    }
   }
 
   res.render('index', { 
     chapters: chaptersWithProgress, 
     user: user,
+    isGuest: !userId, // ゲストモードかどうかのフラグ
     CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
   });
 });
@@ -381,18 +418,19 @@ app.post('/admin/lessons', async (req, res) => {
   res.redirect('/learning');
 });
 
-// クイズの回答を処理するルート（Clerkで保護）
-app.post('/lessons/:lessonId/quiz/submit', requireAuth(), async (req, res) => {
+// クイズの回答を処理するルート（ゲストモード対応）
+app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
   const lessonId = parseInt(req.params.lessonId, 10);
   const { questionId, selectedOptionId } = req.body;
 
   // デバッグ用ログ
-  const { userId } = getAuth(req);
+  const { userId, sessionId } = getUserIdentifier(req);
   console.log('Quiz submission:', {
     lessonId,
     questionId,
     selectedOptionId,
-    clerkUserId: userId
+    userId,
+    sessionId
   });
 
   // 選択された選択肢が正しいか確認
@@ -409,7 +447,8 @@ app.post('/lessons/:lessonId/quiz/submit', requireAuth(), async (req, res) => {
   // QuizAttemptに記録
   await prisma.quizAttempt.create({
     data: {
-      userId: userId ? parseInt(userId) : null, // ClerkのuserIdを数値に変換
+      userId: userId || null,
+      sessionId: sessionId || null,
       questionId: parseInt(questionId, 10),
       selectedOptionId: parseInt(selectedOptionId, 10),
       isCorrect: isCorrect,
@@ -464,16 +503,19 @@ app.get('/search', async (req, res) => {
   }
 });
 
-// レッスン詳細ページ（Clerkで保護）
-app.get('/lessons/:id', requireAuth(), async (req, res) => {
+// レッスン詳細ページ（ゲストモード対応）
+app.get('/lessons/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   const { result, selected, correct, question: answeredQuestionId } = req.query;
 
   // ユーザーの回答履歴を取得
-  const { userId } = getAuth(req);
+  const { userId, sessionId } = getUserIdentifier(req);
   const attempts = await prisma.quizAttempt.findMany({
     where: {
-      userId: userId ? parseInt(userId) : null, // ClerkのuserIdを数値に変換
+      OR: [
+        userId ? { userId: userId } : {},
+        sessionId ? { sessionId: sessionId } : {}
+      ],
       question: {
         lessonId: id,
       },
@@ -512,6 +554,7 @@ app.get('/lessons/:id', requireAuth(), async (req, res) => {
     lesson,
     clearedQuestionIds,
     nextLesson,
+    isGuest: !userId, // ゲストモードかどうかのフラグ
     quizResult: {
       result,
       selectedId: selected ? parseInt(selected as string, 10) : undefined,

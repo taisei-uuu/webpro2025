@@ -7,6 +7,8 @@
     --border-color: #dee2e6;
     --link-color: #007bff;
     --link-hover-color: #0056b3;
+    --guest-color: #6c757d;
+    --guest-bg: #f8f9fa;
 }
 
 *, *::before, *::after {
@@ -1525,4 +1527,50 @@ body {
 
 .search-form-container.hidden {
     display: none;
+}
+
+/* ゲストモード用スタイル */
+.guest-badge {
+    background-color: var(--guest-bg);
+    color: var(--guest-color);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+    margin-right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.guest-badge::before {
+    content: "👤";
+    font-size: 0.75rem;
+}
+
+.guest-notice {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.guest-notice i {
+    color: #f39c12;
+}
+
+.guest-notice a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.guest-notice a:hover {
+    text-decoration: underline;
 }

@@ -32,13 +32,22 @@
                         <i class="fab fa-instagram"></i>
                     </a>
                     <div class="user-info">
-                        <span id="user-greeting" style="display: none;">こんにちは、<span id="user-name"></span>さん</span>
-                        <button id="logout-btn" class="btn btn-outline" style="display: none;" onclick="window.Clerk.signOut()">ログアウト</button>
-                        <button id="login-btn" class="btn btn-primary" onclick="window.Clerk.openSignIn()">
-                            <i class="fas fa-right-to-bracket"></i>
-                            ログイン
-                        </button>
-                        <button id="signup-btn" class="btn btn-outline" onclick="window.Clerk.openSignUp()">サインアップ</button>
+                        <% if (isGuest) { %>
+                            <span class="guest-badge">ゲストモード</span>
+                            <button id="login-btn" class="btn btn-primary" onclick="window.Clerk.openSignIn()">
+                                <i class="fas fa-right-to-bracket"></i>
+                                ログイン
+                            </button>
+                            <button id="signup-btn" class="btn btn-outline" onclick="window.Clerk.openSignUp()">サインアップ</button>
+                        <% } else { %>
+                            <span id="user-greeting" style="display: none;">こんにちは、<span id="user-name"></span>さん</span>
+                            <button id="logout-btn" class="btn btn-outline" style="display: none;" onclick="window.Clerk.signOut()">ログアウト</button>
+                            <button id="login-btn" class="btn btn-primary" style="display: none;" onclick="window.Clerk.openSignIn()">
+                                <i class="fas fa-right-to-bracket"></i>
+                                ログイン
+                            </button>
+                            <button id="signup-btn" class="btn btn-outline" style="display: none;" onclick="window.Clerk.openSignUp()">サインアップ</button>
+                        <% } %>
                     </div>
                 </div>
             </div>
@@ -47,6 +56,17 @@
 
     <main class="site-main">
         <div class="container">
+            <% if (isGuest) { %>
+            <!-- ゲストモード通知 -->
+            <div class="guest-notice">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>ゲストモードで学習中</strong><br>
+                    学習進捗は一時的に保存されます。進捗を永続化するには<a href="#" onclick="window.Clerk.openSignIn()">ログイン</a>または<a href="#" onclick="window.Clerk.openSignUp()">新規登録</a>してください。
+                </div>
+            </div>
+            <% } %>
+            
             <!-- 検索機能 -->
             <div id="search-container">
                 <!-- 検索アイコンのみ表示（初期状態） -->

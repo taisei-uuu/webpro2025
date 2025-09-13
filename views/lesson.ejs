@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= lesson.title %> | 株式投資学習ロードマップ</title>
     <link rel="stylesheet" href="/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Clerk認証スクリプト -->
+    <script>
+        window.Clerk = window.Clerk || {};
+        window.Clerk.publishableKey = '<%= process.env.CLERK_PUBLISHABLE_KEY %>';
+    </script>
+    <script async crossorigin="anonymous" data-clerk-publishable-key="<%= process.env.CLERK_PUBLISHABLE_KEY %>" src="https://<%= process.env.CLERK_PUBLISHABLE_KEY.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
 </head>
 <body>
 
@@ -17,6 +25,17 @@
 
     <main class="site-main">
         <div class="container">
+            <% if (isGuest) { %>
+            <!-- ゲストモード通知 -->
+            <div class="guest-notice">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>ゲストモードで学習中</strong><br>
+                    学習進捗は一時的に保存されます。進捗を永続化するには<a href="#" onclick="window.Clerk.openSignIn()">ログイン</a>または<a href="#" onclick="window.Clerk.openSignUp()">新規登録</a>してください。
+                </div>
+            </div>
+            <% } %>
+            
             <article class="lesson-content">
                 <h2 class="lesson-title"><%= lesson.title %></h2>
                 <div class="lesson-body">
