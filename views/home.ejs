@@ -450,7 +450,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/display-cards.js"></script>
     
-    <!-- Clerk認証スクリプト -->
+    <!-- Clerk認証スクリプト（一時的に無効化） -->
+    <!--
     <script>
         window.Clerk = window.Clerk || {};
         window.Clerk.publishableKey = '<%= process.env.CLERK_PUBLISHABLE_KEY %>';
@@ -501,5 +502,6 @@
         });
     </script>
     <script async crossorigin="anonymous" data-clerk-publishable-key="<%= process.env.CLERK_PUBLISHABLE_KEY %>" src="https://<%= process.env.CLERK_PUBLISHABLE_KEY.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    -->
 </body>
 </html>

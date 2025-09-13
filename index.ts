@@ -274,6 +274,10 @@ app.use(clerkMiddleware());
 
 // 自社ホームページ
 app.get('/', (req, res) => {
+  // デバッグ情報を表示
+  console.log('CLERK_PUBLISHABLE_KEY:', process.env.CLERK_PUBLISHABLE_KEY ? 'Set' : 'Not set');
+  console.log('CLERK_SECRET_KEY:', process.env.CLERK_SECRET_KEY ? 'Set' : 'Not set');
+  
   res.render('home', { 
     CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
   });
