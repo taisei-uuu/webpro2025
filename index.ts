@@ -54,8 +54,13 @@ app.use(session({
   }
 }));
 
-// Clerkミドルウェアを追加
-app.use(clerkMiddleware());
+// Clerkミドルウェアを追加（環境変数が設定されている場合のみ）
+if (process.env.CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY) {
+  app.use(clerkMiddleware());
+  console.log('Clerk middleware initialized');
+} else {
+  console.warn('Clerk environment variables not set, skipping Clerk middleware');
+}
 
 // ゲストセッション管理のヘルパー関数（最適化版）
 function getOrCreateGuestSession(req: express.Request): string {
@@ -339,27 +344,51 @@ async function getCachedQuizAttempts(userId?: number, sessionId?: string) {
 
 // 自社ホームページ
 app.get('/', (req, res) => {
-  // デバッグ情報を表示
-  console.log('CLERK_PUBLISHABLE_KEY:', process.env.CLERK_PUBLISHABLE_KEY ? 'Set' : 'Not set');
-  console.log('CLERK_SECRET_KEY:', process.env.CLERK_SECRET_KEY ? 'Set' : 'Not set');
-  
-  res.render('home', { 
-    CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
-  });
+  try {
+    // デバッグ情報を表示
+    console.log('CLERK_PUBLISHABLE_KEY:', process.env.CLERK_PUBLISHABLE_KEY ? 'Set' : 'Not set');
+    console.log('CLERK_SECRET_KEY:', process.env.CLERK_SECRET_KEY ? 'Set' : 'Not set');
+    
+    res.render('home', { 
+      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY || '' 
+    });
+  } catch (error) {
+    console.error('Error in / route:', error);
+    res.status(500).render('error', { 
+      message: 'ページの読み込み中にエラーが発生しました。',
+      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+    });
+  }
 });
 
 // プライバシーポリシーページ
 app.get('/privacy', (req, res) => {
-  res.render('privacy', {
-    CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
-  });
+  try {
+    res.render('privacy', {
+      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY || '' 
+    });
+  } catch (error) {
+    console.error('Error in /privacy route:', error);
+    res.status(500).render('error', { 
+      message: 'ページの読み込み中にエラーが発生しました。',
+      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+    });
+  }
 });
 
 // 利用規約ページ
 app.get('/terms', (req, res) => {
-  res.render('terms', {
-    CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
-  });
+  try {
+    res.render('terms', {
+      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY || '' 
+    });
+  } catch (error) {
+    console.error('Error in /terms route:', error);
+    res.status(500).render('error', { 
+      message: 'ページの読み込み中にエラーが発生しました。',
+      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+    });
+  }
 });
 
 // 株学習プラットフォームのメインページ（ゲストモード対応）
@@ -419,7 +448,7 @@ app.get('/learning', async (req, res) => {
 
     // ユーザー情報を取得（ログイン済みの場合のみ）
     let user: any = null;
-    if (userId) {
+    if (userId && process.env.CLERK_SECRET_KEY) {
       try {
         user = await clerkClient.users.getUser(userId.toString());
       } catch (error) {
@@ -432,7 +461,7 @@ app.get('/learning', async (req, res) => {
       chapters: chaptersWithProgress, 
       user: user,
       isGuest: !userId, // ゲストモードかどうかのフラグ
-      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY || '' 
     });
   } catch (error) {
     console.error('Error in /learning route:', error);
