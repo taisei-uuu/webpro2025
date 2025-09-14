@@ -42,34 +42,35 @@
 
         .header-content {
             display: flex;
-            justify-content: space-between;
+            justify-content: center; /* 中央揃えに変更 */
             align-items: center;
-            /* [修正点1] flex-wrap: nowrap; をCSSで明示的に指定し、折り返しを防ぎます */
             flex-wrap: nowrap; 
-            padding: 0 15px; /* Add some padding on the sides */
+            padding: 0 15px;
+            position: relative; /* 相対位置指定で左右の要素を絶対配置 */
         }
 
-        /* 左側のスペーサーと右側のアクションボタンのコンテナ */
-        .header-spacer,
-        .header-actions {
-            flex-shrink: 0; /* これらの要素が縮まないようにする */
-            width: 60px;
+        /* 左側のスペーサー（非表示） */
+        .header-spacer {
+            display: none; /* 左側スペーサーは不要なので非表示 */
         }
         
-        /* 右側のコンテナ内の要素を右揃えにする */
+        /* 右側のアクションボタンのコンテナ */
         .header-actions {
-            display: flex;
-            justify-content: flex-end;
+            position: absolute; /* 絶対配置 */
+            right: 15px; /* 右端から15px */
+            top: 50%; /* 垂直中央 */
+            transform: translateY(-50%); /* 中央揃え */
         }
 
         .site-title {
-            flex-grow: 1;  /* 利用可能なスペースを埋める */
-            flex-shrink: 1; /* スペースが足りない時に縮む */
+            flex-grow: 0;  /* スペースを埋めない */
+            flex-shrink: 0; /* 縮まない */
             margin: 0;
             font-size: 1.5rem;
             text-align: center;
-            /* [修正点2] これが重要！テキスト要素がコンテンツ幅以下に縮小できるようにします */
-            min-width: 0; 
+            /* タイトルが実際に必要な幅だけを取る */
+            width: auto;
+            max-width: calc(100% - 120px); /* 左右のボタン分のスペースを確保 */
         }
 
         .site-title a {

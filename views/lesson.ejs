@@ -15,13 +15,247 @@
     <% if (publishableKey) { %>
     <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>" src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
     <% } %>
+    
+    <style>
+        /* General body style for demonstration */
+        body {
+            margin: 0;
+            font-family: sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px; /* Or your desired max width */
+            margin: 0 auto;
+            box-sizing: border-box; /* Ensures padding doesn't add to width */
+        }
+
+        /* --- ここからがヘッダーのスタイルです --- */
+
+        .site-header {
+            padding: 10px 0;
+            min-height: auto;
+            border-bottom: 1px solid #f0f0f0; /* Optional: adds a nice separator */
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: center; /* 中央揃えに変更 */
+            align-items: center;
+            flex-wrap: nowrap; 
+            padding: 0 15px;
+            position: relative; /* 相対位置指定で左右の要素を絶対配置 */
+        }
+
+        /* 左側のスペーサー（非表示） */
+        .header-spacer {
+            display: none; /* 左側スペーサーは不要なので非表示 */
+        }
+        
+        /* 右側のアクションボタンのコンテナ */
+        .header-actions {
+            position: absolute; /* 絶対配置 */
+            right: 15px; /* 右端から15px */
+            top: 50%; /* 垂直中央 */
+            transform: translateY(-50%); /* 中央揃え */
+        }
+
+        .site-title {
+            flex-grow: 0;  /* スペースを埋めない */
+            flex-shrink: 0; /* 縮まない */
+            margin: 0;
+            font-size: 1.5rem;
+            text-align: center;
+            /* タイトルが実際に必要な幅だけを取る */
+            width: auto;
+            max-width: calc(100% - 120px); /* 左右のボタン分のスペースを確保 */
+        }
+
+        .site-title a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        #login-btn {
+            border: none;
+            background: none;
+            padding: 8px 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* --- レスポンシブ対応 --- */
+        
+        /* 768px以下の画面サイズ */
+        @media (max-width: 768px) {
+            .site-title {
+                font-size: 1.2rem;
+            }
+            #login-btn {
+                padding: 6px 8px;
+                font-size: 1rem;
+            }
+            /* [修正点3] モバイルでは左右の余白を少し狭くして、タイトル用のスペースを確保します */
+            .header-spacer,
+            .header-actions {
+                width: 44px; 
+            }
+        }
+
+        /* 480px以下の画面サイズ */
+        @media (max-width: 480px) {
+            .header-content {
+                padding: 0 10px; /* さらに狭い画面ではパディングを少し減らす */
+            }
+            .site-title {
+                font-size: 1.1rem;
+            }
+            .header-spacer,
+            .header-actions {
+                width: 40px; /* さらに余白を狭くする */
+            }
+        }
+
+        /* Vimeo縦動画用のコンテナ */
+        .vimeo-container {
+            position: relative;
+            width: 90%; /* スマートフォンで画面幅の90% */
+            max-width: 400px; /* デスクトップでの最大幅 */
+            margin: 0 auto 20px auto; /* 中央配置 */
+            padding-top: 177.77%; /* 9:16のアスペクト比 */
+        }
+        
+        .vimeo-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px; /* 角を丸く */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* 影を追加 */
+        }
+        
+        /* レスポンシブ対応 */
+        @media (max-width: 768px) {
+            .vimeo-container {
+                width: 90%; /* スマートフォンで画面幅の90%を維持 */
+                max-width: 350px; /* タブレットでの最大幅 */
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .vimeo-container {
+                width: 90%; /* スマートフォンで画面幅の90%を維持 */
+                max-width: 300px; /* スマートフォンでの最大幅 */
+            }
+        }
+
+        /* ナビゲーションボタンのスタイル */
+        .lesson-navigation {
+            margin: 30px 0;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between; /* 両端に配置 */
+            align-items: center;
+            padding: 0 20px; /* 左右のパディングで余白を確保 */
+        }
+
+        .back-link, .next-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            color: #495057;
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            flex-shrink: 0; /* ボタンが縮まないようにする */
+            margin: 0; /* マージンをリセット */
+            padding: 0; /* パディングをリセット */
+        }
+
+        /* 次へ進むボタンを青色に */
+        .next-link {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+
+        .back-link:hover {
+            background-color: #e9ecef;
+            border-color: #adb5bd;
+            color: #212529;
+            transform: translateY(-2px);
+        }
+
+        .next-link:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* モバイル対応 */
+        @media (max-width: 768px) {
+            .lesson-navigation {
+                margin: 20px 0;
+            }
+            
+            .navigation-buttons {
+                padding: 0 15px; /* モバイルでは少し狭く */
+            }
+            
+            .back-link, .next-link {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lesson-navigation {
+                margin: 15px 0;
+            }
+            
+            .navigation-buttons {
+                padding: 0 10px; /* スマートフォンではさらに狭く */
+            }
+            
+            .back-link, .next-link {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
 
     <header class="site-header">
         <div class="container">
-            <h1><a href="/" class="home-link">株式投資学習ロードマップ</a></h1>
-            <p>0から始める株式投資の学び方</p>
+            <!-- 修正後のHTML構造 -->
+            <div class="header-content">
+                <!-- 左側のスペーサー -->
+                <div class="header-spacer"></div>
+
+                <!-- サイトタイトル -->
+                <h1 class="site-title">
+                    <a href="/learning" class="home-link">Stock with</a>
+                </h1>
+                
+                <!-- 右側のアクションボタン -->
+                <div class="header-actions">
+                    <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openSignIn()">
+                        <i class="fas fa-right-to-bracket"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -51,11 +285,9 @@
                 <% if (hasVideo) { %>
                 <div class="video-section">
                     <h3><i class="fas fa-play-circle me-2"></i>動画で学ぶ</h3>
-                    <div class="video-container">
+                    <div class="vimeo-container">
                         <iframe 
                             src="https://player.vimeo.com/video/1118309852?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" 
-                            width="100%" 
-                            height="400" 
                             frameborder="0" 
                             allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" 
                             referrerpolicy="strict-origin-when-cross-origin" 
@@ -117,10 +349,12 @@
                 <% } %>
 
                 <div class="lesson-navigation">
-                    <a href="/learning" class="back-link">&larr; ロードマップに戻る</a>
-                    <% if (nextLesson) { %>
-                        <a href="/lessons/<%= nextLesson.id %>" class="next-link">次のセクションへ進む &rarr;</a>
-                    <% } %>
+                    <div class="navigation-buttons">
+                        <a href="/learning" class="back-link" title="ロードマップに戻る"><i class="fa-solid fa-house"></i></a>
+                        <% if (nextLesson) { %>
+                            <a href="/lessons/<%= nextLesson.id %>" class="next-link" title="次のセクションへ進む"><i class="fa-solid fa-forward"></i></a>
+                        <% } %>
+                    </div>
                 </div>
             </article>
         </div>
@@ -132,7 +366,46 @@
         </div>
     </footer>
 
-    <%- include('_chatbot') %>
-    <script src="/chatbot.js"></script>
+    <!-- チャットボット機能（一時的にコメントアウト） -->
+    <!-- <%- include('_chatbot') %> -->
+    <!-- <script src="/chatbot.js"></script> -->
+    
+    <script>
+        // Clerkの初期化とユーザー状態管理
+        window.addEventListener('load', async () => {
+            try {
+                await window.Clerk.load();
+                console.log('Clerk loaded successfully');
+                updateAuthUI();
+                
+                // Clerkの初期化完了後にリスナーを設定
+                window.Clerk.addListener(({ user }) => {
+                    updateAuthUI();
+                });
+            } catch (error) {
+                console.error('Error loading Clerk:', error);
+            }
+        });
+        
+        // 認証UIの更新関数
+        function updateAuthUI() {
+            const user = window.Clerk.user;
+            const loginBtn = document.getElementById('login-btn');
+            
+            if (user) {
+                // ログイン済みの場合
+                if (loginBtn) {
+                    loginBtn.innerHTML = '<i class="fas fa-user"></i>';
+                    loginBtn.onclick = () => window.Clerk.openUserProfile();
+                }
+            } else {
+                // 未ログインの場合
+                if (loginBtn) {
+                    loginBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i>';
+                    loginBtn.onclick = () => window.Clerk.openSignIn();
+                }
+            }
+        }
+    </script>
 </body>
 </html>
