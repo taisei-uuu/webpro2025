@@ -55,12 +55,13 @@ app.use(session({
 }));
 
 // Clerkミドルウェアを追加（環境変数が設定されている場合のみ）
-if (process.env.CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY) {
-  app.use(clerkMiddleware());
-  console.log('Clerk middleware initialized');
-} else {
-  console.warn('Clerk environment variables not set, skipping Clerk middleware');
-}
+// 一時的にコメントアウトしてエラーの原因を調査
+// if (process.env.CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY) {
+//   app.use(clerkMiddleware());
+//   console.log('Clerk middleware initialized');
+// } else {
+//   console.warn('Clerk environment variables not set, skipping Clerk middleware');
+// }
 
 // ゲストセッション管理のヘルパー関数（最適化版）
 function getOrCreateGuestSession(req: express.Request): string {
