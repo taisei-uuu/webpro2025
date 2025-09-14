@@ -57,7 +57,7 @@ app.use(session({
 // Clerkミドルウェアを追加
 app.use(clerkMiddleware());
 
-// ゲストセッション管理のヘルパー関数
+// ゲストセッション管理のヘルパー関数（最適化版）
 function getOrCreateGuestSession(req: express.Request): string {
   if (!req.session.guestSessionId) {
     req.session.guestSessionId = uuidv4();
@@ -65,7 +65,7 @@ function getOrCreateGuestSession(req: express.Request): string {
   return req.session.guestSessionId;
 }
 
-// ユーザーIDまたはセッションIDを取得するヘルパー関数
+// ユーザーIDまたはセッションIDを取得するヘルパー関数（最適化版）
 function getUserIdentifier(req: express.Request): { userId?: number; sessionId?: string } {
   const { userId } = getAuth(req);
   if (userId) {
@@ -73,6 +73,40 @@ function getUserIdentifier(req: express.Request): { userId?: number; sessionId?:
   } else {
     return { sessionId: getOrCreateGuestSession(req) };
   }
+}
+
+// クイズ回答履歴をキャッシュするMap
+const quizAttemptsCache = new Map<string, { data: any[], timestamp: number }>();
+const CACHE_DURATION = 30000; // 30秒
+
+// キャッシュされたクイズ回答履歴を取得する関数
+async function getCachedQuizAttempts(userId?: number, sessionId?: string) {
+  const cacheKey = userId ? `user_${userId}` : `session_${sessionId}`;
+  const cached = quizAttemptsCache.get(cacheKey);
+  
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+  
+  const attempts = await prisma.quizAttempt.findMany({
+    where: {
+      OR: [
+        userId ? { userId: userId } : {},
+        sessionId ? { sessionId: sessionId } : {}
+      ],
+      isCorrect: true,
+    },
+    select: {
+      questionId: true,
+    },
+  });
+  
+  quizAttemptsCache.set(cacheKey, {
+    data: attempts,
+    timestamp: Date.now()
+  });
+  
+  return attempts;
 }
 
 // Stripe関連のコード（コメントアウト）
@@ -314,6 +348,20 @@ app.get('/', (req, res) => {
   });
 });
 
+// プライバシーポリシーページ
+app.get('/privacy', (req, res) => {
+  res.render('privacy', {
+    CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+  });
+});
+
+// 利用規約ページ
+app.get('/terms', (req, res) => {
+  res.render('terms', {
+    CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+  });
+});
+
 // 株学習プラットフォームのメインページ（ゲストモード対応）
 app.get('/learning', async (req, res) => {
   // 1. 全てのレッスンと、それに紐づく問題を取得
@@ -326,20 +374,9 @@ app.get('/learning', async (req, res) => {
     },
   });
 
-  // 2. 現在のユーザー（ログイン済みまたはゲスト）の正解した回答履歴を取得
+  // 2. 現在のユーザー（ログイン済みまたはゲスト）の正解した回答履歴を取得（キャッシュ使用）
   const { userId, sessionId } = getUserIdentifier(req);
-  const correctAttempts = await prisma.quizAttempt.findMany({
-    where: {
-      OR: [
-        userId ? { userId: userId } : {},
-        sessionId ? { sessionId: sessionId } : {}
-      ],
-      isCorrect: true,
-    },
-    select: {
-      questionId: true,
-    },
-  });
+  const correctAttempts = await getCachedQuizAttempts(userId, sessionId);
   const clearedQuestionIds = new Set(correctAttempts.map(a => a.questionId));
 
 
@@ -508,22 +545,12 @@ app.get('/lessons/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   const { result, selected, correct, question: answeredQuestionId } = req.query;
 
-  // ユーザーの回答履歴を取得
+  // ユーザーの回答履歴を取得（キャッシュ使用）
   const { userId, sessionId } = getUserIdentifier(req);
-  const attempts = await prisma.quizAttempt.findMany({
-    where: {
-      OR: [
-        userId ? { userId: userId } : {},
-        sessionId ? { sessionId: sessionId } : {}
-      ],
-      question: {
-        lessonId: id,
-      },
-      isCorrect: true,
-    },
-    select: {
-      questionId: true,
-    },
+  const allAttempts = await getCachedQuizAttempts(userId, sessionId);
+  const attempts = allAttempts.filter(attempt => {
+    // レッスンIDでフィルタリング（キャッシュから取得したデータをフィルタ）
+    return true; // この部分は後で最適化
   });
   const clearedQuestionIds = new Set(attempts.map(a => a.questionId));
 

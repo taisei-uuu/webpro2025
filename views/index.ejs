@@ -111,7 +111,7 @@
                 <section class="chapter" data-chapter="<%= index %>">
                     <div class="chapter-header">
                         <div class="chapter-title-container">
-                            <button class="chapter-toggle" data-chapter="<%= index %>" aria-expanded="false">
+                            <button class="chapter-toggle" data-chapter="<%= index %>" aria-expanded="<%= index === 0 ? 'true' : 'false' %>">
                                 <h2>Stage<%= chapter.chapter %>: <%= chapter.title %></h2>
                             </button>
                         </div>
@@ -122,7 +122,7 @@
                             </div>
                         <% } %>
                     </div>
-                    <div class="chapter-content" id="chapter-<%= index %>" style="display: none;">
+                    <div class="chapter-content" id="chapter-<%= index %>" style="display: <%= index === 0 ? 'block' : 'none' %>;">
                         <ul class="lesson-list">
                             <% chapter.lessons.forEach(lesson => { %>
                                 <li><a href="/lessons/<%= lesson.id %>"><%= lesson.title %></a></li>
@@ -194,18 +194,25 @@
             
             chapterToggles.forEach(toggle => {
                 toggle.addEventListener('click', function() {
+                    console.log('Chapter toggle clicked!');
                     const chapterIndex = this.getAttribute('data-chapter');
                     const chapterContent = document.getElementById(`chapter-${chapterIndex}`);
                     const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                    
+                    console.log('Chapter index:', chapterIndex);
+                    console.log('Chapter content element:', chapterContent);
+                    console.log('Is expanded:', isExpanded);
                     
                     if (isExpanded) {
                         // 閉じる
                         chapterContent.style.display = 'none';
                         this.setAttribute('aria-expanded', 'false');
+                        console.log('Chapter closed');
                     } else {
                         // 開く
                         chapterContent.style.display = 'block';
                         this.setAttribute('aria-expanded', 'true');
+                        console.log('Chapter opened');
                     }
                 });
             });
