@@ -118,7 +118,7 @@ async function getCachedQuizAttempts(userId?: number, sessionId?: string) {
 // サブスクリプションページ
 // app.get('/subscription', (req, res) => {
 //   res.render('subscription', { 
-//     CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY,
+//     publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
 //     STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY 
 //   });
 // });
@@ -350,13 +350,13 @@ app.get('/', (req, res) => {
     console.log('CLERK_SECRET_KEY:', process.env.CLERK_SECRET_KEY ? 'Set' : 'Not set');
     
     res.render('home', { 
-      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY || '' 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
     });
   } catch (error) {
     console.error('Error in / route:', error);
     res.status(500).render('error', { 
       message: 'ページの読み込み中にエラーが発生しました。',
-      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
     });
   }
 });
@@ -365,13 +365,13 @@ app.get('/', (req, res) => {
 app.get('/privacy', (req, res) => {
   try {
     res.render('privacy', {
-      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY || '' 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
     });
   } catch (error) {
     console.error('Error in /privacy route:', error);
     res.status(500).render('error', { 
       message: 'ページの読み込み中にエラーが発生しました。',
-      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
     });
   }
 });
@@ -380,13 +380,13 @@ app.get('/privacy', (req, res) => {
 app.get('/terms', (req, res) => {
   try {
     res.render('terms', {
-      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY || '' 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
     });
   } catch (error) {
     console.error('Error in /terms route:', error);
     res.status(500).render('error', { 
       message: 'ページの読み込み中にエラーが発生しました。',
-      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
     });
   }
 });
@@ -461,13 +461,13 @@ app.get('/learning', async (req, res) => {
       chapters: chaptersWithProgress, 
       user: user,
       isGuest: !userId, // ゲストモードかどうかのフラグ
-      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY || '' 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
     });
   } catch (error) {
     console.error('Error in /learning route:', error);
     res.status(500).render('error', { 
       message: 'サーバーエラーが発生しました。しばらく時間をおいてから再度お試しください。',
-      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
     });
   }
 });
@@ -575,7 +575,7 @@ app.get('/search', async (req, res) => {
     console.error('Search error:', error);
     res.status(500).render('error', { 
       message: '検索中にエラーが発生しました。しばらく時間をおいてから再度お試しください。',
-      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
     });
   }
 });
@@ -609,7 +609,7 @@ app.get('/lessons/:id', async (req, res) => {
     if (!lesson) {
       return res.status(404).render('error', { 
         message: 'レッスンが見つかりません。',
-        CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+        publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
       });
     }
 
@@ -643,7 +643,7 @@ app.get('/lessons/:id', async (req, res) => {
     console.error('Error in /lessons/:id route:', error);
     res.status(500).render('error', { 
       message: 'レッスンの読み込み中にエラーが発生しました。しばらく時間をおいてから再度お試しください。',
-      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
     });
   }
 });

@@ -184,7 +184,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Stripeの初期化
-        const stripe = Stripe('<%= STRIPE_PUBLISHABLE_KEY %>');
+        const stripe = Stripe('<%= stripePublishableKey %>');
         
         document.getElementById('subscribe-btn').addEventListener('click', async function() {
             try {
