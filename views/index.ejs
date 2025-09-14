@@ -18,39 +18,123 @@
 </head>
 <body>
 
+    <style>
+        /* General body style for demonstration */
+        body {
+            margin: 0;
+            font-family: sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px; /* Or your desired max width */
+            margin: 0 auto;
+            box-sizing: border-box; /* Ensures padding doesn't add to width */
+        }
+
+        /* --- ここからがヘッダーのスタイルです --- */
+
+        .site-header {
+            padding: 10px 0;
+            min-height: auto;
+            border-bottom: 1px solid #f0f0f0; /* Optional: adds a nice separator */
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* [修正点1] flex-wrap: nowrap; をCSSで明示的に指定し、折り返しを防ぎます */
+            flex-wrap: nowrap; 
+            padding: 0 15px; /* Add some padding on the sides */
+        }
+
+        /* 左側のスペーサーと右側のアクションボタンのコンテナ */
+        .header-spacer,
+        .header-actions {
+            flex-shrink: 0; /* これらの要素が縮まないようにする */
+            width: 60px;
+        }
+        
+        /* 右側のコンテナ内の要素を右揃えにする */
+        .header-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .site-title {
+            flex-grow: 1;  /* 利用可能なスペースを埋める */
+            flex-shrink: 1; /* スペースが足りない時に縮む */
+            margin: 0;
+            font-size: 1.5rem;
+            text-align: center;
+            /* [修正点2] これが重要！テキスト要素がコンテンツ幅以下に縮小できるようにします */
+            min-width: 0; 
+        }
+
+        .site-title a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        #login-btn {
+            border: none;
+            background: none;
+            padding: 8px 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* --- レスポンシブ対応 --- */
+        
+        /* 768px以下の画面サイズ */
+        @media (max-width: 768px) {
+            .site-title {
+                font-size: 1.2rem;
+            }
+            #login-btn {
+                padding: 6px 8px;
+                font-size: 1rem;
+            }
+            /* [修正点3] モバイルでは左右の余白を少し狭くして、タイトル用のスペースを確保します */
+            .header-spacer,
+            .header-actions {
+                width: 44px; 
+            }
+        }
+
+        /* 480px以下の画面サイズ */
+        @media (max-width: 480px) {
+            .header-content {
+                padding: 0 10px; /* さらに狭い画面ではパディングを少し減らす */
+            }
+            .site-title {
+                font-size: 1.1rem;
+            }
+            .header-spacer,
+            .header-actions {
+                width: 40px; /* さらに余白を狭くする */
+            }
+        }
+    </style>
+
     <header class="site-header">
         <div class="container">
+            <!-- 修正後のHTML構造 -->
             <div class="header-content">
-                <div class="header-left">
-                    <h1><a href="/learning" class="home-link">
-                        <img src="/logo.png" alt="Stock with" height="40" class="me-2" style="vertical-align: middle;">
-                        Stock with - 株式投資学習ロードマップ
-                    </a></h1>
-                    <p>0から始める株式投資の学び方</p>
-                </div>
-                <div class="header-right">
-                    <a href="/" class="btn btn-outline me-2">ホーム</a>
-                    <a href="https://www.instagram.com/utsubo_zmoney?igsh=NTJsa3pkZnZzNXd1&utm_source=qr" target="_blank" rel="noopener noreferrer" title="Instagram" class="btn btn-outline me-2">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <div class="user-info">
-                        <% if (isGuest) { %>
-                            <span class="guest-badge">ゲストモード</span>
-                            <button id="login-btn" class="btn btn-primary" onclick="window.Clerk.openSignIn()">
-                                <i class="fas fa-right-to-bracket"></i>
-                                ログイン
-                            </button>
-                            <button id="signup-btn" class="btn btn-outline" onclick="window.Clerk.openSignUp()">サインアップ</button>
-                        <% } else { %>
-                            <span id="user-greeting" style="display: none;">こんにちは、<span id="user-name"></span>さん</span>
-                            <button id="logout-btn" class="btn btn-outline" style="display: none;" onclick="window.Clerk.signOut()">ログアウト</button>
-                            <button id="login-btn" class="btn btn-primary" style="display: none;" onclick="window.Clerk.openSignIn()">
-                                <i class="fas fa-right-to-bracket"></i>
-                                ログイン
-                            </button>
-                            <button id="signup-btn" class="btn btn-outline" style="display: none;" onclick="window.Clerk.openSignUp()">サインアップ</button>
-                        <% } %>
-                    </div>
+                <!-- 左側のスペーサー -->
+                <div class="header-spacer"></div>
+
+                <!-- サイトタイトル -->
+                <h1 class="site-title">
+                    <a href="/learning" class="home-link">Stock with</a>
+                </h1>
+                
+                <!-- 右側のアクションボタン -->
+                <div class="header-actions">
+                    <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openSignIn()">
+                        <i class="fas fa-right-to-bracket"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -106,9 +190,6 @@
                 </div>
             </div>
 
-            <div class="admin-link-container">
-                <a href="/admin/lessons/new" class="btn">＋ 新規レッスンを作成する</a>
-            </div>
             <% chapters.forEach((chapter, index) => { %>
                 <section class="chapter" data-chapter="<%= index %>">
                     <div class="chapter-header">
@@ -136,6 +217,10 @@
         </div>
     </main>
 
+    <div class="admin-link-container" style="text-align: center; margin: 20px 0;">
+        <a href="/admin/lessons/new" class="btn">＋ 新規レッスンを作成する</a>
+    </div>
+
     <footer class="site-footer">
         <div class="container">
             <p>&copy; 2024 Stock with株式会社. All Rights Reserved.</p>
@@ -152,6 +237,11 @@
                 await window.Clerk.load();
                 console.log('Clerk loaded successfully');
                 updateAuthUI();
+                
+                // Clerkの初期化完了後にリスナーを設定
+                window.Clerk.addListener(({ user }) => {
+                    updateAuthUI();
+                });
             } catch (error) {
                 console.error('Error loading Clerk:', error);
             }
@@ -173,21 +263,22 @@
                     userGreeting.style.display = 'inline';
                 }
                 if (logoutBtn) logoutBtn.style.display = 'inline-block';
-                if (loginBtn) loginBtn.style.display = 'none';
+                if (loginBtn) {
+                    loginBtn.innerHTML = '<i class="fas fa-user"></i>';
+                    loginBtn.onclick = () => window.Clerk.openUserProfile();
+                }
                 if (signupBtn) signupBtn.style.display = 'none';
             } else {
                 // 未ログインの場合
                 if (userGreeting) userGreeting.style.display = 'none';
                 if (logoutBtn) logoutBtn.style.display = 'none';
-                if (loginBtn) loginBtn.style.display = 'inline-block';
+                if (loginBtn) {
+                    loginBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i>';
+                    loginBtn.onclick = () => window.Clerk.openSignIn();
+                }
                 if (signupBtn) signupBtn.style.display = 'inline-block';
             }
         }
-        
-        // ユーザー状態の変更を監視
-        window.Clerk.addListener(({ user }) => {
-            updateAuthUI();
-        });
         
         // ドロップダウン機能と検索機能のJavaScript
         document.addEventListener('DOMContentLoaded', function() {
