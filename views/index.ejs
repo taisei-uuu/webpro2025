@@ -10,9 +10,11 @@
     <!-- Clerk認証スクリプト -->
     <script>
         window.Clerk = window.Clerk || {};
-        window.Clerk.publishableKey = '<%= process.env.CLERK_PUBLISHABLE_KEY %>';
+        window.Clerk.publishableKey = '<%= CLERK_PUBLISHABLE_KEY || "" %>';
     </script>
-    <script async crossorigin="anonymous" data-clerk-publishable-key="<%= process.env.CLERK_PUBLISHABLE_KEY %>" src="https://<%= process.env.CLERK_PUBLISHABLE_KEY.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    <% if (CLERK_PUBLISHABLE_KEY) { %>
+    <script async crossorigin="anonymous" data-clerk-publishable-key="<%= CLERK_PUBLISHABLE_KEY %>" src="https://<%= CLERK_PUBLISHABLE_KEY.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    <% } %>
 </head>
 <body>
 

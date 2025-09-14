@@ -10,9 +10,11 @@
     <!-- Clerk認証スクリプト -->
     <script>
         window.Clerk = window.Clerk || {};
-        window.Clerk.publishableKey = '<%= process.env.CLERK_PUBLISHABLE_KEY %>';
+        window.Clerk.publishableKey = '<%= CLERK_PUBLISHABLE_KEY || "" %>';
     </script>
-    <script async crossorigin="anonymous" data-clerk-publishable-key="<%= process.env.CLERK_PUBLISHABLE_KEY %>" src="https://<%= process.env.CLERK_PUBLISHABLE_KEY.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    <% if (CLERK_PUBLISHABLE_KEY) { %>
+    <script async crossorigin="anonymous" data-clerk-publishable-key="<%= CLERK_PUBLISHABLE_KEY %>" src="https://<%= CLERK_PUBLISHABLE_KEY.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    <% } %>
 </head>
 <body>
 
@@ -39,8 +41,14 @@
             <article class="lesson-content">
                 <h2 class="lesson-title"><%= lesson.title %></h2>
                 
-                <!-- 動画セクション（レッスンID 66の場合のみ表示） -->
-                <% if (lesson.id === 66) { %>
+                <!-- 動画セクション（証券口座関連のレッスンの場合に表示） -->
+                <!-- デバッグ情報: レッスンID = <%= lesson.id %>, タイトル = <%= lesson.title %> -->
+                <% 
+                // 動画を表示するレッスンの条件
+                const videoKeywords = ['証券口座', '口座開設', '証券会社', '口座', '証券'];
+                const hasVideo = videoKeywords.some(keyword => lesson.title.includes(keyword));
+                %>
+                <% if (hasVideo) { %>
                 <div class="video-section">
                     <h3><i class="fas fa-play-circle me-2"></i>動画で学ぶ</h3>
                     <div class="video-container">
