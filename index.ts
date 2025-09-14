@@ -72,10 +72,16 @@ function getOrCreateGuestSession(req: express.Request): string {
 
 // ユーザーIDまたはセッションIDを取得するヘルパー関数（最適化版）
 function getUserIdentifier(req: express.Request): { userId?: number; sessionId?: string } {
-  const { userId } = getAuth(req);
-  if (userId) {
-    return { userId: parseInt(userId) };
-  } else {
+  try {
+    const { userId } = getAuth(req);
+    if (userId) {
+      return { userId: parseInt(userId) };
+    } else {
+      return { sessionId: getOrCreateGuestSession(req) };
+    }
+  } catch (error) {
+    console.error('Error in getUserIdentifier:', error);
+    // Clerkミドルウェアが初期化されていない場合はゲストセッションを使用
     return { sessionId: getOrCreateGuestSession(req) };
   }
 }
@@ -570,7 +576,10 @@ app.get('/search', async (req, res) => {
     console.log('Found lessons:', lessons.length);
     console.log('Lesson titles:', lessons.map(l => l.title));
 
-    res.render('search-results', { lessons, query });
+    res.render('search-results', { 
+      lessons, 
+      query
+    });
   } catch (error) {
     console.error('Search error:', error);
     res.status(500).render('error', { 
@@ -632,6 +641,7 @@ app.get('/lessons/:id', async (req, res) => {
       clearedQuestionIds,
       nextLesson,
       isGuest: !userId, // ゲストモードかどうかのフラグ
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
       quizResult: {
         result,
         selectedId: selected ? parseInt(selected as string, 10) : undefined,
