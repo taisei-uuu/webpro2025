@@ -364,75 +364,83 @@ app.get('/terms', (req, res) => {
 
 // 株学習プラットフォームのメインページ（ゲストモード対応）
 app.get('/learning', async (req, res) => {
-  // 1. 全てのレッスンと、それに紐づく問題を取得
-  const lessonsWithQuestions = await prisma.lesson.findMany({
-    include: {
-      questions: true,
-    },
-    orderBy: {
-      id: 'asc',
-    },
-  });
+  try {
+    // 1. 全てのレッスンと、それに紐づく問題を取得
+    const lessonsWithQuestions = await prisma.lesson.findMany({
+      include: {
+        questions: true,
+      },
+      orderBy: {
+        id: 'asc',
+      },
+    });
 
-  // 2. 現在のユーザー（ログイン済みまたはゲスト）の正解した回答履歴を取得（キャッシュ使用）
-  const { userId, sessionId } = getUserIdentifier(req);
-  const correctAttempts = await getCachedQuizAttempts(userId, sessionId);
-  const clearedQuestionIds = new Set(correctAttempts.map(a => a.questionId));
+    // 2. 現在のユーザー（ログイン済みまたはゲスト）の正解した回答履歴を取得（キャッシュ使用）
+    const { userId, sessionId } = getUserIdentifier(req);
+    const correctAttempts = await getCachedQuizAttempts(userId, sessionId);
+    const clearedQuestionIds = new Set(correctAttempts.map(a => a.questionId));
 
+    // 章の情報を定義
+    const chapterInfo: Record<number, string> = {
+      1: '証券口座を開設しよう',
+      2: '株価について知ろう',
+      3: 'NISAについて知ろう',
+      4: '投資信託について知ろう',
+    };
 
-  // 章の情報を定義
-  const chapterInfo: Record<number, string> = {
-    1: '証券口座を開設しよう',
-    2: '株価について知ろう',
-    3: 'NISAについて知ろう',
-    4: '投資信託について知ろう',
-  };
+    // 章ごとにレッスンをグループ化
+    const chapters = lessonsWithQuestions.reduce((acc, lesson) => {
+      const chapterNum = lesson.chapter;
+      if (!acc[chapterNum]) {
+        acc[chapterNum] = {
+          chapter: chapterNum,
+          title: chapterInfo[chapterNum] || `Stage${chapterNum}`,
+          lessons: [],
+          totalQuestions: 0,
+          clearedQuestions: 0,
+        };
+      }
+      acc[chapterNum].lessons.push(lesson);
+      acc[chapterNum].totalQuestions += lesson.questions.length;
+      acc[chapterNum].clearedQuestions += lesson.questions.filter(q => clearedQuestionIds.has(q.id)).length;
+      return acc;
+    }, {} as Record<number, {
+      chapter: number;
+      title: string;
+      lessons: typeof lessonsWithQuestions;
+      totalQuestions: number;
+      clearedQuestions: number;
+    }>);
 
-  // 章ごとにレッスンをグループ化
-  const chapters = lessonsWithQuestions.reduce((acc, lesson) => {
-    const chapterNum = lesson.chapter;
-    if (!acc[chapterNum]) {
-      acc[chapterNum] = {
-        chapter: chapterNum,
-        title: chapterInfo[chapterNum] || `Stage${chapterNum}`,
-        lessons: [],
-        totalQuestions: 0,
-        clearedQuestions: 0,
-      };
+    const chaptersWithProgress = Object.values(chapters).map(chapter => ({
+      ...chapter,
+      progressPercentage: chapter.totalQuestions > 0 ? (chapter.clearedQuestions / chapter.totalQuestions) * 100 : 0,
+    }));
+
+    // ユーザー情報を取得（ログイン済みの場合のみ）
+    let user: any = null;
+    if (userId) {
+      try {
+        user = await clerkClient.users.getUser(userId.toString());
+      } catch (error) {
+        console.error('Error fetching user from Clerk:', error);
+        // ユーザー情報の取得に失敗しても処理を続行
+      }
     }
-    acc[chapterNum].lessons.push(lesson);
-    acc[chapterNum].totalQuestions += lesson.questions.length;
-    acc[chapterNum].clearedQuestions += lesson.questions.filter(q => clearedQuestionIds.has(q.id)).length;
-    return acc;
-  }, {} as Record<number, {
-    chapter: number;
-    title: string;
-    lessons: typeof lessonsWithQuestions;
-    totalQuestions: number;
-    clearedQuestions: number;
-  }>);
 
-  const chaptersWithProgress = Object.values(chapters).map(chapter => ({
-    ...chapter,
-    progressPercentage: chapter.totalQuestions > 0 ? (chapter.clearedQuestions / chapter.totalQuestions) * 100 : 0,
-  }));
-
-  // ユーザー情報を取得（ログイン済みの場合のみ）
-  let user: any = null;
-  if (userId) {
-    try {
-      user = await clerkClient.users.getUser(userId.toString());
-    } catch (error) {
-      console.error('Error fetching user from Clerk:', error);
-    }
+    res.render('index', { 
+      chapters: chaptersWithProgress, 
+      user: user,
+      isGuest: !userId, // ゲストモードかどうかのフラグ
+      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+    });
+  } catch (error) {
+    console.error('Error in /learning route:', error);
+    res.status(500).render('error', { 
+      message: 'サーバーエラーが発生しました。しばらく時間をおいてから再度お試しください。',
+      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+    });
   }
-
-  res.render('index', { 
-    chapters: chaptersWithProgress, 
-    user: user,
-    isGuest: !userId, // ゲストモードかどうかのフラグ
-    CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
-  });
 });
 
 // 新規レッスン作成フォームを表示するルート
@@ -503,17 +511,17 @@ app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
 
 // 検索結果ページ
 app.get('/search', async (req, res) => {
-  const query = req.query.q as string;
-  
-  console.log('Search query:', query);
-
-  // クエリがない場合は空の結果を返す
-  if (!query) {
-    console.log('No query provided, returning empty results');
-    return res.render('search-results', { lessons: [], query: '' });
-  }
-
   try {
+    const query = req.query.q as string;
+    
+    console.log('Search query:', query);
+
+    // クエリがない場合は空の結果を返す
+    if (!query) {
+      console.log('No query provided, returning empty results');
+      return res.render('search-results', { lessons: [], query: '' });
+    }
+
     // まず、データベースにレッスンが存在するかを確認
     const totalLessons = await prisma.lesson.count();
     console.log('Total lessons in database:', totalLessons);
@@ -536,59 +544,79 @@ app.get('/search', async (req, res) => {
     res.render('search-results', { lessons, query });
   } catch (error) {
     console.error('Search error:', error);
-    res.status(500).send('Search error occurred');
+    res.status(500).render('error', { 
+      message: '検索中にエラーが発生しました。しばらく時間をおいてから再度お試しください。',
+      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+    });
   }
 });
 
 // レッスン詳細ページ（ゲストモード対応）
 app.get('/lessons/:id', async (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  const { result, selected, correct, question: answeredQuestionId } = req.query;
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { result, selected, correct, question: answeredQuestionId } = req.query;
 
-  // ユーザーの回答履歴を取得（キャッシュ使用）
-  const { userId, sessionId } = getUserIdentifier(req);
-  const allAttempts = await getCachedQuizAttempts(userId, sessionId);
-  const attempts = allAttempts.filter(attempt => {
-    // レッスンIDでフィルタリング（キャッシュから取得したデータをフィルタ）
-    return true; // この部分は後で最適化
-  });
-  const clearedQuestionIds = new Set(attempts.map(a => a.questionId));
+    // ユーザーの回答履歴を取得（キャッシュ使用）
+    const { userId, sessionId } = getUserIdentifier(req);
+    const allAttempts = await getCachedQuizAttempts(userId, sessionId);
+    const attempts = allAttempts.filter(attempt => {
+      // レッスンIDでフィルタリング（キャッシュから取得したデータをフィルタ）
+      return true; // この部分は後で最適化
+    });
+    const clearedQuestionIds = new Set(attempts.map(a => a.questionId));
 
-  const lesson = await prisma.lesson.findUnique({
-    where: { id },
-    include: {
-      questions: {
-        include: {
-          options: true,
+    const lesson = await prisma.lesson.findUnique({
+      where: { id },
+      include: {
+        questions: {
+          include: {
+            options: true,
+          },
         },
       },
-    },
-  });
-  if (!lesson) {
-    return res.status(404).send('Lesson not found');
+    });
+    
+    if (!lesson) {
+      return res.status(404).render('error', { 
+        message: 'レッスンが見つかりません。',
+        CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+      });
+    }
+
+    // 次のレッスンを取得（現在のID + 1）
+    let nextLesson: any = null;
+    const nextLessonId = lesson.id + 1;
+    
+    try {
+      // 次のIDのレッスンが存在するかチェック
+      nextLesson = await prisma.lesson.findUnique({
+        where: { id: nextLessonId }
+      });
+    } catch (error) {
+      console.error('Error fetching next lesson:', error);
+      // 次のレッスンの取得に失敗しても処理を続行
+    }
+
+    res.render('lesson', {
+      lesson,
+      clearedQuestionIds,
+      nextLesson,
+      isGuest: !userId, // ゲストモードかどうかのフラグ
+      quizResult: {
+        result,
+        selectedId: selected ? parseInt(selected as string, 10) : undefined,
+        correctId: correct ? parseInt(correct as string, 10) : undefined,
+        questionId: answeredQuestionId ? parseInt(answeredQuestionId as string, 10) : undefined,
+      },
+    });
+  } catch (error) {
+    console.error('Error in /lessons/:id route:', error);
+    res.status(500).render('error', { 
+      message: 'レッスンの読み込み中にエラーが発生しました。しばらく時間をおいてから再度お試しください。',
+      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY 
+    });
   }
-
-  // 次のレッスンを取得（現在のID + 1）
-  let nextLesson: any = null;
-  const nextLessonId = lesson.id + 1;
-  
-  // 次のIDのレッスンが存在するかチェック
-  nextLesson = await prisma.lesson.findUnique({
-    where: { id: nextLessonId }
-  });
-
-  res.render('lesson', {
-    lesson,
-    clearedQuestionIds,
-    nextLesson,
-    isGuest: !userId, // ゲストモードかどうかのフラグ
-    quizResult: {
-      result,
-      selectedId: selected ? parseInt(selected as string, 10) : undefined,
-      correctId: correct ? parseInt(correct as string, 10) : undefined,
-      questionId: answeredQuestionId ? parseInt(answeredQuestionId as string, 10) : undefined,
-    },
-  });
 });
 
 // 指定したポートでサーバーを起動し、リクエストを待ち始める
