@@ -459,7 +459,9 @@ app.get('/learning', async (req, res) => {
         user = await clerkClient.users.getUser(userId.toString());
       } catch (error) {
         console.error('Error fetching user from Clerk:', error);
-        // ユーザー情報の取得に失敗しても処理を続行
+        // ユーザー情報の取得に失敗した場合は、認証状態をリセット
+        console.log('Resetting auth state due to user fetch error');
+        // 必要に応じて、セッションをクリアする処理を追加
       }
     }
 

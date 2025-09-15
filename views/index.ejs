@@ -133,9 +133,27 @@
                 
                 <!-- 右側のアクションボタン -->
                 <div class="header-actions">
-                    <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openSignIn()">
-                        <i class="fas fa-right-to-bracket"></i>
-                    </button>
+                    <% if (user) { %>
+                        <!-- ログイン済みの場合 -->
+                        <span id="user-greeting" style="display: none;">
+                            こんにちは、<span id="user-name"><%= user.firstName || user.emailAddresses[0]?.emailAddress || 'ユーザー' %></span>さん
+                        </span>
+                        <button id="logout-btn" class="btn btn-outline" onclick="window.Clerk.signOut()" style="display: none;">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                        <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openUserProfile()">
+                            <i class="fas fa-user"></i>
+                        </button>
+                    <% } else { %>
+                        <!-- 未ログインの場合 -->
+                        <span id="user-greeting" style="display: none;"></span>
+                        <button id="logout-btn" class="btn btn-outline" onclick="window.Clerk.signOut()" style="display: none;">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                        <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openSignIn()">
+                            <i class="fas fa-right-to-bracket"></i>
+                        </button>
+                    <% } %>
                 </div>
             </div>
         </div>
@@ -201,12 +219,12 @@
                         </div>
                         <% if (chapter.totalQuestions > 0) { %>
                             <div class="progress-container">
-                                <div class="progress-bar" style="width: <%= chapter.progressPercentage %>%;"></div>
+                                <div class="progress-bar" data-width="<%= Math.round(chapter.progressPercentage) %>"></div>
                                 <span class="progress-text"><%= chapter.clearedQuestions %> / <%= chapter.totalQuestions %> 問クリア</span>
                             </div>
                         <% } %>
                     </div>
-                    <div class="chapter-content" id="chapter-<%= index %>" style="display: <%= index === 0 ? 'block' : 'none' %>;">
+                    <div class="chapter-content" id="chapter-<%= index %>" data-visible="<%= index === 0 ? 'true' : 'false' %>">
                         <ul class="lesson-list">
                             <% chapter.lessons.forEach(lesson => { %>
                                 <li><a href="/lessons/<%= lesson.id %>"><%= lesson.title %></a></li>
@@ -248,27 +266,21 @@
             }
         });
         
-        // 認証UIの更新関数
+        // 認証UIの更新関数（サーバーサイドで既に適切な状態が設定されているため、簡素化）
         function updateAuthUI() {
             const user = window.Clerk.user;
             const userGreeting = document.getElementById('user-greeting');
-            const userName = document.getElementById('user-name');
             const logoutBtn = document.getElementById('logout-btn');
             const loginBtn = document.getElementById('login-btn');
-            const signupBtn = document.getElementById('signup-btn');
             
             if (user) {
                 // ログイン済みの場合
-                if (userGreeting && userName) {
-                    userName.textContent = user.firstName || user.emailAddresses[0]?.emailAddress || 'ユーザー';
-                    userGreeting.style.display = 'inline';
-                }
+                if (userGreeting) userGreeting.style.display = 'inline';
                 if (logoutBtn) logoutBtn.style.display = 'inline-block';
                 if (loginBtn) {
                     loginBtn.innerHTML = '<i class="fas fa-user"></i>';
                     loginBtn.onclick = () => window.Clerk.openUserProfile();
                 }
-                if (signupBtn) signupBtn.style.display = 'none';
             } else {
                 // 未ログインの場合
                 if (userGreeting) userGreeting.style.display = 'none';
@@ -277,12 +289,29 @@
                     loginBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i>';
                     loginBtn.onclick = () => window.Clerk.openSignIn();
                 }
-                if (signupBtn) signupBtn.style.display = 'inline-block';
             }
         }
         
         // ドロップダウン機能と検索機能のJavaScript
         document.addEventListener('DOMContentLoaded', function() {
+            // プログレスバーの幅を設定
+            document.querySelectorAll('.progress-bar').forEach(bar => {
+                const width = bar.getAttribute('data-width');
+                if (width) {
+                    bar.style.width = width + '%';
+                }
+            });
+            
+            // チャプターコンテンツの表示状態を設定
+            document.querySelectorAll('.chapter-content').forEach(content => {
+                const visible = content.getAttribute('data-visible');
+                if (visible === 'true') {
+                    content.style.display = 'block';
+                } else {
+                    content.style.display = 'none';
+                }
+            });
+            
             // ドロップダウン機能
             const chapterToggles = document.querySelectorAll('.chapter-toggle');
             
