@@ -412,6 +412,15 @@ app.get('/learning', async (req, res) => {
 
     // 2. 現在のユーザー（ログイン済みまたはゲスト）の正解した回答履歴を取得（キャッシュ使用）
     const { userId, sessionId } = getUserIdentifier(req);
+    
+    // デバッグ情報を追加
+    console.log('Learning route - Auth state:', {
+      userId,
+      sessionId,
+      hasUser: !!userId,
+      isGuest: !userId
+    });
+    
     const correctAttempts = await getCachedQuizAttempts(userId, sessionId);
     const clearedQuestionIds = new Set(correctAttempts.map(a => a.questionId));
 

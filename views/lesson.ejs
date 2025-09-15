@@ -83,6 +83,12 @@
             font-size: 1.2rem;
             cursor: pointer;
         }
+        
+        .user-greeting {
+            margin-right: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
 
         /* --- レスポンシブ対応 --- */
         
@@ -253,10 +259,10 @@
                 <div class="header-actions">
                     <% if (user) { %>
                         <!-- ログイン済みの場合 -->
-                        <span id="user-greeting" style="display: none;">
+                        <span id="user-greeting" class="user-greeting">
                             こんにちは、<span id="user-name"><%= user.firstName || user.emailAddresses[0]?.emailAddress || 'ユーザー' %></span>さん
                         </span>
-                        <button id="logout-btn" class="btn btn-outline" onclick="window.Clerk.signOut()" style="display: none;">
+                        <button id="logout-btn" class="btn btn-outline" onclick="window.Clerk.signOut()">
                             <i class="fas fa-sign-out-alt"></i>
                         </button>
                         <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openUserProfile()">
@@ -414,7 +420,14 @@
             
             if (user) {
                 // ログイン済みの場合
-                if (userGreeting) userGreeting.style.display = 'inline';
+                if (userGreeting) {
+                    userGreeting.style.display = 'inline';
+                    // ユーザー名を更新
+                    const userName = document.getElementById('user-name');
+                    if (userName) {
+                        userName.textContent = user.firstName || user.emailAddresses[0]?.emailAddress || 'ユーザー';
+                    }
+                }
                 if (logoutBtn) logoutBtn.style.display = 'inline-block';
                 if (loginBtn) {
                     loginBtn.innerHTML = '<i class="fas fa-user"></i>';
