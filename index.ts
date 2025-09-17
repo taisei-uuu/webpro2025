@@ -448,6 +448,15 @@ app.get('/learning', async (req, res) => {
     
     const correctAttempts = await getCachedQuizAttempts(userId, sessionId);
     const clearedQuestionIds = new Set(correctAttempts.map(a => a.questionId));
+    
+    // デバッグ情報を追加
+    console.log('Progress debug:', {
+      userId,
+      sessionId,
+      correctAttemptsCount: correctAttempts.length,
+      correctAttempts: correctAttempts,
+      clearedQuestionIds: Array.from(clearedQuestionIds)
+    });
 
     // 章の情報を定義
     const chapterInfo: Record<number, string> = {
