@@ -17,6 +17,16 @@ async function main() {
   );
   console.log(`Start seeding ...`);
 
+  // 既存のレッスンデータをチェック
+  const existingLessons = await prisma.lesson.count();
+  
+  if (existingLessons > 0) {
+    console.log(`Found ${existingLessons} existing lessons. Skipping seed to preserve user progress.`);
+    return;
+  }
+
+  console.log("No existing lessons found. Proceeding with seed...");
+
   // 既存のデータをクリア (依存関係の深いものから削除)
   await prisma.quizAttempt.deleteMany();
   await prisma.subscription.deleteMany();

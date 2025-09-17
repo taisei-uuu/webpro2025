@@ -4,7 +4,8 @@
   "description": "Webpro 2025",
   "main": "index.js",
   "scripts": {
-    "build": "prisma generate && prisma db push && prisma db seed",
+    "build": "prisma generate && prisma db push",
+    "build:with-seed": "prisma generate && prisma db push && prisma db seed",
     "start": "tsx index.ts",
     "dev": "tsx index.ts",
     "db:push": "prisma db push",
