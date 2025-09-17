@@ -1,0 +1,283 @@
+/* Retro Cards Component Styles */
+.retro-cards-container {
+  position: relative;
+  width: 100%;
+  margin-top: 2.5rem;
+}
+
+.retro-cards-scroll {
+  display: flex;
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: auto;
+  scroll-behavior: smooth;
+  padding: 1.25rem 0;
+  /* スクロールバーを表示 */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.retro-cards-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.retro-cards-scroll::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 4px;
+}
+
+.retro-cards-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.retro-cards-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+
+.retro-cards-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 1rem;
+  padding-left: 0.75rem;
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.retro-card-item {
+  border-radius: 1.5rem;
+}
+
+.retro-card-item:last-child {
+  padding-right: 5%;
+}
+
+@media (min-width: 768px) {
+  .retro-card-item:last-child {
+    padding-right: 33%;
+  }
+}
+
+.retro-card-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retro-card-button:hover {
+  transform: perspective(1000px) rotateX(2deg) rotateY(2deg) rotate(3deg) scale(1.02);
+}
+
+.retro-card {
+  border-radius: 1.5rem;
+  background: #ffffff;
+  width: 18rem; /* 約288px */
+  height: 25rem; /* 約400px - さらに高くして余裕を持たせる */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  aspect-ratio: 18/25; /* より縦長のアスペクト比 */
+}
+
+@media (min-width: 768px) {
+  .retro-card {
+    width: 22rem; /* 約352px */
+    height: 30.6rem; /* 約490px - より縦長のアスペクト比を維持 */
+    aspect-ratio: 18/25; /* より縦長のアスペクト比 */
+  }
+}
+
+.retro-card-background {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.retro-card-background-inner {
+  position: absolute;
+  inset: 0;
+}
+
+.retro-card-background img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* 画像全体が表示されるように変更 */
+  object-position: center;
+  /* 画像が完全に表示されるように余裕を持たせる */
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.retro-card-content {
+  position: relative;
+  z-index: 20;
+  text-align: center;
+  padding: 1rem;
+  display: none; /* テキストコンテンツを非表示 */
+}
+
+.retro-controls {
+  display: none; /* ボタンを非表示 */
+}
+
+/* Modal Styles */
+.retro-modal-overlay {
+  position: fixed;
+  inset: 0;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.retro-modal-backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  inset: 0;
+}
+
+.retro-modal-content {
+  background: #ffffff;
+  z-index: 60;
+  padding: 1rem;
+  border-radius: 1.5rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 画面サイズに応じて適切なサイズを設定 */
+  width: 90vw;
+  height: auto;
+  /* アスペクト比を維持 */
+  aspect-ratio: 4/5;
+  /* 最大サイズを制限 */
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+@media (min-width: 768px) {
+  .retro-modal-content {
+    padding: 1rem;
+    /* デスクトップでは画像サイズに近いサイズを使用 */
+    width: 60vw;
+    height: auto;
+    /* アスペクト比を維持 */
+    aspect-ratio: 4/5;
+    /* 最大サイズを制限 */
+    max-width: 60vw;
+    max-height: 85vh;
+  }
+}
+
+@media (min-width: 1200px) {
+  .retro-modal-content {
+    padding: 1rem;
+    /* 大きなデスクトップでは画像サイズに近い固定サイズを使用 */
+    width: 600px;
+    height: 750px;
+    /* アスペクト比を維持 */
+    aspect-ratio: 4/5;
+    /* 最大サイズを制限 */
+    max-width: 600px;
+    max-height: 85vh;
+  }
+}
+
+.retro-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  height: 2.5rem;
+  width: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: none;
+  cursor: pointer;
+  z-index: 70;
+}
+
+.retro-modal-card {
+  width: 100%;
+  height: 100%;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  /* 画面サイズに応じて適切に表示 */
+  max-width: 100%;
+  max-height: 100%;
+  /* 画像サイズに近い表示 */
+  aspect-ratio: 4/5;
+}
+
+.retro-modal-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* 画像全体が表示されるように変更 */
+  object-position: center;
+  /* 画像が完全に表示されるように調整 */
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.retro-modal-close-icon {
+  height: 1.5rem;
+  width: 1.5rem;
+  color: white;
+}
+
+/* Animation Classes */
+.retro-card-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.retro-card-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.retro-modal-enter {
+  opacity: 0;
+}
+
+.retro-modal-enter-active {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.retro-modal-exit {
+  opacity: 1;
+}
+
+.retro-modal-exit-active {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Body scroll lock */
+.body-scroll-lock {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+}

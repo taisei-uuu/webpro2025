@@ -581,14 +581,22 @@ body {
     white-space: pre-line;
 }
 
-/* 動画セクション */
+/* 動画セクション（モバイルファースト） */
 .video-section {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border: 1px solid #dee2e6;
     border-radius: 12px;
-    padding: 1.5rem;
-    margin: 2rem 0;
+    padding: 0.5rem; /* モバイル用のパディング */
+    margin: 1rem 0; /* モバイル用のマージン */
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+/* デスクトップ用の動画セクション調整 */
+@media (min-width: 768px) {
+    .video-section {
+        padding: 1rem; /* デスクトップでは少し余裕を持たせる */
+        margin: 1.5rem 0;
+    }
 }
 
 .video-section h3 {
@@ -603,7 +611,7 @@ body {
 .video-container {
     position: relative;
     width: 100%;
-    height: 400px;
+    height: 400px; /* デスクトップ用の固定高さ */
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -611,6 +619,9 @@ body {
 }
 
 .video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     border: none;
@@ -620,8 +631,8 @@ body {
 .video-description {
     color: #6c757d;
     font-size: 0.9rem;
-    margin: 0;
-    padding: 0.75rem 1rem;
+    margin: 0.5rem 0 0 0; /* 上マージンを追加、下マージンを削除 */
+    padding: 0.5rem 0.75rem; /* パディングを削減 */
     background: rgba(0,82,155,0.05);
     border-radius: 6px;
     border-left: 4px solid var(--primary-color);
@@ -632,16 +643,19 @@ body {
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
     .video-container {
-        height: 250px;
+        height: 300px; /* モバイル用の高さを拡大 */
+        width: 95%; /* 画面幅の95%に拡大 */
+        margin: 0 auto 1rem auto; /* 中央配置 */
     }
     
     .video-section {
-        padding: 1rem;
-        margin: 1.5rem 0;
+        padding: 0.5rem; /* パディングを縮小 */
+        margin: 1rem 0; /* マージンも縮小 */
     }
     
     .video-section h3 {
         font-size: 1.1rem;
+        margin-bottom: 0.5rem; /* タイトル下のマージンを縮小 */
     }
 }
 
