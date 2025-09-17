@@ -47,11 +47,14 @@ app.use(express.json());
 app.use(session({
   secret: process.env.SESSION_SECRET || 'fallback-secret-key',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false, // セッションが実際に使用されるまで保存しない
   cookie: {
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24時間
-  }
+    httpOnly: true, // XSS攻撃を防ぐ
+    maxAge: 24 * 60 * 60 * 1000, // 24時間
+    sameSite: 'lax' // CSRF攻撃を防ぐ
+  },
+  name: 'stockwith.session' // デフォルトのセッション名を変更
 }));
 
 // Clerkミドルウェアを追加（環境変数が設定されている場合のみ）
@@ -85,6 +88,26 @@ function getUserIdentifier(req: express.Request): { userId?: number; sessionId?:
     return { sessionId: getOrCreateGuestSession(req) };
   }
 }
+
+// グローバルエラーハンドリングミドルウェア
+app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Global error handler:', error);
+  
+  // セッション関連のエラーの場合
+  if (error.code === 'EBADCSRFTOKEN' || error.message.includes('session')) {
+    // セッションをクリアしてリダイレクト
+    req.session.destroy((err) => {
+      if (err) console.error('Error destroying session:', err);
+    });
+    return res.redirect('/');
+  }
+  
+  // その他のエラーは500エラーとして処理
+  res.status(500).render('error', { 
+    message: 'サーバーエラーが発生しました。しばらく時間をおいてから再度お試しください。',
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
+  });
+});
 
 // クイズ回答履歴をキャッシュするMap
 const quizAttemptsCache = new Map<string, { data: any[], timestamp: number }>();
@@ -470,7 +493,19 @@ app.get('/learning', async (req, res) => {
         console.error('Error fetching user from Clerk:', error);
         // ユーザー情報の取得に失敗した場合は、認証状態をリセット
         console.log('Resetting auth state due to user fetch error');
-        // 必要に応じて、セッションをクリアする処理を追加
+        
+        // セッションをクリアしてゲストモードに切り替え
+        req.session.destroy((err) => {
+          if (err) console.error('Error destroying session:', err);
+        });
+        
+        // ゲストモードで再レンダリング
+        return res.render('index', { 
+          chapters: chaptersWithProgress, 
+          user: null,
+          isGuest: true,
+          publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+        });
       }
     }
 
@@ -656,6 +691,27 @@ app.get('/lessons/:id', async (req, res) => {
         console.error('Error fetching user from Clerk:', error);
         // ユーザー情報の取得に失敗した場合は、認証状態をリセット
         console.log('Resetting auth state due to user fetch error');
+        
+        // セッションをクリアしてゲストモードに切り替え
+        req.session.destroy((err) => {
+          if (err) console.error('Error destroying session:', err);
+        });
+        
+        // ゲストモードで再レンダリング
+        return res.render('lesson', {
+          lesson,
+          clearedQuestionIds,
+          nextLesson,
+          isGuest: true,
+          user: null,
+          publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+          quizResult: {
+            result,
+            selectedId: selected ? parseInt(selected as string, 10) : undefined,
+            correctId: correct ? parseInt(correct as string, 10) : undefined,
+            questionId: answeredQuestionId ? parseInt(answeredQuestionId as string, 10) : undefined,
+          },
+        });
       }
     }
 

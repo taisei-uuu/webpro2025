@@ -269,6 +269,10 @@
                 });
             } catch (error) {
                 console.error('Error loading Clerk:', error);
+                // Clerkの読み込みに失敗した場合は、ページをリロード
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
             }
         });
         
