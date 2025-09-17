@@ -125,7 +125,7 @@ async function getCachedQuizAttempts(userId?: string, sessionId?: string) {
   const attempts = await prisma.quizAttempt.findMany({
     where: {
       OR: [
-        userId ? { userId: parseInt(userId) } : {}, // データベースでは数値IDを使用
+        userId ? { clerkUserId: userId } : {}, // ClerkのユーザーIDを直接使用
         sessionId ? { sessionId: sessionId } : {}
       ],
       isCorrect: true,
@@ -575,7 +575,7 @@ app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
   // QuizAttemptに記録
   await prisma.quizAttempt.create({
     data: {
-      userId: userId ? parseInt(userId) : null, // ClerkのユーザーIDを数値に変換
+      clerkUserId: userId || null, // ClerkのユーザーIDを直接保存
       sessionId: sessionId || null,
       questionId: parseInt(questionId, 10),
       selectedOptionId: parseInt(selectedOptionId, 10),

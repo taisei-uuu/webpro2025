@@ -5,31 +5,31 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Lesson {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   chapter   Int
   title     String
   content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   questions Question[] // Lessonは複数のQuestionを持つ
 }
 
 model Question {
-  id        Int      @id @default(autoincrement())
-  text      String // 問題文
-  lessonId  Int
-  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  options   Option[] // Questionは複数のOptionを持つ
+  id           Int           @id @default(autoincrement())
+  text         String // 問題文
+  lessonId     Int
+  lesson       Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  options      Option[] // Questionは複数のOptionを持つ
   quizAttempts QuizAttempt[] // Questionは複数のQuizAttemptを持つ
 
   createdAt DateTime @default(now())
@@ -37,48 +37,46 @@ model Question {
 }
 
 model Option {
-  id         Int      @id @default(autoincrement())
+  id         Int           @id @default(autoincrement())
   text       String // 選択肢のテキスト
-  isCorrect  Boolean  // この選択肢が正解かどうか
+  isCorrect  Boolean // この選択肢が正解かどうか
   questionId Int
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  question   Question      @relation(fields: [questionId], references: [id], onDelete: Cascade)
   attempts   QuizAttempt[] // Optionは複数のQuizAttemptを持つ
 }
 
 model QuizAttempt {
   id               Int      @id @default(autoincrement())
-  userId           Int?
-  user             User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sessionId        String?  // ゲストユーザーのセッションID
+  clerkUserId      String? // ClerkのユーザーIDを直接保存
+  sessionId        String? // ゲストユーザーのセッションID
   questionId       Int
   question         Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  selectedOptionId Int?     // ユーザーが選択した選択肢のID（オプショナル）
+  selectedOptionId Int? // ユーザーが選択した選択肢のID（オプショナル）
   selectedOption   Option?  @relation(fields: [selectedOptionId], references: [id], onDelete: Cascade)
-  isCorrect        Boolean  // 提出された回答が正解だったか
+  isCorrect        Boolean // 提出された回答が正解だったか
   submittedAt      DateTime @default(now())
 }
 
 model User {
-  id        Int           @id @default(autoincrement())
-  email     String        @unique
-  password  String        // パスワードフィールドを追加
-  name      String?
-  clerkId   String?       @unique // ClerkのユーザーID
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  quizAttempts QuizAttempt[]
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  password      String // パスワードフィールドを追加
+  name          String?
+  clerkId       String?        @unique // ClerkのユーザーID
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   subscriptions Subscription[] // ユーザーのサブスクリプション
 }
 
 model Subscription {
-  id                Int      @id @default(autoincrement())
-  userId            Int
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stripeCustomerId  String   @unique
-  stripeSubscriptionId String @unique
-  status            String   // active, canceled, past_due, etc.
-  currentPeriodStart DateTime
-  currentPeriodEnd   DateTime
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                   Int      @id @default(autoincrement())
+  userId               Int
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeCustomerId     String   @unique
+  stripeSubscriptionId String   @unique
+  status               String // active, canceled, past_due, etc.
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }

@@ -5,10 +5,10 @@ Webpro 2025 プロジェクト - 株式投資学習のためのロードマッ�
 ## 技術スタック
 
 - **Backend**: Node.js + Express + TypeScript
-- **Database**: Prisma + SQLite
+- **Database**: Prisma + PostgreSQL (本番環境)
 - **Frontend**: EJS + CSS
 - **Session Store**: MemoryStore (開発環境)
-- **Authentication**: Express Session + bcrypt
+- **Authentication**: Clerk (本番環境)
 
 ## 新しく追加されたコンポーネント
 
@@ -67,7 +67,9 @@ npm start
 
 - **セッション管理**: MemoryStoreを使用（開発・小規模運用向け）
 - **セキュリティ**: 本番環境では`secure: true`でHTTPS必須
-- **データベース**: SQLiteを使用（ファイルベース）
+- **データベース**: PostgreSQLを使用（本番環境）
+- **認証**: Clerkを使用（本番環境）
+- **進捗管理**: ClerkのユーザーIDを直接使用して永続化
 
 ## プロジェクト構造
 
