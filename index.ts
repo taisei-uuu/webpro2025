@@ -446,17 +446,26 @@ app.get('/learning', async (req, res) => {
       userIdValue: userId
     });
     
-    const correctAttempts = await getCachedQuizAttempts(userId, sessionId);
-    const clearedQuestionIds = new Set(correctAttempts.map(a => a.questionId));
+    // ゲストモードでは進捗を無効化
+    let correctAttempts: any[] = [];
+    let clearedQuestionIds = new Set<number>();
     
-    // デバッグ情報を追加
-    console.log('Progress debug:', {
-      userId,
-      sessionId,
-      correctAttemptsCount: correctAttempts.length,
-      correctAttempts: correctAttempts,
-      clearedQuestionIds: Array.from(clearedQuestionIds)
-    });
+    if (userId) {
+      // ログイン済みの場合のみ進捗を取得
+      correctAttempts = await getCachedQuizAttempts(userId, sessionId);
+      clearedQuestionIds = new Set(correctAttempts.map(a => a.questionId));
+      
+      // デバッグ情報を追加
+      console.log('Progress debug:', {
+        userId,
+        sessionId,
+        correctAttemptsCount: correctAttempts.length,
+        correctAttempts: correctAttempts,
+        clearedQuestionIds: Array.from(clearedQuestionIds)
+      });
+    } else {
+      console.log('Guest mode: Progress disabled');
+    }
 
     // 章の情報を定義
     const chapterInfo: Record<number, string> = {
@@ -581,25 +590,24 @@ app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
 
   const isCorrect = selectedOption.isCorrect;
 
-  // QuizAttemptに記録
-  await prisma.quizAttempt.create({
-    data: {
-      clerkUserId: userId || null, // ClerkのユーザーIDを直接保存
-      sessionId: sessionId || null,
-      questionId: parseInt(questionId, 10),
-      selectedOptionId: parseInt(selectedOptionId, 10),
-      isCorrect: isCorrect,
-    },
-  });
-
-  // キャッシュをクリア（進捗データを即座に反映）
+  // ログイン済みの場合のみ進捗を保存
   if (userId) {
+    // QuizAttemptに記録
+    await prisma.quizAttempt.create({
+      data: {
+        clerkUserId: userId, // ClerkのユーザーIDを直接保存
+        sessionId: null,
+        questionId: parseInt(questionId, 10),
+        selectedOptionId: parseInt(selectedOptionId, 10),
+        isCorrect: isCorrect,
+      },
+    });
+
+    // キャッシュをクリア（進捗データを即座に反映）
     quizAttemptsCache.delete(`user_${userId}`);
     console.log(`Cache cleared for user: ${userId}`);
-  }
-  if (sessionId) {
-    quizAttemptsCache.delete(`session_${sessionId}`);
-    console.log(`Cache cleared for session: ${sessionId}`);
+  } else {
+    console.log('Guest mode: Progress not saved');
   }
 
   // 正解の選択肢IDを取得
@@ -664,12 +672,21 @@ app.get('/lessons/:id', async (req, res) => {
 
     // ユーザーの回答履歴を取得（キャッシュ使用）
     const { userId, sessionId } = getUserIdentifier(req);
-    const allAttempts = await getCachedQuizAttempts(userId, sessionId);
-    const attempts = allAttempts.filter(attempt => {
-      // レッスンIDでフィルタリング（キャッシュから取得したデータをフィルタ）
-      return true; // この部分は後で最適化
-    });
-    const clearedQuestionIds = new Set(attempts.map(a => a.questionId));
+    
+    // ゲストモードでは進捗を無効化
+    let clearedQuestionIds = new Set<number>();
+    
+    if (userId) {
+      // ログイン済みの場合のみ進捗を取得
+      const allAttempts = await getCachedQuizAttempts(userId, sessionId);
+      const attempts = allAttempts.filter(attempt => {
+        // レッスンIDでフィルタリング（キャッシュから取得したデータをフィルタ）
+        return true; // この部分は後で最適化
+      });
+      clearedQuestionIds = new Set(attempts.map(a => a.questionId));
+    } else {
+      console.log('Guest mode: Progress disabled for lesson');
+    }
 
     const lesson = await prisma.lesson.findUnique({
       where: { id },
