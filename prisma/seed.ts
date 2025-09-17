@@ -4,6 +4,20 @@ import dotenv from "dotenv";
 // tsx経由での実行時に.envを確実に読み込むために追加
 dotenv.config();
 
+/**
+ * データベースシードファイル
+ * 
+ * 使用方法:
+ * - 通常のシード（進捗データを保護）: npm run db:seed
+ * - 強制リセット（全データを削除）: npm run db:reset
+ * 
+ * レッスンデータの変更:
+ * 1. lessonsWithQuestions配列を編集
+ * 2. npm run db:reset を実行
+ * 
+ * 注意: 強制リセット時は全ユーザーの進捗データも削除されます
+ */
+
 const prisma = new PrismaClient();
 
 async function main() {
@@ -20,12 +34,20 @@ async function main() {
   // 既存のレッスンデータをチェック
   const existingLessons = await prisma.lesson.count();
   
-  if (existingLessons > 0) {
+  // FORCE_RESET環境変数で強制リセットを制御
+  const forceReset = process.env.FORCE_RESET === 'true';
+  
+  if (existingLessons > 0 && !forceReset) {
     console.log(`Found ${existingLessons} existing lessons. Skipping seed to preserve user progress.`);
+    console.log('To force reset, set FORCE_RESET=true environment variable');
     return;
   }
 
-  console.log("No existing lessons found. Proceeding with seed...");
+  if (forceReset) {
+    console.log("FORCE_RESET=true detected. Proceeding with full reset...");
+  } else {
+    console.log("No existing lessons found. Proceeding with seed...");
+  }
 
   // 既存のデータをクリア (依存関係の深いものから削除)
   await prisma.quizAttempt.deleteMany();
@@ -49,7 +71,7 @@ async function main() {
   const lessonsWithQuestions = [
     {
       chapter: 1,
-      title: "1-1. 証券口座について",
+      title: "1-1. 証券口座を開設しよう",
       content: "株式投資を始める第一歩は「証券口座」を開設することです。\n\n1. 証券口座とは\n   • 株式や投資信託などの金融商品を売買するための専用の口座\n   • 普段使っている銀行口座とは別物\n   • 株を買ったり売ったりするためには必ず必要\n\n2. 証券口座の重要性\n   • 投資を始めるための必須条件\n   • 安全で確実な取引の基盤\n   • 資産形成の第一歩",
       questions: [
         {
@@ -65,39 +87,7 @@ async function main() {
     },
     {
       chapter: 1,
-      title: "1-2. 証券会社の選び方",
-      content: "証券会社は大きく分けて2種類あります。\n\n1. 対面型証券会社\n   • 店舗で担当者と直接相談しながら取引\n   • 初心者には心強い\n   • 手数料が高め\n\n2. ネット証券\n   • インターネットで全て完結\n   • 手数料が安い\n   • スマホでも簡単に取引可能",
-      questions: [
-        {
-          text: "手数料が安く、スマホでも簡単に取引できる証券会社の種類は何ですか？",
-          options: [
-            { text: "対面型証券会社", isCorrect: false },
-            { text: "ネット証券", isCorrect: true },
-            { text: "銀行系証券会社", isCorrect: false },
-            { text: "保険系証券会社", isCorrect: false },
-          ],
-        },
-      ],
-    },
-    {
-      chapter: 1,
-      title: "1-3. 証券会社選びのポイント",
-      content: "証券会社選びの重要なポイントは以下の通りです。\n\n1. 取引手数料\n   • 安い方が利益を出しやすい\n   • 最近はネット証券で株式取引が無料のところも増加\n\n2. 使いやすさ\n   • 特に初心者にはアプリやウェブサイトの使いやすさが重要\n   • 直感的な操作ができるかチェック\n\n3. 銀行との連携\n   • 普段使っている銀行と連携している証券会社\n   • お金の入出金がスムーズ\n\n4. 投資情報の充実度\n   • 銘柄情報や投資に役立つコンテンツが充実しているか\n   • 学習コンテンツの質も確認",
-      questions: [
-        {
-          text: "証券会社を選ぶ際に、初心者にとって特に重要なポイントは何ですか？",
-          options: [
-            { text: "取引手数料の安さ", isCorrect: false },
-            { text: "アプリやウェブサイトの使いやすさ", isCorrect: true },
-            { text: "店舗の数", isCorrect: false },
-            { text: "設立年数", isCorrect: false },
-          ],
-        },
-      ],
-    },
-    {
-      chapter: 1,
-      title: "1-4. 口座開設の流れ",
+      title: "1-2. 口座開設手順を確認しよう",
       content: "証券口座開設の手続きは以下の流れで進みます。\n\n1. 申し込み手続き\n   • 証券会社のウェブサイトやアプリから申し込み\n   • 必要事項を入力\n\n2. 本人確認書類の提出\n   • 運転免許証やマイナンバーカードなど\n   • 書類をアップロード\n\n3. 審査期間\n   • 数日〜1週間程度\n   • 口座開設完了の連絡が来る\n\n4. 口座開設完了\n   • 口座に入金\n   • いよいよ株式投資のスタート！",
       questions: [
         {

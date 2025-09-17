@@ -9,7 +9,9 @@
     "start": "tsx index.ts",
     "dev": "tsx index.ts",
     "db:push": "prisma db push",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "db:reset": "FORCE_RESET=true prisma db seed",
+    "db:reset:local": "FORCE_RESET=true npx prisma db seed"
   },
   "keywords": [],
   "author": "",
