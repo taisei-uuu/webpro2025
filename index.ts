@@ -647,11 +647,24 @@ app.get('/lessons/:id', async (req, res) => {
       // 次のレッスンの取得に失敗しても処理を続行
     }
 
+    // ユーザー情報を取得（ログイン済みの場合のみ）
+    let user: any = null;
+    if (userId && process.env.CLERK_SECRET_KEY) {
+      try {
+        user = await clerkClient.users.getUser(userId.toString());
+      } catch (error) {
+        console.error('Error fetching user from Clerk:', error);
+        // ユーザー情報の取得に失敗した場合は、認証状態をリセット
+        console.log('Resetting auth state due to user fetch error');
+      }
+    }
+
     res.render('lesson', {
       lesson,
       clearedQuestionIds,
       nextLesson,
       isGuest: !userId, // ゲストモードかどうかのフラグ
+      user: user, // 完全なユーザー情報を追加
       publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
       quizResult: {
         result,
