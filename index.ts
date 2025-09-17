@@ -74,11 +74,11 @@ function getOrCreateGuestSession(req: express.Request): string {
 }
 
 // ユーザーIDまたはセッションIDを取得するヘルパー関数（最適化版）
-function getUserIdentifier(req: express.Request): { userId?: number; sessionId?: string } {
+function getUserIdentifier(req: express.Request): { userId?: string; sessionId?: string } {
   try {
     const { userId } = getAuth(req);
     if (userId) {
-      return { userId: parseInt(userId) };
+      return { userId: userId }; // ClerkのユーザーIDは文字列のまま使用
     } else {
       return { sessionId: getOrCreateGuestSession(req) };
     }
@@ -114,7 +114,7 @@ const quizAttemptsCache = new Map<string, { data: any[], timestamp: number }>();
 const CACHE_DURATION = 30000; // 30秒
 
 // キャッシュされたクイズ回答履歴を取得する関数
-async function getCachedQuizAttempts(userId?: number, sessionId?: string) {
+async function getCachedQuizAttempts(userId?: string, sessionId?: string) {
   const cacheKey = userId ? `user_${userId}` : `session_${sessionId}`;
   const cached = quizAttemptsCache.get(cacheKey);
   
@@ -125,7 +125,7 @@ async function getCachedQuizAttempts(userId?: number, sessionId?: string) {
   const attempts = await prisma.quizAttempt.findMany({
     where: {
       OR: [
-        userId ? { userId: userId } : {},
+        userId ? { userId: parseInt(userId) } : {}, // データベースでは数値IDを使用
         sessionId ? { sessionId: sessionId } : {}
       ],
       isCorrect: true,
@@ -441,7 +441,9 @@ app.get('/learning', async (req, res) => {
       userId,
       sessionId,
       hasUser: !!userId,
-      isGuest: !userId
+      isGuest: !userId,
+      userIdType: typeof userId,
+      userIdValue: userId
     });
     
     const correctAttempts = await getCachedQuizAttempts(userId, sessionId);
@@ -573,7 +575,7 @@ app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
   // QuizAttemptに記録
   await prisma.quizAttempt.create({
     data: {
-      userId: userId || null,
+      userId: userId ? parseInt(userId) : null, // ClerkのユーザーIDを数値に変換
       sessionId: sessionId || null,
       questionId: parseInt(questionId, 10),
       selectedOptionId: parseInt(selectedOptionId, 10),
