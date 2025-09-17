@@ -111,7 +111,7 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
 
 // クイズ回答履歴をキャッシュするMap
 const quizAttemptsCache = new Map<string, { data: any[], timestamp: number }>();
-const CACHE_DURATION = 30000; // 30秒
+const CACHE_DURATION = 5000; // 5秒に短縮（開発・テスト用）
 
 // キャッシュされたクイズ回答履歴を取得する関数
 async function getCachedQuizAttempts(userId?: string, sessionId?: string) {
@@ -591,6 +591,16 @@ app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
       isCorrect: isCorrect,
     },
   });
+
+  // キャッシュをクリア（進捗データを即座に反映）
+  if (userId) {
+    quizAttemptsCache.delete(`user_${userId}`);
+    console.log(`Cache cleared for user: ${userId}`);
+  }
+  if (sessionId) {
+    quizAttemptsCache.delete(`session_${sessionId}`);
+    console.log(`Cache cleared for session: ${sessionId}`);
+  }
 
   // 正解の選択肢IDを取得
   const correctOption = await prisma.option.findFirst({
