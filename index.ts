@@ -405,6 +405,94 @@ app.get('/privacy', (req, res) => {
   }
 });
 
+// Phase2ページ
+app.get('/phase2', async (req, res) => {
+  try {
+    // 認証状態を取得
+    const { userId, sessionId } = getUserIdentifier(req);
+    
+    // ユーザー情報を取得（ログイン済みの場合のみ）
+    let user: any = null;
+    if (userId && process.env.CLERK_SECRET_KEY) {
+      try {
+        user = await clerkClient.users.getUser(userId.toString());
+      } catch (error) {
+        console.error('Error fetching user from Clerk:', error);
+        // ユーザー情報の取得に失敗した場合は、認証状態をリセット
+        console.log('Resetting auth state due to user fetch error');
+        
+        // セッションをクリアしてゲストモードに切り替え
+        req.session.destroy((err) => {
+          if (err) console.error('Error destroying session:', err);
+        });
+        
+        // ゲストモードで再レンダリング
+        return res.render('phase2', { 
+          user: null,
+          isGuest: true,
+          publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+        });
+      }
+    }
+
+    res.render('phase2', { 
+      user: user,
+      isGuest: !userId,
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+    });
+  } catch (error) {
+    console.error('Error in /phase2 route:', error);
+    res.status(500).render('error', { 
+      message: 'ページの読み込み中にエラーが発生しました。',
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+    });
+  }
+});
+
+// Phase3ページ
+app.get('/phase3', async (req, res) => {
+  try {
+    // 認証状態を取得
+    const { userId, sessionId } = getUserIdentifier(req);
+    
+    // ユーザー情報を取得（ログイン済みの場合のみ）
+    let user: any = null;
+    if (userId && process.env.CLERK_SECRET_KEY) {
+      try {
+        user = await clerkClient.users.getUser(userId.toString());
+      } catch (error) {
+        console.error('Error fetching user from Clerk:', error);
+        // ユーザー情報の取得に失敗した場合は、認証状態をリセット
+        console.log('Resetting auth state due to user fetch error');
+        
+        // セッションをクリアしてゲストモードに切り替え
+        req.session.destroy((err) => {
+          if (err) console.error('Error destroying session:', err);
+        });
+        
+        // ゲストモードで再レンダリング
+        return res.render('phase3', { 
+          user: null,
+          isGuest: true,
+          publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+        });
+      }
+    }
+
+    res.render('phase3', { 
+      user: user,
+      isGuest: !userId,
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+    });
+  } catch (error) {
+    console.error('Error in /phase3 route:', error);
+    res.status(500).render('error', { 
+      message: 'ページの読み込み中にエラーが発生しました。',
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+    });
+  }
+});
+
 // 利用規約ページ
 app.get('/terms', (req, res) => {
   try {
@@ -505,6 +593,12 @@ app.get('/learning', async (req, res) => {
       progressPercentage: chapter.totalQuestions > 0 ? (chapter.clearedQuestions / chapter.totalQuestions) * 100 : 0,
     }));
 
+    // Phase1の総問題数を計算（現在の全レッスンの問題数）
+    const totalQuestions = lessonsWithQuestions.reduce((total, lesson) => total + lesson.questions.length, 0);
+    
+    // Phase1の進捗率を計算
+    const phase1Progress = totalQuestions > 0 ? Math.round((clearedQuestionIds.size / totalQuestions) * 100) : 0;
+
     // ユーザー情報を取得（ログイン済みの場合のみ）
     let user: any = null;
     if (userId && process.env.CLERK_SECRET_KEY) {
@@ -525,6 +619,9 @@ app.get('/learning', async (req, res) => {
           chapters: chaptersWithProgress, 
           user: null,
           isGuest: true,
+          totalQuestions: totalQuestions,
+          clearedQuestionIds: clearedQuestionIds,
+          phase1Progress: phase1Progress,
           publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
         });
       }
@@ -534,6 +631,9 @@ app.get('/learning', async (req, res) => {
       chapters: chaptersWithProgress, 
       user: user,
       isGuest: !userId, // ゲストモードかどうかのフラグ
+      totalQuestions: totalQuestions,
+      clearedQuestionIds: clearedQuestionIds,
+      phase1Progress: phase1Progress,
       publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
     });
   } catch (error) {

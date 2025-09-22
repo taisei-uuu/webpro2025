@@ -36,53 +36,65 @@
         .site-header {
             padding: 10px 0;
             min-height: auto;
+            background-color: white; /* 白い背景を追加 */
             border-bottom: 1px solid #f0f0f0; /* Optional: adds a nice separator */
         }
 
         .header-content {
             display: flex;
-            justify-content: center; /* 中央揃えに変更 */
+            justify-content: space-between; /* 左右に配置 */
             align-items: center;
             flex-wrap: nowrap; 
             padding: 0 15px;
             position: relative; /* 相対位置指定で左右の要素を絶対配置 */
         }
 
-        /* 左側のスペーサー（非表示） */
-        .header-spacer {
-            display: none; /* 左側スペーサーは不要なので非表示 */
+        /* 左側のロゴと商号 */
+        .header-logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #000000;
+            font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1;
+        }
+
+        .header-logo img {
+            height: 40px;
+            margin-right: 8px;
+        }
+
+        .header-logo .brand-with {
+            font-weight: 400;
+            color: #1e40af;
         }
         
         /* 右側のアクションボタンのコンテナ */
         .header-actions {
-            position: absolute; /* 絶対配置 */
-            right: 15px; /* 右端から15px */
-            top: 50%; /* 垂直中央 */
-            transform: translateY(-50%); /* 中央揃え */
-        }
-
-        .site-title {
-            flex-grow: 0;  /* スペースを埋めない */
-            flex-shrink: 0; /* 縮まない */
-            margin: 0;
-            font-size: 1.5rem;
-            text-align: center;
-            /* タイトルが実際に必要な幅だけを取る */
-            width: auto;
-            max-width: calc(100% - 120px); /* 左右のボタン分のスペースを確保 */
-        }
-
-        .site-title a {
-            text-decoration: none;
-            color: inherit;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         #login-btn {
             border: none;
             background: none;
-            padding: 8px 12px;
-            font-size: 1.2rem;
+            padding: 8px 16px;
+            font-size: 1rem;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #000000;
+            text-decoration: none;
+        }
+
+        #login-btn:hover {
+            color: #1e40af;
         }
         
         .user-greeting {
@@ -95,17 +107,15 @@
         
         /* 768px以下の画面サイズ */
         @media (max-width: 768px) {
-            .site-title {
+            .header-logo {
                 font-size: 1.2rem;
             }
-            #login-btn {
-                padding: 6px 8px;
-                font-size: 1rem;
+            .header-logo img {
+                height: 35px;
             }
-            /* [修正点3] モバイルでは左右の余白を少し狭くして、タイトル用のスペースを確保します */
-            .header-spacer,
-            .header-actions {
-                width: 44px; 
+            #login-btn {
+                padding: 6px 12px;
+                font-size: 0.9rem;
             }
         }
 
@@ -114,12 +124,15 @@
             .header-content {
                 padding: 0 10px; /* さらに狭い画面ではパディングを少し減らす */
             }
-            .site-title {
+            .header-logo {
                 font-size: 1.1rem;
             }
-            .header-spacer,
-            .header-actions {
-                width: 40px; /* さらに余白を狭くする */
+            .header-logo img {
+                height: 30px;
+            }
+            #login-btn {
+                padding: 6px 8px;
+                font-size: 0.8rem;
             }
         }
 
@@ -240,6 +253,7 @@
                 font-size: 1rem;
             }
         }
+
     </style>
 </head>
 <body>
@@ -248,13 +262,11 @@
         <div class="container">
             <!-- 修正後のHTML構造 -->
             <div class="header-content">
-                <!-- 左側のスペーサー -->
-                <div class="header-spacer"></div>
-
-                <!-- サイトタイトル -->
-                <h1 class="site-title">
-                    <a href="/learning" class="home-link">Stock with</a>
-                </h1>
+                <!-- 左側のロゴと商号 -->
+                <a href="/learning" class="header-logo">
+                    <img src="/logo.png" alt="Stock with" height="40">
+                    STOCK&nbsp;<span class="brand-with">WITH</span>
+                </a>
                 
                 <!-- 右側のアクションボタン -->
                 <div class="header-actions">
@@ -268,6 +280,7 @@
                         </button>
                         <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openUserProfile()">
                             <i class="fas fa-user"></i>
+                            ログイン
                         </button>
                     <% } else { %>
                         <!-- 未ログインの場合 -->
@@ -277,6 +290,7 @@
                         </button>
                         <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openSignIn()">
                             <i class="fas fa-right-to-bracket"></i>
+                            ログイン
                         </button>
                     <% } %>
                 </div>
@@ -296,6 +310,7 @@
                 </div>
             </div>
             <% } %>
+
             
             <article class="lesson-content">
                 <h2 class="lesson-title"><%= lesson.title %></h2>
@@ -435,7 +450,7 @@
                 }
                 if (logoutBtn) logoutBtn.style.display = 'inline-block';
                 if (loginBtn) {
-                    loginBtn.innerHTML = '<i class="fas fa-user"></i>';
+                    loginBtn.innerHTML = '<i class="fas fa-user"></i> ログイン';
                     loginBtn.onclick = () => window.Clerk.openUserProfile();
                 }
             } else {
@@ -443,7 +458,7 @@
                 if (userGreeting) userGreeting.style.display = 'none';
                 if (logoutBtn) logoutBtn.style.display = 'none';
                 if (loginBtn) {
-                    loginBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i>';
+                    loginBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i> ログイン';
                     loginBtn.onclick = () => window.Clerk.openSignIn();
                 }
             }
