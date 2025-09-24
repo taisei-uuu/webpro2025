@@ -445,7 +445,7 @@
                 }
                 if (logoutBtn) logoutBtn.style.display = 'inline-block';
                 if (loginBtn) {
-                    loginBtn.innerHTML = '<i class="fas fa-user"></i> ログイン';
+                    loginBtn.innerHTML = '<i class="fas fa-user"></i> ' + (user.firstName || 'ユーザー');
                     loginBtn.onclick = () => window.Clerk.openUserProfile();
                 }
             } else {
