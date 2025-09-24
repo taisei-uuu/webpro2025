@@ -454,7 +454,7 @@
                     <div class="chapter-content" id="chapter-<%= index %>" data-visible="<%= index === 0 ? 'true' : 'false' %>">
                         <ul class="lesson-list">
                             <% chapter.lessons.forEach(lesson => { %>
-                                <li><a href="/lessons/<%= lesson.id %>"><%= lesson.title %></a></li>
+                                <li><a href="/lessons/<%= lesson.slug %>"><%= lesson.title %></a></li>
                             <% }); %>
                         </ul>
                     </div>

@@ -666,14 +666,24 @@ app.post('/admin/lessons', async (req, res) => {
 });
 
 // クイズの回答を処理するルート（ゲストモード対応）
-app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
-  const lessonId = parseInt(req.params.lessonId, 10);
+app.post('/lessons/:slug/quiz/submit', async (req, res) => {
+  const slug = req.params.slug;
   const { questionId, selectedOptionId } = req.body;
+
+  // レッスンを取得してIDを取得
+  const lesson = await prisma.lesson.findUnique({
+    where: { slug }
+  });
+
+  if (!lesson) {
+    return res.status(404).send('Lesson not found');
+  }
 
   // デバッグ用ログ
   const { userId, sessionId } = getUserIdentifier(req);
   console.log('Quiz submission:', {
-    lessonId,
+    lessonId: lesson.id,
+    slug,
     questionId,
     selectedOptionId,
     userId,
@@ -717,7 +727,7 @@ app.post('/lessons/:lessonId/quiz/submit', async (req, res) => {
   });
 
   const resultQuery = `?result=${isCorrect ? 'correct' : 'incorrect'}&selected=${selectedOptionId}&correct=${correctOption?.id}&question=${questionId}`;
-  res.redirect(`/lessons/${lessonId}${resultQuery}`);
+  res.redirect(`/lessons/${slug}${resultQuery}`);
 });
 
 // 検索結果ページ
@@ -766,9 +776,9 @@ app.get('/search', async (req, res) => {
 });
 
 // レッスン詳細ページ（ゲストモード対応）
-app.get('/lessons/:id', async (req, res) => {
+app.get('/lessons/:slug', async (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10);
+    const slug = req.params.slug;
     const { result, selected, correct, question: answeredQuestionId } = req.query;
 
     // ユーザーの回答履歴を取得（キャッシュ使用）
@@ -790,7 +800,7 @@ app.get('/lessons/:id', async (req, res) => {
     }
 
     const lesson = await prisma.lesson.findUnique({
-      where: { id },
+      where: { slug },
       include: {
         questions: {
           include: {

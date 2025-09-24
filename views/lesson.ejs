@@ -315,28 +315,23 @@
             <article class="lesson-content">
                 <h2 class="lesson-title"><%= lesson.title %></h2>
                 
-                <!-- 動画セクション（証券口座関連のレッスンの場合に表示） -->
-                <!-- デバッグ情報: レッスンID = <%= lesson.id %>, タイトル = <%= lesson.title %> -->
-                <% 
-                // 動画を表示するレッスンの条件
-                const videoKeywords = ['証券口座', '口座開設', '証券会社', '口座', '証券'];
-                const hasVideo = videoKeywords.some(keyword => lesson.title.includes(keyword));
-                %>
-                <% if (hasVideo) { %>
+                <!-- 動画セクション（動画IDが設定されているレッスンの場合に表示） -->
+                <!-- デバッグ情報: レッスンID = <%= lesson.id %>, タイトル = <%= lesson.title %>, 動画ID = <%= lesson.videoId %> -->
+                <% if (lesson.videoId) { %>
                 <div class="video-section">
                     <h3><i class="fas fa-play-circle me-2"></i>動画で学ぶ</h3>
                     <div class="video-container">
                         <iframe 
-                            src="https://player.vimeo.com/video/1118309852?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" 
+                            src="https://player.vimeo.com/video/<%= lesson.videoId %>?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" 
                             frameborder="0" 
                             allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" 
                             referrerpolicy="strict-origin-when-cross-origin" 
-                            title="証券口座について">
+                            title="<%= lesson.videoTitle || lesson.title %>">
                         </iframe>
                     </div>
                     <p class="video-description">
                         <i class="fas fa-info-circle me-1"></i>
-                        動画で証券口座の基本を視覚的に学習しましょう。音声付きでより理解が深まります。
+                        動画で<%= lesson.title %>について視覚的に学習しましょう。音声付きでより理解が深まります。
                     </p>
                 </div>
                 <% } %>
@@ -366,7 +361,7 @@
                                     </div>
                                 <% } %>
 
-                                <form action="/lessons/<%= lesson.id %>/quiz/submit" method="POST" class="options-list" id="quiz-form-<%= question.id %>">
+                                <form action="/lessons/<%= lesson.slug %>/quiz/submit" method="POST" class="options-list" id="quiz-form-<%= question.id %>">
                                     <input type="hidden" name="questionId" value="<%= question.id %>">
                                     <% question.options.forEach(option => { %>
                                         <%
@@ -392,7 +387,7 @@
                     <div class="navigation-buttons">
                         <a href="/learning" class="back-link" title="ロードマップに戻る"><i class="fa-solid fa-house"></i></a>
                         <% if (nextLesson) { %>
-                            <a href="/lessons/<%= nextLesson.id %>" class="next-link" title="次のセクションへ進む"><i class="fa-solid fa-forward"></i></a>
+                            <a href="/lessons/<%= nextLesson.slug %>" class="next-link" title="次のセクションへ進む"><i class="fa-solid fa-forward"></i></a>
                         <% } %>
                     </div>
                 </div>
