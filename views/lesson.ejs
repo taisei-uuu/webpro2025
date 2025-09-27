@@ -254,6 +254,32 @@
             }
         }
 
+        /* レッスンタイトルのスタイル調整 */
+        .lesson-title {
+            font-size: 2rem;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+        }
+
+        /* スマホ版でのレッスンタイトル調整 */
+        @media (max-width: 768px) {
+            .lesson-title {
+                font-size: 1.5rem;
+                line-height: 1.3;
+                margin-bottom: 1rem;
+                padding: 0 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lesson-title {
+                font-size: 1.3rem;
+                line-height: 1.4;
+                margin-bottom: 0.8rem;
+                padding: 0 5px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -302,7 +328,7 @@
 
             
             <article class="lesson-content">
-                <h2 class="lesson-title"><%= lesson.title %></h2>
+                <h2 class="lesson-title" id="lesson-title"><%= lesson.title %></h2>
                 
                 <!-- 動画セクション（動画IDが設定されているレッスンの場合に表示） -->
                 <!-- デバッグ情報: レッスンID = <%= lesson.id %>, タイトル = <%= lesson.title %>, 動画ID = <%= lesson.videoId %> -->
@@ -311,7 +337,7 @@
                     <h3><i class="fas fa-play-circle me-2"></i>動画で学ぶ</h3>
                     <div class="video-container">
                         <iframe 
-                            src="https://player.vimeo.com/video/<%= lesson.videoId %>?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" 
+                            src="https://player.vimeo.com/video/<%= lesson.videoId %>?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479&amp;title=0&amp;byline=0&amp;portrait=0" 
                             frameborder="0" 
                             allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" 
                             referrerpolicy="strict-origin-when-cross-origin" 
@@ -398,6 +424,17 @@
     <!-- <script src="/chatbot.js"></script> -->
     
     <script>
+        // レッスンタイトルの表示形式を変更
+        function formatLessonTitle() {
+            const titleElement = document.getElementById('lesson-title');
+            if (!titleElement) return;
+            
+            const originalTitle = titleElement.textContent.trim();
+            // "Stage1-2.口座開設手順を確認しよう" -> "1-2. 口座開設手順を確認しよう"
+            const formattedTitle = originalTitle.replace(/^Stage(\d+-\d+)\./, '$1. ');
+            titleElement.textContent = formattedTitle;
+        }
+
         // Clerkの初期化（簡素化版）
         window.addEventListener('load', async () => {
             try {
@@ -416,6 +453,9 @@
                 console.log('Current user:', window.Clerk.user);
                 
                 updateAuthUI();
+                
+                // レッスンタイトルの表示形式を変更
+                formatLessonTitle();
                 
             } catch (error) {
                 console.error('Error loading Clerk:', error);

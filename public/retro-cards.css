@@ -13,27 +13,28 @@
   overscroll-behavior-x: auto;
   scroll-behavior: smooth;
   padding: 0.5rem 0;
-  /* スクロールバーを表示 */
+  /* スクロールバーを常時表示 */
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e0 #f7fafc;
+  scrollbar-color: #007bff #e2e8f0;
 }
 
 .retro-cards-scroll::-webkit-scrollbar {
-  height: 8px;
+  height: 10px;
 }
 
 .retro-cards-scroll::-webkit-scrollbar-track {
-  background: #f7fafc;
-  border-radius: 4px;
+  background: #e2e8f0;
+  border-radius: 5px;
 }
 
 .retro-cards-scroll::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 4px;
+  background: #007bff;
+  border-radius: 5px;
+  border: 1px solid #e2e8f0;
 }
 
 .retro-cards-scroll::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
+  background: #0056b3;
 }
 
 
@@ -273,6 +274,7 @@
   opacity: 0;
   transition: opacity 0.3s ease;
 }
+
 
 /* Body scroll lock - より安全な実装 */
 .body-scroll-lock {

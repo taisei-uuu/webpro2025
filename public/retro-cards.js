@@ -54,6 +54,7 @@ class RetroCards {
   }
 
 
+
   openModal(index) {
     if (this.isModalOpen) return;
 
