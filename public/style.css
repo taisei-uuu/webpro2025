@@ -22,6 +22,14 @@ body {
     line-height: 1.7;
     background-color: var(--background-color);
     color: var(--text-color);
+    /* フォントサイズの安定化 */
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* レイアウトの安定化 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
@@ -576,7 +584,7 @@ body {
 }
 
 .lesson-body {
-    margin-bottom: 2rem;
+    margin-bottom: 0;
     line-height: 1.8;
     white-space: pre-line;
 }

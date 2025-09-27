@@ -2,7 +2,8 @@
 .retro-cards-container {
   position: relative;
   width: 100%;
-  margin-top: 2.5rem;
+  margin-top: 1rem;
+  margin-bottom: 0;
 }
 
 .retro-cards-scroll {
@@ -11,7 +12,7 @@
   overflow-x: auto;
   overscroll-behavior-x: auto;
   scroll-behavior: smooth;
-  padding: 1.25rem 0;
+  padding: 0.5rem 0;
   /* スクロールバーを表示 */
   scrollbar-width: thin;
   scrollbar-color: #cbd5e0 #f7fafc;
@@ -273,11 +274,17 @@
   transition: opacity 0.3s ease;
 }
 
-/* Body scroll lock */
+/* Body scroll lock - より安全な実装 */
 .body-scroll-lock {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  overflow: hidden;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  /* フォントサイズの再計算を防ぐ */
+  font-size: inherit !important;
+  /* レイアウトの安定化 */
+  contain: layout style paint;
 }

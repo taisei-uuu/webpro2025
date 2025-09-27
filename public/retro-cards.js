@@ -61,12 +61,13 @@ class RetroCards {
     this.currentIndex = index;
     const card = this.cardsData[index];
 
-    // Lock body scroll
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${window.scrollY}px`;
-    document.body.style.width = '100%';
-    document.body.style.overflow = 'hidden';
-    document.body.dataset.scrollY = window.scrollY.toString();
+    // Lock body scroll - CSSクラスを使用する安全な方法
+    const scrollY = window.scrollY;
+    document.body.dataset.scrollY = scrollY.toString();
+    
+    // CSSクラスを追加してスクロールをロック
+    document.body.classList.add('body-scroll-lock');
+    document.body.style.top = `-${scrollY}px`;
 
     // Create modal
     const modal = document.createElement('div');
@@ -105,12 +106,17 @@ class RetroCards {
 
     this.isModalOpen = false;
 
-    // Restore body scroll
+    // Restore body scroll - CSSクラスを使用する安全な方法
     const scrollY = parseInt(document.body.dataset.scrollY || '0', 10);
-    document.body.style.position = '';
+    
+    // CSSクラスを削除してスクロールを復元
+    document.body.classList.remove('body-scroll-lock');
     document.body.style.top = '';
-    document.body.style.width = '';
-    document.body.style.overflow = '';
+    
+    // データ属性もクリア
+    delete document.body.dataset.scrollY;
+    
+    // スクロール位置を復元
     window.scrollTo({ top: scrollY, behavior: 'instant' });
 
     // Remove modal
@@ -121,8 +127,30 @@ class RetroCards {
       
       setTimeout(() => {
         modal.remove();
+        
+        // モーダル削除後にフォントサイズを強制的にリセット
+        this.resetFontSizes();
       }, 300);
     }
+  }
+
+  // フォントサイズをリセットする関数
+  resetFontSizes() {
+    // すべての要素のフォントサイズを一時的にリセット
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(element => {
+      const computedStyle = window.getComputedStyle(element);
+      if (computedStyle.fontSize) {
+        element.style.fontSize = computedStyle.fontSize;
+      }
+    });
+    
+    // 少し遅延してから元に戻す
+    setTimeout(() => {
+      allElements.forEach(element => {
+        element.style.fontSize = '';
+      });
+    }, 50);
   }
 }
 
