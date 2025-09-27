@@ -126,14 +126,18 @@
                 
                 <!-- 右側のアクションボタン -->
                 <div class="header-actions">
-                    <span id="user-greeting" style="display: none;"></span>
-                    <button id="logout-btn" style="display: none;">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
-                    <button id="login-btn">
-                        <i class="fas fa-right-to-bracket"></i>
-                        ログイン
-                    </button>
+                    <% if (user) { %>
+                        <!-- ログイン済みの場合 -->
+                        <button id="login-btn" class="btn btn-outline" onclick="handleUserProfile()">
+                            <i class="fas fa-user"></i>
+                        </button>
+                    <% } else { %>
+                        <!-- 未ログインの場合 -->
+                        <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openSignIn()">
+                            <i class="fas fa-right-to-bracket"></i>
+                            ログイン
+                        </button>
+                    <% } %>
                 </div>
             </div>
         </div>
@@ -171,5 +175,79 @@
 
     <%- include('_chatbot') %>
     <script src="/chatbot.js"></script>
+    
+    <script>
+        // Clerkの初期化（簡素化版）
+        window.addEventListener('load', async () => {
+            try {
+                console.log('Clerk初期化を開始します...');
+                console.log('Publishable key:', window.Clerk.publishableKey);
+                
+                // Clerkが利用可能かチェック
+                if (window.Clerk && typeof window.Clerk.load === 'function') {
+                    await window.Clerk.load();
+                    console.log('Clerk loaded successfully');
+                } else {
+                    console.log('Clerkは既に初期化済みまたは利用できません');
+                }
+                
+                console.log('Clerk object:', window.Clerk);
+                console.log('Current user:', window.Clerk.user);
+                
+                updateAuthUI();
+                
+            } catch (error) {
+                console.error('Error loading Clerk:', error);
+                // エラーが発生してもページは継続
+                console.log('Clerkの初期化に失敗しましたが、ページは継続します');
+            }
+        });
+        
+        // ユーザープロフィール処理関数
+        function handleUserProfile() {
+            console.log('ユーザープロフィールボタンがクリックされました');
+            
+            // サーバーサイドでユーザーがログインしているかチェック
+            <% if (user) { %>
+                console.log('サーバーサイドでユーザーがログイン済みです');
+                // Clerkが利用可能かチェック
+                if (window.Clerk && typeof window.Clerk.openUserProfile === 'function') {
+                    try {
+                        window.Clerk.openUserProfile();
+                        console.log('プロフィール画面を開きました');
+                    } catch (error) {
+                        console.error('プロフィール画面を開く際にエラーが発生しました:', error);
+                        alert('プロフィール画面を開けませんでした。');
+                    }
+                } else {
+                    console.error('Clerkが利用できません');
+                    alert('プロフィール機能が利用できません。');
+                }
+            <% } else { %>
+                console.log('ユーザーがログインしていません');
+                alert('ログインが必要です。');
+            <% } %>
+        }
+
+        // 認証UIの更新関数（サーバーサイドで既に適切な状態が設定されているため、簡素化）
+        function updateAuthUI() {
+            const user = window.Clerk.user;
+            const loginBtn = document.getElementById('login-btn');
+            
+            if (user) {
+                // ログイン済みの場合
+                if (loginBtn) {
+                    loginBtn.innerHTML = '<i class="fas fa-user"></i>';
+                    loginBtn.onclick = handleUserProfile;
+                }
+            } else {
+                // 未ログインの場合
+                if (loginBtn) {
+                    loginBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i> ログイン';
+                    loginBtn.onclick = () => window.Clerk.openSignIn();
+                }
+            }
+        }
+    </script>
 </body>
 </html>

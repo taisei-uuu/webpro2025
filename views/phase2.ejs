@@ -683,22 +683,11 @@
                 <div class="header-actions">
                     <% if (user && !isGuest) { %>
                         <!-- ログイン済みの場合 -->
-                        <span id="user-greeting" class="user-greeting">
-                            こんにちは、<span id="user-name"><%= user.firstName || user.emailAddresses[0]?.emailAddress || 'ユーザー' %></span>さん
-                        </span>
-                        <button id="logout-btn" class="btn btn-outline" onclick="window.Clerk.signOut()">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </button>
-                        <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openUserProfile()">
+                        <button id="login-btn" class="btn btn-outline" onclick="handleUserProfile()">
                             <i class="fas fa-user"></i>
-                            ログイン
                         </button>
                     <% } else { %>
                         <!-- 未ログインの場合 -->
-                        <span id="user-greeting" style="display: none;"></span>
-                        <button id="logout-btn" class="btn btn-outline" onclick="window.Clerk.signOut()" style="display: none;">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </button>
                         <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openSignIn()">
                             <i class="fas fa-right-to-bracket"></i>
                             ログイン
@@ -750,16 +739,14 @@
             </div>
 
             <!-- 学習進捗ステッパー -->
-            <div id="stepper-container">
-                <!-- 進捗アイコンのみ表示（初期状態） -->
+            <!-- <div id="stepper-container">
                 <div id="progress-indicator" class="progress-indicator">
                     <div class="progress-icon">👣</div>
                     <div class="progress-text">進捗</div>
                 </div>
                 
-                <!-- ステッパー（初期状態では非表示） -->
-                <div id="stepper" class="stepper hidden">
-                    <div class="stepper-header">
+                <div id="stepper" class="stepper hidden"> -->
+                    <!-- <div class="stepper-header">
                         <h3>Phase 2: 応用編 - 学習進捗</h3>
                         <button id="close-stepper" class="close-btn">&times;</button>
                     </div>
@@ -808,7 +795,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- 学習コンテンツ -->
             <div class="learning-content">
@@ -1054,46 +1041,70 @@
     </footer>
 
     <script>
-        // Clerkの初期化とユーザー状態管理
+        // Clerkの初期化（簡素化版）
         window.addEventListener('load', async () => {
             try {
-                await window.Clerk.load();
-                console.log('Clerk loaded successfully');
+                console.log('Clerk初期化を開始します...');
+                console.log('Publishable key:', window.Clerk.publishableKey);
+                
+                // Clerkが利用可能かチェック
+                if (window.Clerk && typeof window.Clerk.load === 'function') {
+                    await window.Clerk.load();
+                    console.log('Clerk loaded successfully');
+                } else {
+                    console.log('Clerkは既に初期化済みまたは利用できません');
+                }
+                
+                console.log('Clerk object:', window.Clerk);
+                console.log('Current user:', window.Clerk.user);
+                
                 updateAuthUI();
                 
-                window.Clerk.addListener(({ user }) => {
-                    updateAuthUI();
-                });
             } catch (error) {
                 console.error('Error loading Clerk:', error);
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
+                // エラーが発生してもページは継続
+                console.log('Clerkの初期化に失敗しましたが、ページは継続します');
             }
         });
         
+        // ユーザープロフィール処理関数
+        function handleUserProfile() {
+            console.log('ユーザープロフィールボタンがクリックされました');
+            
+            // サーバーサイドでユーザーがログインしているかチェック
+            <% if (user && !isGuest) { %>
+                console.log('サーバーサイドでユーザーがログイン済みです');
+                // Clerkが利用可能かチェック
+                if (window.Clerk && typeof window.Clerk.openUserProfile === 'function') {
+                    try {
+                        window.Clerk.openUserProfile();
+                        console.log('プロフィール画面を開きました');
+                    } catch (error) {
+                        console.error('プロフィール画面を開く際にエラーが発生しました:', error);
+                        alert('プロフィール画面を開けませんでした。');
+                    }
+                } else {
+                    console.error('Clerkが利用できません');
+                    alert('プロフィール機能が利用できません。');
+                }
+            <% } else { %>
+                console.log('ユーザーがログインしていません');
+                alert('ログインが必要です。');
+            <% } %>
+        }
+
         function updateAuthUI() {
             const user = window.Clerk.user;
-            const userGreeting = document.getElementById('user-greeting');
-            const logoutBtn = document.getElementById('logout-btn');
             const loginBtn = document.getElementById('login-btn');
             
             if (user) {
-                if (userGreeting) {
-                    userGreeting.style.display = 'inline';
-                    const userName = document.getElementById('user-name');
-                    if (userName) {
-                        userName.textContent = user.firstName || user.emailAddresses[0]?.emailAddress || 'ユーザー';
-                    }
-                }
-                if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                // ログイン済みの場合
                 if (loginBtn) {
-                    loginBtn.innerHTML = '<i class="fas fa-user"></i> ログイン';
-                    loginBtn.onclick = () => window.Clerk.openUserProfile();
+                    loginBtn.innerHTML = '<i class="fas fa-user"></i>';
+                    loginBtn.onclick = handleUserProfile;
                 }
             } else {
-                if (userGreeting) userGreeting.style.display = 'none';
-                if (logoutBtn) logoutBtn.style.display = 'none';
+                // 未ログインの場合
                 if (loginBtn) {
                     loginBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i> ログイン';
                     loginBtn.onclick = () => window.Clerk.openSignIn();
@@ -1116,23 +1127,23 @@
         }
 
         // ステッパーの表示/非表示機能
-        document.addEventListener('DOMContentLoaded', function() {
-            const progressIndicator = document.getElementById('progress-indicator');
-            const stepper = document.getElementById('stepper');
-            const closeBtn = document.getElementById('close-stepper');
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     const progressIndicator = document.getElementById('progress-indicator');
+        //     const stepper = document.getElementById('stepper');
+        //     const closeBtn = document.getElementById('close-stepper');
 
-            if (progressIndicator && stepper) {
-                progressIndicator.addEventListener('click', function() {
-                    stepper.classList.toggle('hidden');
-                });
-            }
+        //     if (progressIndicator && stepper) {
+        //         progressIndicator.addEventListener('click', function() {
+        //             stepper.classList.toggle('hidden');
+        //         });
+        //     }
 
-            if (closeBtn && stepper) {
-                closeBtn.addEventListener('click', function() {
-                    stepper.classList.add('hidden');
-                });
-            }
-        });
+        //     if (closeBtn && stepper) {
+        //         closeBtn.addEventListener('click', function() {
+        //             stepper.classList.add('hidden');
+        //         });
+        //     }
+        // });
     </script>
 </body>
 </html>

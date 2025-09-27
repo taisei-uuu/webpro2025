@@ -322,15 +322,8 @@
                 <div class="header-actions">
                     <% if (user) { %>
                         <!-- ログイン済みの場合 -->
-                        <span id="user-greeting" class="user-greeting">
-                            こんにちは、<span id="user-name"><%= user.firstName || user.emailAddresses[0]?.emailAddress || 'ユーザー' %></span>さん
-                        </span>
-                        <button id="logout-btn" class="btn btn-outline" onclick="window.Clerk.signOut()">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </button>
-                        <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openUserProfile()">
+                        <button id="login-btn" class="btn btn-outline" onclick="handleUserProfile()">
                             <i class="fas fa-user"></i>
-                            ログイン
                         </button>
                     <% } else { %>
                         <!-- 未ログインの場合 -->
@@ -400,31 +393,27 @@
             </div>
             
             <!-- 検索機能 -->
-            <div id="search-container">
-                <!-- 検索アイコンのみ表示（初期状態） -->
+            <!-- <div id="search-container">
                 <div id="search-indicator" class="search-indicator">
                     <div class="search-icon">🔍</div>
                     <div class="search-text">検索</div>
                 </div>
                 
-                <!-- 検索フォーム（初期状態では非表示） -->
                 <div class="search-form-container hidden">
                     <form action="/search" method="GET" class="search-form">
                         <input type="search" name="q" class="search-input" placeholder="キーワードで検索 (例: NISA, 分析)">
                         <button type="button" class="btn search-btn" id="search-button">検索</button>
                     </form>
                 </div>
-            </div>
+            </div> -->
 
             <!-- 学習進捗ステッパー -->
-            <div id="stepper-container">
-                <!-- 進捗アイコンのみ表示（初期状態） -->
+            <!-- <div id="stepper-container">
                 <div id="progress-indicator" class="progress-indicator">
                     <div class="progress-icon">👣</div>
                     <div class="progress-text">進捗</div>
                 </div>
                 
-                <!-- ステッパー全体（初期状態では非表示） -->
                 <div class="stepper hidden">
                     <% chapters.forEach((chapter, index) => { %>
                         <div class="stepper-item" data-chapter="<%= index %>">
@@ -434,7 +423,7 @@
                         </div>
                     <% }); %>
                 </div>
-            </div>
+            </div> -->
 
             <% chapters.forEach((chapter, index) => { %>
                 <section class="chapter" data-chapter="<%= index %>">
@@ -463,9 +452,9 @@
         </div>
     </main>
 
-    <div class="admin-link-container" style="text-align: center; margin: 20px 0;">
+    <!-- <div class="admin-link-container" style="text-align: center; margin: 20px 0;">
         <a href="/admin/lessons/new" class="btn">＋ 新規レッスンを作成する</a>
-    </div>
+    </div> -->
 
     <footer class="site-footer">
         <div class="container">
@@ -477,52 +466,74 @@
     <!-- <%- include('_chatbot') %> -->
     <!-- <script src="/chatbot.js"></script> -->
     <script>
-        // Clerkの初期化とユーザー状態管理
+        // Clerkの初期化（簡素化版）
         window.addEventListener('load', async () => {
             try {
-                await window.Clerk.load();
-                console.log('Clerk loaded successfully');
+                console.log('Clerk初期化を開始します...');
+                console.log('Publishable key:', window.Clerk.publishableKey);
+                
+                // Clerkが利用可能かチェック
+                if (window.Clerk && typeof window.Clerk.load === 'function') {
+                    await window.Clerk.load();
+                    console.log('Clerk loaded successfully');
+                } else {
+                    console.log('Clerkは既に初期化済みまたは利用できません');
+                }
+                
+                console.log('Clerk object:', window.Clerk);
+                console.log('Current user:', window.Clerk.user);
+                
                 updateAuthUI();
                 
-                // Clerkの初期化完了後にリスナーを設定
-                window.Clerk.addListener(({ user }) => {
-                    updateAuthUI();
-                });
             } catch (error) {
                 console.error('Error loading Clerk:', error);
-                // Clerkの読み込みに失敗した場合は、ページをリロード
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
+                // エラーが発生してもページは継続
+                console.log('Clerkの初期化に失敗しましたが、ページは継続します');
             }
         });
         
+        // ユーザープロフィール処理関数
+        function handleUserProfile() {
+            console.log('ユーザープロフィールボタンがクリックされました');
+            
+            // サーバーサイドでユーザーがログインしているかチェック
+            <% if (user) { %>
+                console.log('サーバーサイドでユーザーがログイン済みです');
+                // Clerkが利用可能かチェック
+                if (window.Clerk && typeof window.Clerk.openUserProfile === 'function') {
+                    try {
+                        window.Clerk.openUserProfile();
+                        console.log('プロフィール画面を開きました');
+                    } catch (error) {
+                        console.error('プロフィール画面を開く際にエラーが発生しました:', error);
+                        alert('プロフィール画面を開けませんでした。');
+                    }
+                } else {
+                    console.error('Clerkが利用できません');
+                    alert('プロフィール機能が利用できません。');
+                }
+            <% } else { %>
+                console.log('ユーザーがログインしていません');
+                alert('ログインが必要です。');
+            <% } %>
+        }
+
         // 認証UIの更新関数（サーバーサイドで既に適切な状態が設定されているため、簡素化）
         function updateAuthUI() {
             const user = window.Clerk.user;
             const userGreeting = document.getElementById('user-greeting');
-            const logoutBtn = document.getElementById('logout-btn');
             const loginBtn = document.getElementById('login-btn');
             
             if (user) {
                 // ログイン済みの場合
-                if (userGreeting) {
-                    userGreeting.style.display = 'inline';
-                    // ユーザー名を更新
-                    const userName = document.getElementById('user-name');
-                    if (userName) {
-                        userName.textContent = user.firstName || user.emailAddresses[0]?.emailAddress || 'ユーザー';
-                    }
-                }
-                if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                if (userGreeting) userGreeting.style.display = 'none';
                 if (loginBtn) {
-                    loginBtn.innerHTML = '<i class="fas fa-user"></i> ログイン';
-                    loginBtn.onclick = () => window.Clerk.openUserProfile();
+                    loginBtn.innerHTML = '<i class="fas fa-user"></i>';
+                    loginBtn.onclick = handleUserProfile;
                 }
             } else {
                 // 未ログインの場合
                 if (userGreeting) userGreeting.style.display = 'none';
-                if (logoutBtn) logoutBtn.style.display = 'none';
                 if (loginBtn) {
                     loginBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i> ログイン';
                     loginBtn.onclick = () => window.Clerk.openSignIn();
@@ -579,194 +590,194 @@
             });
 
             // 進捗アイコンのクリックイベント（Stepperの表示/非表示）
-            const progressIndicator = document.getElementById('progress-indicator');
-            const stepperContainer = document.getElementById('stepper-container');
-            const stepper = document.querySelector('.stepper');
+            // const progressIndicator = document.getElementById('progress-indicator');
+            // const stepperContainer = document.getElementById('stepper-container');
+            // const stepper = document.querySelector('.stepper');
             
-            progressIndicator.addEventListener('click', function() {
-                console.log('Progress indicator clicked!');
+            // progressIndicator.addEventListener('click', function() {
+            //     console.log('Progress indicator clicked!');
                 
-                if (stepper.classList.contains('hidden')) {
-                    // Stepperを表示
-                    stepper.classList.remove('hidden');
-                    stepperContainer.classList.add('active');
-                    console.log('Stepper displayed');
-                } else {
-                    // Stepperを非表示
-                    stepper.classList.add('hidden');
-                    stepperContainer.classList.remove('active');
-                    console.log('Stepper hidden');
-                }
-            });
+            //     if (stepper.classList.contains('hidden')) {
+            //         // Stepperを表示
+            //         stepper.classList.remove('hidden');
+            //         stepperContainer.classList.add('active');
+            //         console.log('Stepper displayed');
+            //     } else {
+            //         // Stepperを非表示
+            //         stepper.classList.add('hidden');
+            //         stepperContainer.classList.remove('active');
+            //         console.log('Stepper hidden');
+            //     }
+            // });
             
             // 検索アイコンのクリックイベント（検索フォームの表示/非表示）
-            const searchIndicator = document.getElementById('search-indicator');
-            const searchFormContainer = document.querySelector('.search-form-container');
+            // const searchIndicator = document.getElementById('search-indicator');
+            // const searchFormContainer = document.querySelector('.search-form-container');
             
-            searchIndicator.addEventListener('click', function() {
-                console.log('Search indicator clicked!');
+            // searchIndicator.addEventListener('click', function() {
+            //     console.log('Search indicator clicked!');
                 
-                if (searchFormContainer.classList.contains('hidden')) {
-                    // 検索フォームを表示
-                    searchFormContainer.classList.remove('hidden');
-                    console.log('Search form displayed');
-                } else {
-                    // 検索フォームを非表示
-                    searchFormContainer.classList.add('hidden');
-                    console.log('Search form hidden');
-                }
-            });
+            //     if (searchFormContainer.classList.contains('hidden')) {
+            //         // 検索フォームを表示
+            //         searchFormContainer.classList.remove('hidden');
+            //         console.log('Search form displayed');
+            //     } else {
+            //         // 検索フォームを非表示
+            //         searchFormContainer.classList.add('hidden');
+            //         console.log('Search form hidden');
+            //     }
+            // });
             
             // ステッパーのナビゲーション機能
-            const stepperIndicators = document.querySelectorAll('.stepper-indicator.clickable');
+            // const stepperIndicators = document.querySelectorAll('.stepper-indicator.clickable');
             
-            stepperIndicators.forEach(indicator => {
-                indicator.addEventListener('click', function() {
-                    console.log('Stepper indicator clicked!');
-                    const chapterIndex = this.getAttribute('data-chapter');
-                    console.log('Chapter index:', chapterIndex);
+            // stepperIndicators.forEach(indicator => {
+            //     indicator.addEventListener('click', function() {
+            //         console.log('Stepper indicator clicked!');
+            //         const chapterIndex = this.getAttribute('data-chapter');
+            //         console.log('Chapter index:', chapterIndex);
                     
-                    const targetChapter = document.querySelector(`section.chapter[data-chapter="${chapterIndex}"]`);
-                    console.log('Target chapter found:', targetChapter);
+            //         const targetChapter = document.querySelector(`section.chapter[data-chapter="${chapterIndex}"]`);
+            //         console.log('Target chapter found:', targetChapter);
                     
-                    if (targetChapter) {
-                        // 対応するChapterを開く
-                        const chapterToggle = targetChapter.querySelector('.chapter-toggle');
-                        const chapterContent = targetChapter.querySelector('.chapter-content');
+            //         if (targetChapter) {
+            //             // 対応するChapterを開く
+            //             const chapterToggle = targetChapter.querySelector('.chapter-toggle');
+            //             const chapterContent = targetChapter.querySelector('.chapter-content');
                         
-                        if (chapterToggle && chapterContent) {
-                            // Chapterが閉じている場合は開く
-                            if (chapterContent.style.display === 'none') {
-                                chapterContent.style.display = 'block';
-                                chapterToggle.setAttribute('aria-expanded', 'true');
-                                console.log('Chapter opened');
-                            }
-                        }
+            //             if (chapterToggle && chapterContent) {
+            //                 // Chapterが閉じている場合は開く
+            //                 if (chapterContent.style.display === 'none') {
+            //                     chapterContent.style.display = 'block';
+            //                     chapterToggle.setAttribute('aria-expanded', 'true');
+            //                     console.log('Chapter opened');
+            //                 }
+            //             }
                         
-                        // 画面中央にスクロール（より正確な位置計算）
-                        const targetRect = targetChapter.getBoundingClientRect();
-                        const windowHeight = window.innerHeight;
-                        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                        const targetTop = targetRect.top + scrollTop;
-                        const offset = (windowHeight - targetRect.height) / 2;
+            //             // 画面中央にスクロール（より正確な位置計算）
+            //             const targetRect = targetChapter.getBoundingClientRect();
+            //             const windowHeight = window.innerHeight;
+            //             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            //             const targetTop = targetRect.top + scrollTop;
+            //             const offset = (windowHeight - targetRect.height) / 2;
                         
-                        console.log('Scroll calculation:', {
-                            targetRect: targetRect,
-                            windowHeight: windowHeight,
-                            scrollTop: scrollTop,
-                            targetTop: targetTop,
-                            offset: offset
-                        });
+            //             console.log('Scroll calculation:', {
+            //                 targetRect: targetRect,
+            //                 windowHeight: windowHeight,
+            //                 scrollTop: scrollTop,
+            //                 targetTop: targetTop,
+            //                 offset: offset
+            //             });
                         
-                        window.scrollTo({
-                            top: targetTop - offset,
-                            behavior: 'smooth'
-                        });
+            //             window.scrollTo({
+            //                 top: targetTop - offset,
+            //                 behavior: 'smooth'
+            //             });
                         
-                        console.log('Scrolling to:', targetTop - offset);
-                    } else {
-                        console.log('Target chapter not found!');
-                    }
-                });
-            });
+            //             console.log('Scrolling to:', targetTop - offset);
+            //         } else {
+            //             console.log('Target chapter not found!');
+            //         }
+            //     });
+            // });
 
             // 検索機能の改善
-            const searchForm = document.querySelector('.search-form');
-            const searchBtn = document.getElementById('search-button');
-            const searchInput = document.querySelector('.search-input');
+            // const searchForm = document.querySelector('.search-form');
+            // const searchBtn = document.getElementById('search-button');
+            // const searchInput = document.querySelector('.search-input');
 
-            console.log('Search elements found:', { searchForm, searchBtn, searchInput });
+            // console.log('Search elements found:', { searchForm, searchBtn, searchInput });
 
-            // 検索ボタンのクリックイベント
-            if (searchBtn) {
-                searchBtn.addEventListener('click', function(e) {
-                    console.log('Search button clicked');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const query = searchInput.value.trim();
-                    console.log('Search query:', query);
-                    if (query) {
-                        window.location.href = `/search?q=${encodeURIComponent(query)}`;
-                    }
-                });
-            }
+            // // 検索ボタンのクリックイベント
+            // if (searchBtn) {
+            //     searchBtn.addEventListener('click', function(e) {
+            //         console.log('Search button clicked');
+            //         e.preventDefault();
+            //         e.stopPropagation();
+            //         const query = searchInput.value.trim();
+            //         console.log('Search query:', query);
+            //         if (query) {
+            //             window.location.href = `/search?q=${encodeURIComponent(query)}`;
+            //         }
+            //     });
+            // }
 
-            // Enterキーでの検索（既存の動作を保持）
-            if (searchForm) {
-                searchForm.addEventListener('submit', function(e) {
-                    console.log('Search form submitted');
-                    e.preventDefault();
-                    const query = searchInput.value.trim();
-                    console.log('Search query:', query);
-                    if (query) {
-                        window.location.href = `/search?q=${encodeURIComponent(query)}`;
-                    }
-                });
-            }
+            // // Enterキーでの検索（既存の動作を保持）
+            // if (searchForm) {
+            //     searchForm.addEventListener('submit', function(e) {
+            //         console.log('Search form submitted');
+            //         e.preventDefault();
+            //         const query = searchInput.value.trim();
+            //         console.log('Search query:', query);
+            //         if (query) {
+            //             window.location.href = `/search?q=${encodeURIComponent(query)}`;
+            //         }
+            //     });
+            // }
 
             // ステッパーの状態更新
-            function updateStepperProgress() {
-                const stepperItems = document.querySelectorAll('.stepper-item');
-                const chapterElements = document.querySelectorAll('.chapter');
+            // function updateStepperProgress() {
+            //     const stepperItems = document.querySelectorAll('.stepper-item');
+            //     const chapterElements = document.querySelectorAll('.chapter');
                 
-                // ステッパーの状態を更新（データ属性を使用）
-                stepperItems.forEach((item) => {
-                    const chapterIndex = parseInt(item.getAttribute('data-chapter'));
-                    item.classList.remove('active', 'completed');
+            //     // ステッパーの状態を更新（データ属性を使用）
+            //     stepperItems.forEach((item) => {
+            //         const chapterIndex = parseInt(item.getAttribute('data-chapter'));
+            //         item.classList.remove('active', 'completed');
                     
-                    // 対応するChapterの進捗状況を確認
-                    const chapter = chapterElements[chapterIndex];
-                    if (chapter) {
-                        const progressText = chapter.querySelector('.progress-text');
-                        if (progressText) {
-                            const match = progressText.textContent.match(/(\d+) \/ (\d+) 問クリア/);
-                            if (match) {
-                                const clearedQuestions = parseInt(match[1]);
-                                const totalQuestions = parseInt(match[2]);
-                                if (totalQuestions > 0 && clearedQuestions === totalQuestions) {
-                                    // 全問クリアした場合のみ青色（completed）で表示
-                                    item.classList.add('completed');
-                                    console.log(`Chapter ${chapterIndex + 1}: completed`);
-                                } else {
-                                    // 未完了の場合はグレー（デフォルト）で表示
-                                    console.log(`Chapter ${chapterIndex + 1}: incomplete`);
-                                }
-                            } else {
-                                // 進捗情報がない場合もグレー（デフォルト）で表示
-                                console.log(`Chapter ${chapterIndex + 1}: no progress info`);
-                            }
-                        } else {
-                            // 進捗表示がない場合もグレー（デフォルト）で表示
-                            console.log(`Chapter ${chapterIndex + 1}: no progress display`);
-                        }
-                    }
-                });
+            //         // 対応するChapterの進捗状況を確認
+            //         const chapter = chapterElements[chapterIndex];
+            //         if (chapter) {
+            //             const progressText = chapter.querySelector('.progress-text');
+            //             if (progressText) {
+            //                 const match = progressText.textContent.match(/(\d+) \/ (\d+) 問クリア/);
+            //                 if (match) {
+            //                     const clearedQuestions = parseInt(match[1]);
+            //                     const totalQuestions = parseInt(match[2]);
+            //                     if (totalQuestions > 0 && clearedQuestions === totalQuestions) {
+            //                         // 全問クリアした場合のみ青色（completed）で表示
+            //                         item.classList.add('completed');
+            //                         console.log(`Chapter ${chapterIndex + 1}: completed`);
+            //                     } else {
+            //                         // 未完了の場合はグレー（デフォルト）で表示
+            //                         console.log(`Chapter ${chapterIndex + 1}: incomplete`);
+            //                     }
+            //                 } else {
+            //                     // 進捗情報がない場合もグレー（デフォルト）で表示
+            //                     console.log(`Chapter ${chapterIndex + 1}: no progress info`);
+            //                 }
+            //             } else {
+            //                 // 進捗表示がない場合もグレー（デフォルト）で表示
+            //                 console.log(`Chapter ${chapterIndex + 1}: no progress display`);
+            //             }
+            //         }
+            //     });
                 
-                // 線の色を更新（両側のChapterアイコンが青の時のみ線を青くする）
-                updateStepperLines();
-            }
+            //     // 線の色を更新（両側のChapterアイコンが青の時のみ線を青くする）
+            //     updateStepperLines();
+            // }
             
-            // ステッパーの線の色を更新する関数
-            function updateStepperLines() {
-                const stepperItems = document.querySelectorAll('.stepper-item');
+            // // ステッパーの線の色を更新する関数
+            // function updateStepperLines() {
+            //     const stepperItems = document.querySelectorAll('.stepper-item');
                 
-                stepperItems.forEach((item, index) => {
-                    if (index < stepperItems.length - 1) { // 最後のアイテム以外
-                        const currentItem = item;
-                        const nextItem = stepperItems[index + 1];
+            //     stepperItems.forEach((item, index) => {
+            //         if (index < stepperItems.length - 1) { // 最後のアイテム以外
+            //             const currentItem = item;
+            //             const nextItem = stepperItems[index + 1];
                         
-                        // 両側のChapterアイコンが青（completed）の場合のみ線を青くする
-                        if (currentItem.classList.contains('completed') && nextItem.classList.contains('completed')) {
-                            currentItem.style.setProperty('--line-color', 'var(--primary-color)');
-                        } else {
-                            currentItem.style.setProperty('--line-color', 'var(--border-color)');
-                        }
-                    }
-                });
-            }
+            //             // 両側のChapterアイコンが青（completed）の場合のみ線を青くする
+            //             if (currentItem.classList.contains('completed') && nextItem.classList.contains('completed')) {
+            //                 currentItem.style.setProperty('--line-color', 'var(--primary-color)');
+            //             } else {
+            //                 currentItem.style.setProperty('--line-color', 'var(--border-color)');
+            //             }
+            //         }
+            //     });
+            // }
 
-            // 初期化時にステッパーの状態を更新
-            updateStepperProgress();
+            // // 初期化時にステッパーの状態を更新
+            // updateStepperProgress();
 
             // Phase1の進捗を設定
             const phase1ProgressFill = document.getElementById('phase1-progress-fill');
@@ -774,13 +785,12 @@
                 phase1ProgressFill.style.height = '<%= phase1Progress %>%';
             }
 
-
-            // デバッグ用：検索ボタンが存在するか確認
-            setTimeout(() => {
-                console.log('Search button element:', document.querySelector('.search-btn'));
-                console.log('Search button text:', document.querySelector('.search-btn')?.textContent);
-                console.log('Search button visible:', document.querySelector('.search-btn')?.offsetParent !== null);
-            }, 1000);
+            // // デバッグ用：検索ボタンが存在するか確認
+            // setTimeout(() => {
+            //     console.log('Search button element:', document.querySelector('.search-btn'));
+            //     console.log('Search button text:', document.querySelector('.search-btn')?.textContent);
+            //     console.log('Search button visible:', document.querySelector('.search-btn')?.offsetParent !== null);
+            // }, 1000);
         });
     </script>
 </body>

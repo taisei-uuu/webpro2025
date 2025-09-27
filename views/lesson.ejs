@@ -272,22 +272,11 @@
                 <div class="header-actions">
                     <% if (user) { %>
                         <!-- ログイン済みの場合 -->
-                        <span id="user-greeting" class="user-greeting">
-                            こんにちは、<span id="user-name"><%= user.firstName || user.emailAddresses[0]?.emailAddress || 'ユーザー' %></span>さん
-                        </span>
-                        <button id="logout-btn" class="btn btn-outline" onclick="window.Clerk.signOut()">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </button>
-                        <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openUserProfile()">
+                        <button id="login-btn" class="btn btn-outline" onclick="handleUserProfile()">
                             <i class="fas fa-user"></i>
-                            ログイン
                         </button>
                     <% } else { %>
                         <!-- 未ログインの場合 -->
-                        <span id="user-greeting" style="display: none;"></span>
-                        <button id="logout-btn" class="btn btn-outline" onclick="window.Clerk.signOut()" style="display: none;">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </button>
                         <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openSignIn()">
                             <i class="fas fa-right-to-bracket"></i>
                             ログイン
@@ -406,52 +395,71 @@
     <!-- <script src="/chatbot.js"></script> -->
     
     <script>
-        // Clerkの初期化とユーザー状態管理
+        // Clerkの初期化（簡素化版）
         window.addEventListener('load', async () => {
             try {
-                await window.Clerk.load();
-                console.log('Clerk loaded successfully');
+                console.log('Clerk初期化を開始します...');
+                console.log('Publishable key:', window.Clerk.publishableKey);
+                
+                // Clerkが利用可能かチェック
+                if (window.Clerk && typeof window.Clerk.load === 'function') {
+                    await window.Clerk.load();
+                    console.log('Clerk loaded successfully');
+                } else {
+                    console.log('Clerkは既に初期化済みまたは利用できません');
+                }
+                
+                console.log('Clerk object:', window.Clerk);
+                console.log('Current user:', window.Clerk.user);
+                
                 updateAuthUI();
                 
-                // Clerkの初期化完了後にリスナーを設定
-                window.Clerk.addListener(({ user }) => {
-                    updateAuthUI();
-                });
             } catch (error) {
                 console.error('Error loading Clerk:', error);
-                // Clerkの読み込みに失敗した場合は、ページをリロード
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
+                // エラーが発生してもページは継続
+                console.log('Clerkの初期化に失敗しましたが、ページは継続します');
             }
         });
         
+        // ユーザープロフィール処理関数
+        function handleUserProfile() {
+            console.log('ユーザープロフィールボタンがクリックされました');
+            
+            // サーバーサイドでユーザーがログインしているかチェック
+            <% if (user) { %>
+                console.log('サーバーサイドでユーザーがログイン済みです');
+                // Clerkが利用可能かチェック
+                if (window.Clerk && typeof window.Clerk.openUserProfile === 'function') {
+                    try {
+                        window.Clerk.openUserProfile();
+                        console.log('プロフィール画面を開きました');
+                    } catch (error) {
+                        console.error('プロフィール画面を開く際にエラーが発生しました:', error);
+                        alert('プロフィール画面を開けませんでした。');
+                    }
+                } else {
+                    console.error('Clerkが利用できません');
+                    alert('プロフィール機能が利用できません。');
+                }
+            <% } else { %>
+                console.log('ユーザーがログインしていません');
+                alert('ログインが必要です。');
+            <% } %>
+        }
+
         // 認証UIの更新関数（サーバーサイドで既に適切な状態が設定されているため、簡素化）
         function updateAuthUI() {
             const user = window.Clerk.user;
-            const userGreeting = document.getElementById('user-greeting');
-            const logoutBtn = document.getElementById('logout-btn');
             const loginBtn = document.getElementById('login-btn');
             
             if (user) {
                 // ログイン済みの場合
-                if (userGreeting) {
-                    userGreeting.style.display = 'inline';
-                    // ユーザー名を更新
-                    const userName = document.getElementById('user-name');
-                    if (userName) {
-                        userName.textContent = user.firstName || user.emailAddresses[0]?.emailAddress || 'ユーザー';
-                    }
-                }
-                if (logoutBtn) logoutBtn.style.display = 'inline-block';
                 if (loginBtn) {
-                    loginBtn.innerHTML = '<i class="fas fa-user"></i> ' + (user.firstName || 'ユーザー');
-                    loginBtn.onclick = () => window.Clerk.openUserProfile();
+                    loginBtn.innerHTML = '<i class="fas fa-user"></i>';
+                    loginBtn.onclick = handleUserProfile;
                 }
             } else {
                 // 未ログインの場合
-                if (userGreeting) userGreeting.style.display = 'none';
-                if (logoutBtn) logoutBtn.style.display = 'none';
                 if (loginBtn) {
                     loginBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i> ログイン';
                     loginBtn.onclick = () => window.Clerk.openSignIn();

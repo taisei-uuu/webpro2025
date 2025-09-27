@@ -488,6 +488,25 @@
             }
         });
         
+        // ユーザープロフィール処理関数
+        function handleUserProfile() {
+            console.log('ユーザープロフィールボタンがクリックされました');
+            
+            // Clerkが利用可能かチェック
+            if (window.Clerk && typeof window.Clerk.openUserProfile === 'function') {
+                try {
+                    window.Clerk.openUserProfile();
+                    console.log('プロフィール画面を開きました');
+                } catch (error) {
+                    console.error('プロフィール画面を開く際にエラーが発生しました:', error);
+                    alert('プロフィール画面を開けませんでした。');
+                }
+            } else {
+                console.error('Clerkが利用できません');
+                alert('プロフィール機能が利用できません。');
+            }
+        }
+
         // UIの更新関数
         function updateUI() {
             const user = window.Clerk.user;
@@ -497,8 +516,8 @@
             if (user) {
                 // ログイン済みの場合
                 if (loginButton) {
-                    loginButton.innerHTML = '<i class="fas fa-user me-1"></i>' + (user.firstName || 'ユーザー');
-                    loginButton.onclick = () => window.Clerk.openUserProfile();
+                    loginButton.innerHTML = '<i class="fas fa-user me-1"></i>';
+                    loginButton.onclick = handleUserProfile;
                 }
                 if (signupButton) {
                     signupButton.style.display = 'none';
