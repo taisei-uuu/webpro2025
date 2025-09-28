@@ -78,6 +78,31 @@
             border-radius: 8px;
             margin: 2rem 0;
         }
+
+        .contact-methods {
+            margin-top: 1rem;
+        }
+
+        .contact-method {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        .contact-method:hover {
+            background-color: #e9ecef;
+        }
+
+        .contact-method a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .contact-method a:hover {
+            color: #1e40af;
+        }
         
         .back-button {
             background: linear-gradient(45deg, #fbbf24, #f59e0b);
@@ -163,7 +188,7 @@
                         <div class="highlight-box">
                             <p class="mb-0 fw-bold">
                                 <i class="fas fa-info-circle me-2"></i>
-                                本利用規約は、2024年12月19日に制定されました。
+                                本利用規約は、2025年10月1日に制定されました。
                             </p>
                         </div>
 
@@ -296,6 +321,8 @@
                             <p class="mb-0 mt-2">
                                 本サービスで提供される情報は教育目的のみであり、投資助言ではありません。
                                 投資判断は必ずご自身の責任で行ってください。投資にはリスクが伴い、損失が生じる可能性があります。
+                                また、当社は情報の正確性について最大限の注意を払っておりますが、情報の正確性や完全性を保証するものではありません。
+                                情報の利用により生じた損害について、当社は一切の責任を負いません。
                             </p>
                         </div>
 
@@ -303,9 +330,23 @@
                         <div class="contact-info">
                             <p class="mb-2 fw-bold">利用規約に関するお問い合わせ</p>
                             <p class="mb-1"><strong>会社名：</strong>Stock with株式会社</p>
-                            <p class="mb-1"><strong>担当部署：</strong>カスタマーサポート</p>
-                            <p class="mb-1"><strong>メールアドレス：</strong>support@stockwith.jp</p>
-                            <p class="mb-0"><strong>受付時間：</strong>平日 9:00-18:00</p>
+                            <p class="mb-3"><strong>メールアドレス：</strong>contact@stockwith-jp.com</p>
+                            
+                            <div class="contact-methods">
+                                <p class="mb-2 fw-bold">お問い合わせ方法</p>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="contact-method">
+                                        <i class="fas fa-envelope me-2"></i>
+                                        <span>メール</span>
+                                    </div>
+                                    <div class="contact-method">
+                                        <a href="https://www.instagram.com/utsubo_zmoney?igsh=NTJsa3pkZnZzNXd1&utm_source=qr" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                                            <i class="fab fa-instagram me-2" style="color: #e1306c;"></i>
+                                            <span>Instagram DM</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="text-center mt-5">

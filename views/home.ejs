@@ -193,6 +193,31 @@
         .cta-section .section-title {
             color: white;
         }
+
+        /* 代表者挨拶セクションのアイコンスタイル */
+        .ceo-section {
+            background-color: #f8f9fa;
+        }
+
+        .ceo-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #007bff;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+            margin: 0 auto 2rem auto;
+            display: block;
+        }
+
+        /* モバイル対応 */
+        @media (max-width: 768px) {
+            .ceo-icon {
+                width: 100px;
+                height: 100px;
+                margin-bottom: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -372,11 +397,12 @@
     </section>
 
     <!-- 代表者挨拶セクション -->
-    <section class="py-5 bg-white">
+    <section class="py-5 ceo-section">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-10">
                     <div class="text-center mb-5">
+                        <img src="/taisei_small.JPG" alt="代表者" class="ceo-icon">
                         <h2 class="display-5 fw-bold mb-4 section-title">代表者挨拶</h2>
                         <div class="mb-4">
                             <h4 class="fw-bold mb-2" style="color: #1e40af;">Stock with株式会社代表取締役/CEO</h4>
