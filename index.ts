@@ -588,10 +588,46 @@ app.get('/learning', async (req, res) => {
       clearedQuestions: number;
     }>);
 
-    const chaptersWithProgress = Object.values(chapters).map(chapter => ({
+    // 既存のchaptersを処理
+    const processedChapters = Object.values(chapters).map(chapter => ({
       ...chapter,
       progressPercentage: chapter.totalQuestions > 0 ? (chapter.clearedQuestions / chapter.totalQuestions) * 100 : 0,
     }));
+
+    // はじめにを追加
+    const stage0Chapter = {
+      chapter: 0,
+      title: 'はじめに',
+      lessons: [{
+        id: 'stage0-intro',
+        title: 'はじめに',
+        slug: 'stage0-intro',
+        chapter: 0,
+        questions: []
+      }],
+      totalQuestions: 0,
+      clearedQuestions: 0,
+      progressPercentage: 0
+    };
+
+    // おわりにを追加
+    const endingChapter = {
+      chapter: 999, // 最後に表示されるように大きな数字
+      title: 'おわりに',
+      lessons: [{
+        id: 'ending-intro',
+        title: 'おわりに',
+        slug: 'ending-intro',
+        chapter: 999,
+        questions: []
+      }],
+      totalQuestions: 0,
+      clearedQuestions: 0,
+      progressPercentage: 0
+    };
+
+    // はじめにを最初に、おわりにを最後に追加
+    const chaptersWithProgress = [stage0Chapter, ...processedChapters, endingChapter];
 
     // Phase1の総問題数を計算（現在の全レッスンの問題数）
     const totalQuestions = lessonsWithQuestions.reduce((total, lesson) => total + lesson.questions.length, 0);
@@ -645,25 +681,25 @@ app.get('/learning', async (req, res) => {
   }
 });
 
-// 新規レッスン作成フォームを表示するルート
-app.get('/admin/lessons/new', (req, res) => {
-  res.render('new-lesson');
-});
+// // 新規レッスン作成フォームを表示するルート
+// app.get('/admin/lessons/new', (req, res) => {
+//   res.render('new-lesson');
+// });
 
-// 新規レッスンを作成するルート
-app.post('/admin/lessons', async (req, res) => {
-  const { title, content, chapter } = req.body;
+// // 新規レッスンを作成するルート
+// app.post('/admin/lessons', async (req, res) => {
+//   const { title, content, chapter } = req.body;
 
-  await prisma.lesson.create({
-    data: {
-      title,
-      content,
-      chapter: parseInt(chapter, 10),
-    },
-  });
+//   await prisma.lesson.create({
+//     data: {
+//       title,
+//       content,
+//       chapter: parseInt(chapter, 10),
+//     },
+//   });
 
-  res.redirect('/learning');
-});
+//   res.redirect('/learning');
+// });
 
 // クイズの回答を処理するルート（ゲストモード対応）
 app.post('/lessons/:slug/quiz/submit', async (req, res) => {
@@ -773,6 +809,105 @@ app.get('/search', async (req, res) => {
       publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
     });
   }
+});
+
+// おわりに 専用ページ
+app.get('/lessons/ending-intro', (req, res) => {
+  const lesson = {
+    id: 'ending-intro',
+    title: 'おわりに',
+    content: `
+      <div class="stage0-lesson-content">
+        <p class="intro-greeting">Phase1の学習、お疲れさまでした！<span class="highlight-text">ナイスランです！</span></p>
+        
+        <p class="intro-description">
+          これであなたも「NISAって何？」と聞かれてドヤ顔できるレベルには到達したはずです。投資家デビューの準備は整いました！
+        </p>
+        
+        <p class="intro-description">
+          とはいえ、投資の世界は広大です。正直なところ、Phase1を終えた時点では「ようやく装備を整えて、最初の草原に一歩踏み出した」くらいかもしれません。
+        </p>
+        
+        <p class="intro-description">
+          しかし、ここから何よりも強力な武器になるのが<span class="highlight-text">「時間」</span>です。投資の利益は「複利」の魔法で、時間をかければかけるほど雪だるま式に大きくなっていきます。今日から投資の世界に足を踏み入れられたことは、数年後のあなたにとって最高のプレゼントとなることでしょう。
+        </p>
+        
+        <p class="intro-description">
+          この先、Phase2, 3もご用意しています！私たちの目的は、「これを買えば絶対勝てる！」というような必勝法を伝授することではありません。巷に溢れる様々な投資法を前に、「なるほど、その手があったか」「これは自分にはちょっと…」と見極めるための<span class="highlight-text">「知識と判断力」</span>を、皆さんに提供することです。
+        </p>
+        
+        <p class="intro-description">
+          「もっと先の景色を見てみたい！」と感じていただけたなら、ぜひPhase2、3へとお進みください！お待ちしております！
+        </p>
+        
+        <div style="text-align: center;">
+          <a href="/phase2" class="next-stage-button">
+            Phase2へ進む <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    `,
+    videoId: null,
+    questions: []
+  };
+
+  res.render('lesson', {
+    lesson,
+    nextLesson: null,
+    user: req.user,
+    isGuest: !req.user,
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+    clearedQuestionIds: new Set(),
+    quizResult: null
+  });
+});
+
+// はじめに 専用ページ
+app.get('/lessons/stage0-intro', (req, res) => {
+  const lesson = {
+    id: 'stage0-intro',
+    title: 'はじめに',
+    content: `
+      <div class="stage0-lesson-content">
+        <p class="intro-greeting">みなさんこんにちは！このPhase1では、<span class="highlight-text">株式投資を0から始める方</span>を想定した構成となっています！</p>
+        
+        <p class="intro-description">
+          <span class="highlight-text">実践が最大の学びであり、とりあえずやってみることが大事</span><br>
+          <span>だと私たちは信じております。</span>
+        </p>
+        
+        <p class="intro-description">
+          そのため、このPhase1では、株取引をする上で、最低限の基礎知識の提供を目的としています。一見難しそうに見える株式投資ですが、このPhase1を一通り学んでいただければ、1時間もかからないうちに、投資家デビューできることと思います。
+        </p>
+        
+        <p class="intro-description">
+          「何から学べばよいかわからない」というのは実践を通して、「次はこれを学びたい」と変わっていきます。そのため、まずは実践できるための最低限の基礎知識をこのPhase1を通して身に着けていただければ幸いです！
+        </p>
+        
+        <p class="intro-description">
+          <span class="highlight-text">それではがんばってください！！健闘を祈ります！！</span>
+        </p>
+        
+        <div style="text-align: center;">
+          <a href="/lessons/stage1-1" class="next-stage-button">
+            Stage1-1へ進む <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    `,
+    videoId: null,
+    questions: []
+  };
+
+  res.render('lesson', {
+    lesson,
+    nextLesson: null,
+    user: req.user,
+    isGuest: !req.user,
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+    clearedQuestionIds: new Set(),
+    quizResult: null
+  });
 });
 
 // レッスン詳細ページ（ゲストモード対応）

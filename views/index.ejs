@@ -307,6 +307,7 @@
                 font-size: 0.75rem;
             }
         }
+
     </style>
 
     <header class="site-header">
@@ -354,6 +355,16 @@
                 </div>
             </div>
             <% } %>
+
+            <!-- プロトタイプ注意書き -->
+            <div class="prototype-notice">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <strong>現在はまだプロトタイプ（試作段階）です！</strong><br>
+                    そのため、ログインしたとしても、進捗機能が保存されない場合や、突然リセットされる場合があります！その他さまざまな不具合が見られる可能性があるのでご理解ください！！
+                </div>
+            </div>
+
 
             <!-- Phase別進捗表示 -->
             <div class="phase-progress-container">
@@ -419,7 +430,7 @@
                     <% chapters.forEach((chapter, index) => { %>
                         <div class="stepper-item" data-chapter="<%= index %>">
                             <div class="stepper-indicator clickable" data-chapter="<%= index %>"><%= index + 1 %></div>
-                            <div class="stepper-title">Stage<%= chapter.chapter %></div>
+                            <div class="stepper-title"><%= chapter.chapter === 0 ? '' : chapter.chapter === 999 ? '' : 'Stage' + chapter.chapter %></div>
                             <div class="stepper-description"><%= chapter.title %></div>
                         </div>
                     <% }); %>
@@ -430,8 +441,8 @@
                 <section class="chapter" data-chapter="<%= index %>">
                     <div class="chapter-header">
                         <div class="chapter-title-container">
-                            <button class="chapter-toggle" data-chapter="<%= index %>" aria-expanded="<%= index === 0 ? 'true' : 'false' %>">
-                                <h2>Stage<%= chapter.chapter %>: <%= chapter.title %></h2>
+                            <button class="chapter-toggle" data-chapter="<%= index %>" aria-expanded="false">
+                                <h2><%= chapter.chapter === 0 ? chapter.title : chapter.chapter === 999 ? chapter.title : 'Stage' + chapter.chapter + ': ' + chapter.title %></h2>
                             </button>
                         </div>
                         <% if (chapter.totalQuestions > 0) { %>
@@ -441,10 +452,10 @@
                             </div>
                         <% } %>
                     </div>
-                    <div class="chapter-content" id="chapter-<%= index %>" data-visible="<%= index === 0 ? 'true' : 'false' %>">
+                    <div class="chapter-content" id="chapter-<%= index %>" data-visible="false">
                         <ul class="lesson-list">
                             <% chapter.lessons.forEach(lesson => { %>
-                                <li><a href="/lessons/<%= lesson.slug %>"><%= lesson.title %></a></li>
+                                <li><a href="/lessons/<%= lesson.slug %>" class="lesson-link" data-original-title="<%= lesson.title %>"><%= lesson.title %></a></li>
                             <% }); %>
                         </ul>
                     </div>
@@ -486,12 +497,31 @@
                 
                 updateAuthUI();
                 
+                // レッスンタイトルを変換（Stageを削除）
+                formatLessonTitles();
+                
             } catch (error) {
                 console.error('Error loading Clerk:', error);
                 // エラーが発生してもページは継続
                 console.log('Clerkの初期化に失敗しましたが、ページは継続します');
             }
         });
+
+        // レッスンタイトルを変換する関数
+        function formatLessonTitles() {
+            const lessonLinks = document.querySelectorAll('.lesson-link');
+            lessonLinks.forEach(link => {
+                const originalTitle = link.getAttribute('data-original-title');
+                if (originalTitle) {
+                    // "Stage1-1.証券口座を開設しよう" -> "1-1. 証券口座を開設しよう"
+                    // "はじめに" -> "はじめに" (そのまま)
+                    const formattedTitle = originalTitle
+                        .replace(/^Stage\s*(\d+-\d+)\./, '$1. ')
+                        .replace(/^Stage\s*(\d+)\./, '$1. ');
+                    link.textContent = formattedTitle;
+                }
+            });
+        }
         
         // ユーザープロフィール処理関数
         function handleUserProfile() {

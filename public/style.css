@@ -262,6 +262,7 @@ body {
 .chapter-content {
     transition: all 0.3s ease-in-out;
     overflow: hidden;
+    display: none; /* 初期状態では非表示 */
 }
 
 .progress-container {
@@ -1661,4 +1662,20 @@ body {
 
 .guest-notice a:hover {
     text-decoration: underline;
+}
+
+.prototype-notice {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.prototype-notice i {
+    color: #dc3545;
 }

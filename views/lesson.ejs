@@ -281,6 +281,117 @@
             }
         }
 
+        /* はじめに 専用スタイル - シンプルなデザイン */
+        .stage0-lesson-content {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        .stage0-lesson-content .intro-greeting {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .stage0-lesson-content .highlight-text {
+            color: #007bff;
+            font-weight: 800;
+            font-size: 1.6rem;
+        }
+
+        .stage0-lesson-content .intro-description {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 1.2rem;
+            text-align: center;
+        }
+
+        .stage0-lesson-content .next-stage-button {
+            display: inline-block;
+            vertical-align: middle;
+            /* margin-top: 2rem; */
+            padding: 1rem 2rem;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+        .stage0-lesson-content .next-stage-button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .stage0-lesson-content .next-stage-button i {
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 768px) {
+            .stage0-lesson-content {
+                padding: 2rem;
+                margin: 1.5rem 0;
+            }
+            
+            .stage0-lesson-content .intro-greeting {
+                font-size: 1.2rem;
+            }
+            
+            .stage0-lesson-content .highlight-text {
+                font-size: 1.4rem;
+            }
+            
+            .stage0-lesson-content .intro-description {
+                font-size: 1.1rem;
+            }
+            
+            .stage0-lesson-content .next-stage-button {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stage0-lesson-content {
+                padding: 1.5rem;
+                margin: 1rem 0;
+            }
+            
+            .stage0-lesson-content .intro-greeting {
+                font-size: 1.1rem;
+            }
+            
+            .stage0-lesson-content .highlight-text {
+                font-size: 1.3rem;
+            }
+            
+            .stage0-lesson-content .intro-description {
+                font-size: 1rem;
+            }
+            
+            .stage0-lesson-content .next-stage-button {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+                width: 100%;
+                text-align: center;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -431,6 +542,7 @@
             if (!titleElement) return;
             
             const originalTitle = titleElement.textContent.trim();
+            
             // "Stage1-2.口座開設手順を確認しよう" -> "1-2. 口座開設手順を確認しよう"
             const formattedTitle = originalTitle.replace(/^Stage(\d+-\d+)\./, '$1. ');
             titleElement.textContent = formattedTitle;

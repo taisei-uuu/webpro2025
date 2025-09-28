@@ -11,6 +11,7 @@ class RetroCards {
   init() {
     this.render();
     this.bindEvents();
+    this.forceScrollbarDisplay();
   }
 
   render() {
@@ -51,6 +52,32 @@ class RetroCards {
         this.closeModal();
       }
     });
+
+    // ウィンドウサイズ変更時にスクロールバーを再表示
+    window.addEventListener('resize', () => {
+      setTimeout(() => {
+        this.forceScrollbarDisplay();
+      }, 100);
+    });
+  }
+
+  forceScrollbarDisplay() {
+    // スマホ版でスクロールバーを強制表示
+    const scrollElement = document.getElementById('cards-scroll');
+    if (scrollElement) {
+      // スクロールバーを強制的に表示させる
+      scrollElement.style.overflowX = 'scroll';
+      scrollElement.style.scrollbarWidth = 'auto';
+      scrollElement.style.scrollbarColor = '#007bff #e2e8f0';
+      
+      // 少しスクロールしてスクロールバーを表示させる
+      setTimeout(() => {
+        scrollElement.scrollLeft = 1;
+        setTimeout(() => {
+          scrollElement.scrollLeft = 0;
+        }, 100);
+      }, 100);
+    }
   }
 
 
