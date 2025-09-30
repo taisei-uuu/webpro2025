@@ -875,10 +875,6 @@ body {
     margin-bottom: 0.5rem; /* タイトル下のマージンを縮小 */
 }
 
-/* レッスンの文章コンテンツを非表示 */
-.lesson-body {
-    display: none;
-}
 
 .lesson-body h3 {
     color: var(--primary-color);

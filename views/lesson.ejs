@@ -431,8 +431,11 @@
                 <% } %>
                 
                 <div class="lesson-body">
-                    <%- lesson.content %>
+                    <!-- <%- lesson.content %> -->
                 </div>
+                
+                <!-- Retro Cards Component -->
+                <div id="retro-cards-container"></div>
 
                 <% if (lesson.questions && lesson.questions.length > 0 && locals.quizResult) { %>
                     <section class="quiz-section">
@@ -476,9 +479,6 @@
                         <% }); %>
                     </section>
                 <% } %>
-
-                <!-- Retro Cards Component -->
-                <div id="retro-cards-container"></div>
 
                 <div class="lesson-navigation">
                     <div class="navigation-buttons">
