@@ -224,10 +224,64 @@
             text-align: center;
         }
 
+        /* 流れイラスト */
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+        .scroll-container {
+            overflow: hidden;
+            width: 100%;
+            background:white;
+            padding: 40px 0;
+            margin: 20px 0;
+        }
+        .scroll-track {
+            display: flex;
+            width: 200%;
+            animation: scroll 30s linear infinite;
+        }
+        .scroll-track img {
+            width: auto;
+            height: 400px;
+            margin-right: 30px;
+            flex-shrink: 0;
+            /* カード感を出すためのスタイル */
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            background: white;
+            padding: 8px;
+        }
+        
+        /* ホバー効果でカード感を強調 */
+        .scroll-track img:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+        }
         /* モバイル対応 */
         @media (max-width: 768px) {
             .ceo-section::before {
                 background-color: rgba(255, 255, 255, 0.9);
+            }
+            
+            /* モバイルでの流れイラストカード調整 */
+            .scroll-container {
+                padding: 20px 0;
+                margin: 10px 0;
+            }
+            
+            .scroll-track img {
+                height: 300px;
+                margin-right: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                padding: 6px;
             }
         }
     </style>
@@ -298,6 +352,19 @@
             </div>
         </div>
     </section>
+    <!-- 流れイラスト -->
+    <div class="scroll-container">
+        <div class="scroll-track">        
+        <img src="/Stage1/1-1/1.png" alt="流れイラスト">
+        <img src="/Stage2/2-1/1.png" alt="流れイラスト">
+        <img src="/Stage2/2-2/1.png" alt="流れイラスト">
+        <img src="/Stage3/3-2/1.png" alt="流れイラスト">
+        <img src="/Stage1/1-1/1.png" alt="流れイラスト">
+        <img src="/Stage2/2-1/1.png" alt="流れイラスト">
+        <img src="/Stage2/2-2/1.png" alt="流れイラスト">
+        <img src="/Stage3/3-2/1.png" alt="流れイラスト">
+    </div>
+</div>
 
     <!-- 価格セクション -->
     <section class="py-5 bg-white">
