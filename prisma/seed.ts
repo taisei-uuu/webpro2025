@@ -121,7 +121,7 @@ async function main() {
           text: "株価について説明したもので正しいものはどれですか？",
           options: [
             { text: "企業の利益", isCorrect: false },
-            { text: "株式の市場での取引価格", isCorrect: true },
+            { text: "企業の所有権（株式）の市場での取引価格", isCorrect: true },
             { text: "企業の資産", isCorrect: false },
             { text: "配当金", isCorrect: false },
           ],
@@ -137,7 +137,7 @@ async function main() {
       videoTitle: "チャート・板",
       questions: [
         {
-          text: "株価の時間的変化をグラフにしたものはどれ？",
+          text: "株価の「時間的変化」をグラフにしたものはどれ？",
           options: [
             { text: "板", isCorrect: false },
             { text: "チャート", isCorrect: true },
@@ -157,12 +157,12 @@ async function main() {
       videoTitle: "口座区分",
       questions: [
         {
-          text: "投資で得た利益にかかる税率は何％ですか？",
+          text: "自分で確定申告などの税金の手続きをしなくてもよい口座はどれ？",
           options: [
-            { text: "10.315%", isCorrect: false },
-            { text: "15.315%", isCorrect: false },
-            { text: "20.315%", isCorrect: true },
-            { text: "25.315%", isCorrect: false },
+            { text: "特定口座（源泉徴収なし）", isCorrect: false },
+            { text: "一般口座", isCorrect: false },
+            { text: "特定口座（源泉徴収あり）", isCorrect: true },
+            { text: "普通口座", isCorrect: false },
           ],
         },
       ],
@@ -176,7 +176,7 @@ async function main() {
       videoTitle: "NISA",
       questions: [
         {
-          text: "NISAの成長投資枠における年間投資枠はいくらですか？",
+          text: "NISA枠では、1年間でいくらまで個別株を売買することができますか？",
           options: [
             { text: "40万円", isCorrect: false },
             { text: "80万円", isCorrect: false },
@@ -294,7 +294,7 @@ async function main() {
         {
           text: "自分の投資スタイルを確立する上で、最も重要でない要素は次のうちどれですか？",
           options: [
-            { text: "リスク許容度", isCorrect: false },
+            { text: "リスクの許容度", isCorrect: false },
             { text: "投資目的と期間", isCorrect: false },
             { text: "他人の成功事例をそのまま真似すること", isCorrect: true },
             { text: "自分の知識や経験", isCorrect: false },
