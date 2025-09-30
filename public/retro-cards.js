@@ -34,14 +34,7 @@ class RetroCards {
       <div class="retro-card-item">
         <button class="retro-card-button" data-index="${index}" onclick="retroCards.openModal(${index})">
           <div class="retro-card ${index % 2 === 0 ? 'rotate-0' : '-rotate-0'}">
-            <div class="retro-card-background">
-              <div class="retro-card-background-inner">
-                <img src="${card.backgroundImage}" alt="${card.name}" />
-              </div>
-            </div>
-            <div class="retro-card-content">
-              <!-- テキストコンテンツは非表示 -->
-            </div>
+            <img src="${card.backgroundImage}" alt="${card.name}" />
           </div>
         </button>
       </div>
@@ -113,9 +106,7 @@ class RetroCards {
             <path d="m6 6 12 12"/>
           </svg>
         </button>
-        <div class="retro-modal-card">
-          <img src="${card.backgroundImage}" alt="${card.name}" />
-        </div>
+        <img src="${card.backgroundImage}" alt="${card.name}" />
       </div>
     `;
 
@@ -316,35 +307,21 @@ function generateCardsData(lessonTitle) {
 
 // Initialize cards when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-  // Wait a bit more to ensure all content is rendered
   setTimeout(() => {
     const container = document.getElementById('retro-cards-container');
-    if (!container) {
-      console.log('retro-cards-container not found, skipping initialization');
-      return;
-    }
+    if (!container) return;
 
-    // Get lesson title from the page
     const lessonTitleElement = document.querySelector('.lesson-title');
-    if (!lessonTitleElement) {
-      console.log('Lesson title not found, skipping card initialization');
-      return;
-    }
+    if (!lessonTitleElement) return;
     
     const lessonTitle = lessonTitleElement.textContent.trim();
-    console.log('Found lesson title:', lessonTitle);
-    
-    // Generate card data based on lesson title
     const cardsData = generateCardsData(lessonTitle);
     
     if (cardsData.length === 0) {
-      console.log('No card data generated for lesson:', lessonTitle);
+      container.innerHTML = '<p>このレッスンにはカードがありません。</p>';
       return;
     }
 
-    console.log('Generated cards data:', cardsData);
-
-    // Initialize the cards component
     window.retroCards = new RetroCards('retro-cards-container', cardsData);
-  }, 100);
+  }, 500);
 });

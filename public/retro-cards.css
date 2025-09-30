@@ -106,16 +106,19 @@
   border-radius: 1.5rem;
   background: #ffffff;
   width: 18rem; /* 約288px */
-  height: 25rem; /* 約400px - さらに高くして余裕を持たせる */
+  height: 25rem; /* 約400px */
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   position: relative;
   z-index: 10;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  aspect-ratio: 18/25; /* より縦長のアスペクト比 */
+  aspect-ratio: 18/25;
+}
+
+.retro-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 1.5rem;
 }
 
 @media (min-width: 768px) {
@@ -126,39 +129,6 @@
   }
 }
 
-.retro-card-background {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-
-.retro-card-background-inner {
-  position: absolute;
-  inset: 0;
-}
-
-.retro-card-background img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* 画像全体が表示されるように変更 */
-  object-position: center;
-  /* 画像が完全に表示されるように余裕を持たせる */
-  max-width: 100%;
-  max-height: 100%;
-}
-
-.retro-card-content {
-  position: relative;
-  z-index: 20;
-  text-align: center;
-  padding: 1rem;
-  display: none; /* テキストコンテンツを非表示 */
-}
-
-.retro-controls {
-  display: none; /* ボタンを非表示 */
-}
 
 /* Modal Styles */
 .retro-modal-overlay {
@@ -244,28 +214,11 @@
   z-index: 70;
 }
 
-.retro-modal-card {
+.retro-modal-content img {
   width: 100%;
   height: 100%;
+  object-fit: contain;
   border-radius: 1.5rem;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  /* 画面サイズに応じて適切に表示 */
-  max-width: 100%;
-  max-height: 100%;
-  /* 画像サイズに近い表示 */
-  aspect-ratio: 4/5;
-}
-
-.retro-modal-card img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* 画像全体が表示されるように変更 */
-  object-position: center;
-  /* 画像が完全に表示されるように調整 */
-  max-width: 100%;
-  max-height: 100%;
 }
 
 .retro-modal-close-icon {
