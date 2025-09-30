@@ -885,9 +885,6 @@ body {
 }
 
 .lesson-navigation {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-top: 2rem;
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-color);
@@ -1321,16 +1318,24 @@ body {
 
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
-    .site-header h1 {
-        font-size: 2rem;
+    .header-content {
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 0.5rem;
+        text-align: left;
     }
-
-    .chapter h2 {
-        font-size: 1.5rem;
+    
+    .header-left {
+        text-align: left;
+        flex: 0 1 auto;
     }
-
-    .container {
-        padding: 0 15px;
+    
+    .header-right {
+        justify-content: flex-end;
+        margin-left: auto;
+        flex: 0 0 auto;
     }
 }
 

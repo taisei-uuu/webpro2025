@@ -110,34 +110,81 @@
         
         /* 768px以下の画面サイズ */
         @media (max-width: 768px) {
+            .header-content {
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                flex-wrap: nowrap !important;
+                padding: 0 15px !important;
+                gap: 0.5rem !important;
+            }
+            
             .header-logo {
                 font-size: 1.2rem;
+                flex: 0 1 auto;
+                min-width: 0;
             }
+            
             .header-logo img {
                 height: 35px;
             }
+            
+            .header-actions {
+                flex: 0 0 auto;
+                margin-left: auto;
+            }
+            
             #login-btn {
                 padding: 6px 12px;
                 font-size: 0.9rem;
+                white-space: nowrap;
             }
         }
 
         /* 480px以下の画面サイズ */
         @media (max-width: 480px) {
             .header-content {
-                padding: 0 10px; /* さらに狭い画面ではパディングを少し減らす */
+                padding: 0 10px !important;
+                gap: 0.25rem !important;
             }
+            
             .header-logo {
-                font-size: 1.1rem;
+                font-size: 1.0rem;
             }
+            
             .header-logo img {
-                height: 30px;
+                height: 28px;
+                margin-right: 6px;
             }
+            
             #login-btn {
-                padding: 6px 8px;
+                padding: 4px 8px;
                 font-size: 0.8rem;
             }
+            
+            /* ログインテキストを非表示にしてアイコンのみ表示 */
+            #login-btn span {
+                display: none;
+            }
         }
+
+        /* 320px以下の極小画面 */
+        @media (max-width: 320px) {
+            .header-logo {
+                font-size: 0.9rem;
+            }
+            
+            .header-logo img {
+                height: 24px;
+                margin-right: 4px;
+            }
+            
+            #login-btn {
+                padding: 4px 6px;
+                font-size: 0.75rem;
+            }
+        }
+
 
         /* Phase別進捗表示のスタイル */
         .phase-progress-container {
@@ -335,7 +382,7 @@
                         </button>
                         <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openSignIn()">
                             <i class="fas fa-right-to-bracket"></i>
-                            ログイン
+                            <span>ログイン</span>
                         </button>
                     <% } %>
                 </div>
