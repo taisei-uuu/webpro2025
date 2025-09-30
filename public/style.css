@@ -1,3 +1,173 @@
+/* Phase別進捗表示のスタイル */
+.phase-progress-container {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.phase-progress-title {
+    color: #1e40af;
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.phase-progress-title i {
+    margin-right: 0.5rem;
+}
+
+.phase-stepper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.phase-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    padding: 0.75rem;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.phase-item:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.phase-item.active {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(30, 64, 175, 0.3);
+}
+
+.phase-item.locked {
+    background: #f1f5f9;
+    color: #64748b;
+    opacity: 0.6;
+}
+
+.phase-item.completed {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.phase-indicator {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.phase-icon {
+    position: relative;
+    z-index: 2;
+    color: inherit;
+}
+
+.phase-progress-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    transition: height 0.3s ease;
+    border-radius: 0 0 50% 50%;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+.phase-item.active .phase-indicator {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.phase-item.locked .phase-indicator {
+    background: #e2e8f0;
+    border: 2px solid #cbd5e1;
+}
+
+.phase-item.completed .phase-indicator {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.phase-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .phase-stepper {
+        gap: 1rem;
+    }
+
+    .phase-item {
+        padding: 0.5rem;
+    }
+
+    .phase-indicator {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+    }
+
+    .phase-name {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .phase-progress-container {
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+
+    .phase-progress-title {
+        font-size: 1.1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .phase-stepper {
+        gap: 0.5rem;
+    }
+
+    .phase-item {
+        padding: 0.4rem;
+    }
+
+    .phase-indicator {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+
+    .phase-name {
+        font-size: 0.75rem;
+    }
+}
+
 /* 基本的なリセットとフォント設定 */
 :root {
     --primary-color: #00529B;

@@ -194,28 +194,40 @@
             color: white;
         }
 
-        /* 代表者挨拶セクションのアイコンスタイル */
+        /* 代表者挨拶セクションの背景画像スタイル */
         .ceo-section {
-            background-color: #f8f9fa;
+            background-image: url('/taisei.JPG');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
         }
 
-        .ceo-icon {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #007bff;
-            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
-            margin: 0 auto 2rem auto;
-            display: block;
+        .ceo-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.85);
+            z-index: 1;
+        }
+
+        .ceo-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 代表者挨拶の文章を中央揃え */
+        .ceo-content p {
+            text-align: center;
         }
 
         /* モバイル対応 */
         @media (max-width: 768px) {
-            .ceo-icon {
-                width: 100px;
-                height: 100px;
-                margin-bottom: 1.5rem;
+            .ceo-section::before {
+                background-color: rgba(255, 255, 255, 0.9);
             }
         }
     </style>
@@ -397,12 +409,11 @@
     </section>
 
     <!-- 代表者挨拶セクション -->
-    <section class="py-5 ceo-section">
-        <div class="container">
+    <section class="py-5 bg-white ceo-section">
+        <div class="container ceo-content">
             <div class="row justify-content-center">
                 <div class="col-lg-10">
                     <div class="text-center mb-5">
-                        <img src="/taisei_small.JPG" alt="代表者" class="ceo-icon">
                         <h2 class="display-5 fw-bold mb-4 section-title">代表者挨拶</h2>
                         <div class="mb-4">
                             <h4 class="fw-bold mb-2" style="color: #1e40af;">Stock with株式会社代表取締役/CEO</h4>

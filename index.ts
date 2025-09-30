@@ -427,18 +427,23 @@ app.get('/phase2', async (req, res) => {
         });
         
         // ゲストモードで再レンダリング
+        const phase1Progress = await getPhase1Progress(null);
         return res.render('phase2', { 
           user: null,
           isGuest: true,
-          publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+          publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+          phase1Progress: phase1Progress
         });
       }
     }
 
+    const phase1Progress = await getPhase1Progress(userId);
+    
     res.render('phase2', { 
       user: user,
       isGuest: !userId,
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+      phase1Progress: phase1Progress
     });
   } catch (error) {
     console.error('Error in /phase2 route:', error);
@@ -471,18 +476,23 @@ app.get('/phase3', async (req, res) => {
         });
         
         // ゲストモードで再レンダリング
+        const phase1Progress = await getPhase1Progress(null);
         return res.render('phase3', { 
           user: null,
           isGuest: true,
-          publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+          publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+          phase1Progress: phase1Progress
         });
       }
     }
 
+    const phase1Progress = await getPhase1Progress(userId);
+    
     res.render('phase3', { 
       user: user,
       isGuest: !userId,
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+      phase1Progress: phase1Progress
     });
   } catch (error) {
     console.error('Error in /phase3 route:', error);
@@ -1020,6 +1030,57 @@ app.get('/lessons/:slug', async (req, res) => {
       publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
     });
   }
+});
+
+// Phase1の進捗を計算する関数
+async function getPhase1Progress(userId: string | null): Promise<number> {
+  if (!userId) return 0;
+  
+  try {
+    // Phase1のレッスンを取得（chapter 1-5）
+    const phase1Lessons = await prisma.lesson.findMany({
+      where: {
+        chapter: {
+          gte: 1,
+          lte: 5
+        }
+      },
+      include: { questions: true }
+    });
+    
+    // Phase1の全問題IDを取得
+    const phase1QuestionIds = phase1Lessons.flatMap(lesson => lesson.questions.map(q => q.id));
+    
+    // ユーザーがPhase1の問題で正解した回数を取得
+    const correctAttempts = await prisma.quizAttempt.findMany({
+      where: {
+        clerkUserId: userId,
+        questionId: {
+          in: phase1QuestionIds
+        },
+        isCorrect: true
+      },
+      select: {
+        questionId: true
+      }
+    });
+    
+    // ユニークな正解問題数を計算（同じ問題を複数回正解しても1回としてカウント）
+    const uniqueCorrectQuestionIds = new Set(correctAttempts.map(attempt => attempt.questionId));
+    
+    const totalQuestions = phase1QuestionIds.length;
+    const clearedQuestions = uniqueCorrectQuestionIds.size;
+    
+    return totalQuestions > 0 ? Math.round((clearedQuestions / totalQuestions) * 100) : 0;
+  } catch (error) {
+    console.error('Error calculating Phase1 progress:', error);
+    return 0;
+  }
+}
+
+// 開発中ページ
+app.get('/under-development', (req, res) => {
+  res.render('under-development');
 });
 
 // 指定したポートでサーバーを起動し、リクエストを待ち始める

@@ -28,12 +28,13 @@ model Lesson {
 }
 
 model Question {
-  id           Int           @id @default(autoincrement())
-  text         String // 問題文
-  lessonId     Int
-  lesson       Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  options      Option[] // Questionは複数のOptionを持つ
-  quizAttempts QuizAttempt[] // Questionは複数のQuizAttemptを持つ
+  id               Int               @id @default(autoincrement())
+  text             String // 問題文
+  lessonId         Int
+  lesson           Lesson            @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  options          Option[] // Questionは複数のOptionを持つ
+  quizAttempts     QuizAttempt[] // Questionは複数のQuizAttemptを持つ
+  clearedQuestions ClearedQuestion[] // この問題をクリアしたユーザー
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -61,14 +62,26 @@ model QuizAttempt {
 }
 
 model User {
-  id            Int            @id @default(autoincrement())
-  email         String         @unique
-  password      String // パスワードフィールドを追加
-  name          String?
-  clerkId       String?        @unique // ClerkのユーザーID
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  subscriptions Subscription[] // ユーザーのサブスクリプション
+  id               Int            @id @default(autoincrement())
+  email            String         @unique
+  password         String // パスワードフィールドを追加
+  name             String?
+  clerkId          String?        @unique // ClerkのユーザーID
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  subscriptions    Subscription[] // ユーザーのサブスクリプション
+  clearedQuestions ClearedQuestion[] // ユーザーがクリアした問題
+}
+
+model ClearedQuestion {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId Int
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  clearedAt  DateTime @default(now())
+  
+  @@unique([userId, questionId]) // 同じユーザーが同じ問題を重複してクリアしないように
 }
 
 model Subscription {
