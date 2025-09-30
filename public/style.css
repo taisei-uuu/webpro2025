@@ -787,24 +787,31 @@ body {
     align-items: center;
 }
 
-.video-container {
+/* 4:5アスペクト比の動画用コンテナ */
+.responsive-video-container {
     position: relative;
     width: 100%;
-    height: 400px; /* デスクトップ用の固定高さ */
-    border-radius: 8px;
+    margin: 0 auto 1rem auto;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    margin-bottom: 1rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
 }
 
-.video-container iframe {
+/* 4:5のアスペクト比を維持（125% = 5/4 * 100%） */
+.responsive-video-container::before {
+    content: '';
+    display: block;
+    padding-top: 125%; /* 4:5の比率 */
+}
+
+.responsive-video-container iframe {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
 }
 
 .video-description {
@@ -819,23 +826,53 @@ body {
     align-items: center;
 }
 
-/* レスポンシブ対応 */
+/* モバイル最適化 */
 @media (max-width: 768px) {
-    .video-container {
-        height: 300px; /* モバイル用の高さを拡大 */
-        width: 95%; /* 画面幅の95%に拡大 */
-        margin: 0 auto 1rem auto; /* 中央配置 */
+    .responsive-video-container {
+        width: calc(100vw - 2rem); /* 画面幅 - 左右1remずつの余白 */
+        max-width: calc(100% - 1rem); /* コンテナからはみ出さない */
+        margin-left: auto;
+        margin-right: auto;
     }
     
     .video-section {
-        padding: 0.5rem; /* パディングを縮小 */
-        margin: 1rem 0; /* マージンも縮小 */
+        padding: 0.75rem;
+        margin: 1rem -0.5rem; /* 左右を少し広げる */
+    }
+}
+
+/* 小さなモバイル画面 */
+@media (max-width: 480px) {
+    .responsive-video-container {
+        width: calc(100vw - 1.5rem); /* さらに画面いっぱいに */
+        max-width: calc(100% - 0.5rem);
     }
     
-    .video-section h3 {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem; /* タイトル下のマージンを縮小 */
+    .video-section {
+        padding: 0.5rem;
+        margin: 1rem -0.25rem;
     }
+}
+
+/* タブレット */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .responsive-video-container {
+        width: 80%;
+        max-width: 500px;
+    }
+}
+
+/* デスクトップ */
+@media (min-width: 1025px) {
+    .responsive-video-container {
+        width: 60%;
+        max-width: 600px;
+    }
+}
+
+.video-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem; /* タイトル下のマージンを縮小 */
 }
 
 .lesson-body h3 {

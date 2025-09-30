@@ -137,39 +137,6 @@
             }
         }
 
-        /* Vimeo縦動画用のコンテナ */
-        .vimeo-container {
-            position: relative;
-            width: 90%; /* スマートフォンで画面幅の90% */
-            max-width: 400px; /* デスクトップでの最大幅 */
-            margin: 0 auto 20px auto; /* 中央配置 */
-            padding-top: 177.77%; /* 9:16のアスペクト比 */
-        }
-        
-        .vimeo-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: 8px; /* 角を丸く */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* 影を追加 */
-        }
-        
-        /* レスポンシブ対応 */
-        @media (max-width: 768px) {
-            .vimeo-container {
-                width: 90%; /* スマートフォンで画面幅の90%を維持 */
-                max-width: 350px; /* タブレットでの最大幅 */
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .vimeo-container {
-                width: 90%; /* スマートフォンで画面幅の90%を維持 */
-                max-width: 300px; /* スマートフォンでの最大幅 */
-            }
-        }
 
         /* ナビゲーションボタンのスタイル */
         .lesson-navigation {
@@ -447,7 +414,7 @@
                 <% if (lesson.videoId) { %>
                 <div class="video-section">
                     <h3><i class="fas fa-play-circle me-2"></i>動画で学ぶ</h3>
-                    <div class="video-container">
+                    <div class="responsive-video-container">
                         <iframe 
                             src="https://player.vimeo.com/video/<%= lesson.videoId %>?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479&amp;title=0&amp;byline=0&amp;portrait=0" 
                             frameborder="0" 

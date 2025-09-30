@@ -11,7 +11,6 @@ class RetroCards {
   init() {
     this.render();
     this.bindEvents();
-    this.bindScrollEvents(); // 新しく追加
     this.forceScrollbarDisplay();
   }
 
@@ -23,8 +22,8 @@ class RetroCards {
             ${this.cardsData.map((card, index) => this.renderCard(card, index)).join('')}
           </div>
         </div>
-        <div class="custom-scroll-indicator" id="scroll-indicator">
-          <div class="custom-scroll-thumb" id="scroll-thumb"></div>
+        <div class="swipe-hint">
+          ← スワイプしてカードを確認 →
         </div>
       </div>
     `;
@@ -84,47 +83,6 @@ class RetroCards {
     }
   }
 
-  // 新しいメソッドを追加
-  bindScrollEvents() {
-    const scrollElement = document.getElementById('cards-scroll');
-    const indicator = document.getElementById('scroll-indicator');
-    const thumb = document.getElementById('scroll-thumb');
-    
-    if (scrollElement && indicator && thumb) {
-      scrollElement.addEventListener('scroll', () => {
-        this.updateScrollIndicator();
-      });
-      
-      // 初期表示時にも更新
-      setTimeout(() => {
-        this.updateScrollIndicator();
-      }, 100);
-    }
-  }
-
-  updateScrollIndicator() {
-    const scrollElement = document.getElementById('cards-scroll');
-    const thumb = document.getElementById('scroll-thumb');
-    
-    if (!scrollElement || !thumb) return;
-    
-    const scrollWidth = scrollElement.scrollWidth;
-    const clientWidth = scrollElement.clientWidth;
-    const scrollLeft = scrollElement.scrollLeft;
-    
-    // スクロール可能な場合のみ表示
-    if (scrollWidth > clientWidth) {
-      const thumbWidth = (clientWidth / scrollWidth) * 100;
-      const thumbLeft = (scrollLeft / (scrollWidth - clientWidth)) * (100 - thumbWidth);
-      
-      thumb.style.width = `${thumbWidth}%`;
-      thumb.style.left = `${thumbLeft}%`;
-      
-      document.getElementById('scroll-indicator').style.display = 'block';
-    } else {
-      document.getElementById('scroll-indicator').style.display = 'none';
-    }
-  }
 
 
 
