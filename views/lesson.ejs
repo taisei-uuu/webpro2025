@@ -441,7 +441,9 @@
                 <% } %>
                 
                 <!-- Retro Cards Component -->
+                <% if (lesson.id !== 'stage0-intro' && lesson.id !== 'ending-intro') { %>
                 <div id="retro-cards-container"></div>
+                <% } %>
 
                 <% if (lesson.questions && lesson.questions.length > 0 && locals.quizResult) { %>
                     <section class="quiz-section">
