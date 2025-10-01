@@ -430,9 +430,15 @@
                 </div>
                 <% } %>
                 
+                <% if (lesson.id !== 'stage0-intro' && lesson.id !== 'ending-intro') { %>
                 <div class="lesson-body">
                     <!-- <%- lesson.content %> -->
                 </div>
+                <% } else { %>
+                <div class="lesson-body">
+                    <%- lesson.content %>
+                </div>
+                <% } %>
                 
                 <!-- Retro Cards Component -->
                 <div id="retro-cards-container"></div>

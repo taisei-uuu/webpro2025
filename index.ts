@@ -822,102 +822,249 @@ app.get('/search', async (req, res) => {
 });
 
 // おわりに 専用ページ
-app.get('/lessons/ending-intro', (req, res) => {
-  const lesson = {
-    id: 'ending-intro',
-    title: 'おわりに',
-    content: `
-      <div class="stage0-lesson-content">
-        <p class="intro-greeting">Phase1の学習、お疲れさまでした！<span class="highlight-text">ナイスランです！</span></p>
+app.get('/lessons/ending-intro', async (req, res) => {
+  try {
+    // 認証状態を取得
+    const { userId, sessionId } = getUserIdentifier(req);
+    
+    // ユーザー情報を取得（ログイン済みの場合のみ）
+    let user: any = null;
+    if (userId && process.env.CLERK_SECRET_KEY) {
+      try {
+        user = await clerkClient.users.getUser(userId.toString());
+      } catch (error) {
+        console.error('Error fetching user from Clerk:', error);
+        // ユーザー情報の取得に失敗した場合は、認証状態をリセット
+        console.log('Resetting auth state due to user fetch error');
         
-        <p class="intro-description">
-          これであなたも「NISAって何？」と聞かれてドヤ顔できるレベルには到達したはずです。投資家デビューの準備は整いました！
-        </p>
+        // セッションをクリアしてゲストモードに切り替え
+        req.session.destroy((err) => {
+          if (err) console.error('Error destroying session:', err);
+        });
         
-        <p class="intro-description">
-          とはいえ、投資の世界は広大です。正直なところ、Phase1を終えた時点では「ようやく装備を整えて、最初の草原に一歩踏み出した」くらいかもしれません。
-        </p>
-        
-        <p class="intro-description">
-          しかし、ここから何よりも強力な武器になるのが<span class="highlight-text">「時間」</span>です。投資の利益は「複利」の魔法で、時間をかければかけるほど雪だるま式に大きくなっていきます。今日から投資の世界に足を踏み入れられたことは、数年後のあなたにとって最高のプレゼントとなることでしょう。
-        </p>
-        
-        <p class="intro-description">
-          この先、Phase2, 3もご用意しています！私たちの目的は、「これを買えば絶対勝てる！」というような必勝法を伝授することではありません。巷に溢れる様々な投資法を前に、「なるほど、その手があったか」「これは自分にはちょっと…」と見極めるための<span class="highlight-text">「知識と判断力」</span>を、皆さんに提供することです。
-        </p>
-        
-        <p class="intro-description">
-          「もっと先の景色を見てみたい！」と感じていただけたなら、ぜひPhase2、3へとお進みください！お待ちしております！
-        </p>
-        
-        <div style="text-align: center;">
-          <a href="/phase2" class="next-stage-button">
-            Phase2へ進む <i class="fa-solid fa-arrow-right"></i>
-          </a>
-        </div>
-      </div>
-    `,
-    videoId: null,
-    questions: []
-  };
+        // ゲストモードで再レンダリング
+        return res.render('lesson', {
+          lesson: {
+            id: 'ending-intro',
+            title: 'おわりに',
+            content: `
+              <div class="stage0-lesson-content">
+                <p class="intro-greeting">Phase1の学習、お疲れさまでした！<span class="highlight-text">ナイスランです！</span></p>
+                
+                <p class="intro-description">
+                  これであなたも「NISAって何？」と聞かれてドヤ顔できるレベルには到達したはずです。投資家デビューの準備は整いました！
+                </p>
+                
+                <p class="intro-description">
+                  とはいえ、投資の世界は広大です。正直なところ、Phase1を終えた時点では「ようやく装備を整えて、最初の草原に一歩踏み出した」くらいかもしれません。
+                </p>
+                
+                <p class="intro-description">
+                  しかし、ここから何よりも強力な武器になるのが<span class="highlight-text">「時間」</span>です。投資の利益は「複利」の魔法で、時間をかければかけるほど雪だるま式に大きくなっていきます。今日から投資の世界に足を踏み入れられたことは、数年後のあなたにとって最高のプレゼントとなることでしょう。
+                </p>
+                
+                <p class="intro-description">
+                  この先、Phase2, 3もご用意しています！私たちの目的は、「これを買えば絶対勝てる！」というような必勝法を伝授することではありません。巷に溢れる様々な投資法を前に、「なるほど、その手があったか」「これは自分にはちょっと…」と見極めるための<span class="highlight-text">「知識と判断力」</span>を、皆さんに提供することです。
+                </p>
+                
+                <p class="intro-description">
+                  「もっと先の景色を見てみたい！」と感じていただけたなら、ぜひPhase2、3へとお進みください！お待ちしております！
+                </p>
+                
+                <div style="text-align: center;">
+                  <a href="/phase2" class="next-stage-button">
+                    Phase2へ進む <i class="fa-solid fa-arrow-right"></i>
+                  </a>
+                </div>
+              </div>
+            `,
+            videoId: null,
+            questions: []
+          },
+          nextLesson: null,
+          user: null,
+          isGuest: true,
+          publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+          clearedQuestionIds: new Set(),
+          quizResult: null
+        });
+      }
+    }
 
-  res.render('lesson', {
-    lesson,
-    nextLesson: null,
-    user: req.user,
-    isGuest: !req.user,
-    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
-    clearedQuestionIds: new Set(),
-    quizResult: null
-  });
+    const lesson = {
+      id: 'ending-intro',
+      title: 'おわりに',
+      content: `
+        <div class="stage0-lesson-content">
+          <p class="intro-greeting">Phase1の学習、お疲れさまでした！<span class="highlight-text">ナイスランです！</span></p>
+          
+          <p class="intro-description">
+            これであなたも「NISAって何？」と聞かれてドヤ顔できるレベルには到達したはずです。投資家デビューの準備は整いました！
+          </p>
+          
+          <p class="intro-description">
+            とはいえ、投資の世界は広大です。正直なところ、Phase1を終えた時点では「ようやく装備を整えて、最初の草原に一歩踏み出した」くらいかもしれません。
+          </p>
+          
+          <p class="intro-description">
+            しかし、ここから何よりも強力な武器になるのが<span class="highlight-text">「時間」</span>です。投資の利益は「複利」の魔法で、時間をかければかけるほど雪だるま式に大きくなっていきます。今日から投資の世界に足を踏み入れられたことは、数年後のあなたにとって最高のプレゼントとなることでしょう。
+          </p>
+          
+          <p class="intro-description">
+            この先、Phase2, 3もご用意しています！私たちの目的は、「これを買えば絶対勝てる！」というような必勝法を伝授することではありません。巷に溢れる様々な投資法を前に、「なるほど、その手があったか」「これは自分にはちょっと…」と見極めるための<span class="highlight-text">「知識と判断力」</span>を、皆さんに提供することです。
+          </p>
+          
+          <p class="intro-description">
+            「もっと先の景色を見てみたい！」と感じていただけたなら、ぜひPhase2、3へとお進みください！お待ちしております！
+          </p>
+          
+          <div style="text-align: center;">
+            <a href="/phase2" class="next-stage-button">
+              Phase2へ進む <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      `,
+      videoId: null,
+      questions: []
+    };
+
+    res.render('lesson', {
+      lesson,
+      nextLesson: null,
+      user: user,
+      isGuest: !userId, // ゲストモードかどうかのフラグ
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+      clearedQuestionIds: new Set(),
+      quizResult: null
+    });
+  } catch (error) {
+    console.error('Error in /lessons/ending-intro route:', error);
+    res.status(500).render('error', { 
+      message: 'ページの読み込み中にエラーが発生しました。',
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+    });
+  }
 });
 
 // はじめに 専用ページ
-app.get('/lessons/stage0-intro', (req, res) => {
-  const lesson = {
-    id: 'stage0-intro',
-    title: 'はじめに',
-    content: `
-      <div class="stage0-lesson-content">
-        <p class="intro-greeting">みなさんこんにちは！このPhase1では、<span class="highlight-text">株式投資を0から始める方</span>を想定した構成となっています！</p>
+app.get('/lessons/stage0-intro', async (req, res) => {
+  try {
+    // 認証状態を取得
+    const { userId, sessionId } = getUserIdentifier(req);
+    
+    // ユーザー情報を取得（ログイン済みの場合のみ）
+    let user: any = null;
+    if (userId && process.env.CLERK_SECRET_KEY) {
+      try {
+        user = await clerkClient.users.getUser(userId.toString());
+      } catch (error) {
+        console.error('Error fetching user from Clerk:', error);
+        // ユーザー情報の取得に失敗した場合は、認証状態をリセット
+        console.log('Resetting auth state due to user fetch error');
         
-        <p class="intro-description">
-          <span class="highlight-text">実践が最大の学びであり、とりあえずやってみることが大事</span><br>
-          <span>だと私たちは信じております。</span>
-        </p>
+        // セッションをクリアしてゲストモードに切り替え
+        req.session.destroy((err) => {
+          if (err) console.error('Error destroying session:', err);
+        });
         
-        <p class="intro-description">
-          そのため、このPhase1では、株取引をする上で、最低限の基礎知識の提供を目的としています。一見難しそうに見える株式投資ですが、このPhase1を一通り学んでいただければ、1時間もかからないうちに、投資家デビューできることと思います。
-        </p>
-        
-        <p class="intro-description">
-          「何から学べばよいかわからない」というのは実践を通して、「次はこれを学びたい」と変わっていきます。そのため、まずは実践できるための最低限の基礎知識をこのPhase1を通して身に着けていただければ幸いです！
-        </p>
-        
-        <p class="intro-description">
-          <span class="highlight-text">それではがんばってください！！健闘を祈ります！！</span>
-        </p>
-        
-        <div style="text-align: center;">
-          <a href="/lessons/stage1-1" class="next-stage-button">
-            Stage1-1へ進む <i class="fa-solid fa-arrow-right"></i>
-          </a>
-        </div>
-      </div>
-    `,
-    videoId: null,
-    questions: []
-  };
+        // ゲストモードで再レンダリング
+        return res.render('lesson', {
+          lesson: {
+            id: 'stage0-intro',
+            title: 'はじめに',
+            content: `
+              <div class="stage0-lesson-content">
+                <p class="intro-greeting">みなさんこんにちは！このPhase1では、<span class="highlight-text">株式投資を0から始める方</span>を想定した構成となっています！</p>
+                
+                <p class="intro-description">
+                  <span class="highlight-text">実践が最大の学びであり、とりあえずやってみることが大事</span><br>
+                  <span>だと私たちは信じております。</span>
+                </p>
+                
+                <p class="intro-description">
+                  そのため、このPhase1では、株取引をする上で、最低限の基礎知識の提供を目的としています。一見難しそうに見える株式投資ですが、このPhase1を一通り学んでいただければ、1時間もかからないうちに、投資家デビューできることと思います。
+                </p>
+                
+                <p class="intro-description">
+                  「何から学べばよいかわからない」というのは実践を通して、「次はこれを学びたい」と変わっていきます。そのため、まずは実践できるための最低限の基礎知識をこのPhase1を通して身に着けていただければ幸いです！
+                </p>
+                
+                <p class="intro-description">
+                  <span class="highlight-text">それではがんばってください！！健闘を祈ります！！</span>
+                </p>
+                
+                <div style="text-align: center;">
+                  <a href="/lessons/stage1-1" class="next-stage-button">
+                    Stage1-1へ進む <i class="fa-solid fa-arrow-right"></i>
+                  </a>
+                </div>
+              </div>
+            `,
+            videoId: null,
+            questions: []
+          },
+          nextLesson: null,
+          user: null,
+          isGuest: true,
+          publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+          clearedQuestionIds: new Set(),
+          quizResult: null
+        });
+      }
+    }
 
-  res.render('lesson', {
-    lesson,
-    nextLesson: null,
-    user: req.user,
-    isGuest: !req.user,
-    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
-    clearedQuestionIds: new Set(),
-    quizResult: null
-  });
+    const lesson = {
+      id: 'stage0-intro',
+      title: 'はじめに',
+      content: `
+        <div class="stage0-lesson-content">
+          <p class="intro-greeting">みなさんこんにちは！このPhase1では、<span class="highlight-text">株式投資を0から始める方</span>を想定した構成となっています！</p>
+          
+          <p class="intro-description">
+            <span class="highlight-text">実践が最大の学びであり、とりあえずやってみることが大事</span><br>
+            <span>だと私たちは信じております。</span>
+          </p>
+          
+          <p class="intro-description">
+            そのため、このPhase1では、株取引をする上で、最低限の基礎知識の提供を目的としています。一見難しそうに見える株式投資ですが、このPhase1を一通り学んでいただければ、1時間もかからないうちに、投資家デビューできることと思います。
+          </p>
+          
+          <p class="intro-description">
+            「何から学べばよいかわからない」というのは実践を通して、「次はこれを学びたい」と変わっていきます。そのため、まずは実践できるための最低限の基礎知識をこのPhase1を通して身に着けていただければ幸いです！
+          </p>
+          
+          <p class="intro-description">
+            <span class="highlight-text">それではがんばってください！！健闘を祈ります！！</span>
+          </p>
+          
+          <div style="text-align: center;">
+            <a href="/lessons/stage1-1" class="next-stage-button">
+              Stage1-1へ進む <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      `,
+      videoId: null,
+      questions: []
+    };
+
+    res.render('lesson', {
+      lesson,
+      nextLesson: null,
+      user: user,
+      isGuest: !userId, // ゲストモードかどうかのフラグ
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+      clearedQuestionIds: new Set(),
+      quizResult: null
+    });
+  } catch (error) {
+    console.error('Error in /lessons/stage0-intro route:', error);
+    res.status(500).render('error', { 
+      message: 'ページの読み込み中にエラーが発生しました。',
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+    });
+  }
 });
 
 // レッスン詳細ページ（ゲストモード対応）
