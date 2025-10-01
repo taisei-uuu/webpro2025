@@ -31,14 +31,14 @@ async function main() {
   );
   console.log(`Start seeding ...`);
 
-  // 既存のレッスンデータをチェック
-  const existingLessons = await prisma.lesson.count();
+  // Phase1の既存レッスンデータをチェック
+  const existingPhase1Lessons = await prisma.phase1Lesson.count();
   
   // FORCE_RESET環境変数で強制リセットを制御
   const forceReset = process.env.FORCE_RESET === 'true';
   
-  if (existingLessons > 0 && !forceReset) {
-    console.log(`Found ${existingLessons} existing lessons. Skipping seed to preserve user progress.`);
+  if (existingPhase1Lessons > 0 && !forceReset) {
+    console.log(`Found ${existingPhase1Lessons} existing Phase1 lessons. Skipping seed to preserve user progress.`);
     console.log('To force reset, set FORCE_RESET=true environment variable');
     return;
   }
@@ -46,16 +46,19 @@ async function main() {
   if (forceReset) {
     console.log("FORCE_RESET=true detected. Proceeding with full reset...");
   } else {
-    console.log("No existing lessons found. Proceeding with seed...");
+    console.log("No existing Phase1 lessons found. Proceeding with seed...");
   }
 
-  // 既存のデータをクリア (依存関係の深いものから削除)
-  await prisma.quizAttempt.deleteMany();
+  // Phase1の既存データをクリア (依存関係の深いものから削除)
+  await prisma.phase1QuizAttempt.deleteMany();
+  await prisma.phase1ClearedQuestion.deleteMany();
+  await prisma.phase1Progress.deleteMany();
+  await prisma.phase1Option.deleteMany();
+  await prisma.phase1Question.deleteMany();
+  await prisma.phase1Lesson.deleteMany();
   await prisma.subscription.deleteMany();
-  await prisma.question.deleteMany(); // Questionを削除すると、関連するOptionもカスケード削除されます
-  await prisma.lesson.deleteMany();
   await prisma.user.deleteMany();
-  console.log("Deleted old data.");
+  console.log("Deleted old Phase1 data.");
 
   // テストユーザーを作成（Clerkを使用するため、パスワードは不要）
   const user = await prisma.user.create({
@@ -239,7 +242,7 @@ async function main() {
           options: [
             { text: "ファンダメンタル分析", isCorrect: false },
             { text: "テクニカル分析", isCorrect: true },
-            { text: "バリュー投資", isCorrect: false },
+            { text: "タロット分析", isCorrect: false },
             { text: "グロース投資", isCorrect: false },
           ],
         },
@@ -276,9 +279,9 @@ async function main() {
           text: "数日〜数週間のスパンで株式を取引するトレード手法を何と言いますか？",
           options: [
             { text: "デイトレード", isCorrect: false },
-            { text: "スキャルピング", isCorrect: false },
-            { text: "長期投資", isCorrect: false },
             { text: "スイングトレード", isCorrect: true },
+            { text: "スキャルピング", isCorrect: false },
+            { text: "ミャクミャク", isCorrect: false },
           ],
         },
       ],
@@ -306,7 +309,7 @@ async function main() {
 
   for (const data of lessonsWithQuestions) {
     const { questions, ...lessonData } = data;
-    const lesson = await prisma.lesson.create({
+    const lesson = await prisma.phase1Lesson.create({
       data: {
         ...lessonData,
         questions: {
@@ -319,7 +322,7 @@ async function main() {
         },
       },
     });
-    console.log(`Created lesson with id: ${lesson.id}`);
+    console.log(`Created Phase1 lesson with id: ${lesson.id}`);
   }
 
   console.log(`Seeding finished.`);

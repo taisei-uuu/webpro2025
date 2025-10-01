@@ -14,75 +14,266 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Lesson {
+// Phase1のレッスン
+model Phase1Lesson {
   id         Int        @id @default(autoincrement())
   chapter    Int
   title      String
-  slug       String     @unique // URL用のスラッグ（例: "stage1-1", "stage2-1"）
+  slug       String     @unique
   content    String
-  videoId    String?    // Vimeo動画ID
-  videoTitle String?    // 動画タイトル
+  videoId    String?
+  videoTitle String?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
-  questions  Question[] // Lessonは複数のQuestionを持つ
+  questions  Phase1Question[]
+  progress   Phase1Progress[]
 }
 
-model Question {
+// Phase2のレッスン
+model Phase2Lesson {
+  id         Int        @id @default(autoincrement())
+  chapter    Int
+  title      String
+  slug       String     @unique
+  content    String
+  videoId    String?
+  videoTitle String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  questions  Phase2Question[]
+  progress   Phase2Progress[]
+}
+
+// Phase3のレッスン
+model Phase3Lesson {
+  id         Int        @id @default(autoincrement())
+  chapter    Int
+  title      String
+  slug       String     @unique
+  content    String
+  videoId    String?
+  videoTitle String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  questions  Phase3Question[]
+  progress   Phase3Progress[]
+}
+
+
+// Phase1の問題
+model Phase1Question {
   id               Int               @id @default(autoincrement())
-  text             String // 問題文
+  text             String
   lessonId         Int
-  lesson           Lesson            @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  options          Option[] // Questionは複数のOptionを持つ
-  quizAttempts     QuizAttempt[] // Questionは複数のQuizAttemptを持つ
-  clearedQuestions ClearedQuestion[] // この問題をクリアしたユーザー
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  lesson           Phase1Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  options          Phase1Option[]
+  quizAttempts     Phase1QuizAttempt[]
+  clearedQuestions Phase1ClearedQuestion[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
-model Option {
+// Phase2の問題
+model Phase2Question {
+  id               Int               @id @default(autoincrement())
+  text             String
+  lessonId         Int
+  lesson           Phase2Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  options          Phase2Option[]
+  quizAttempts     Phase2QuizAttempt[]
+  clearedQuestions Phase2ClearedQuestion[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+// Phase3の問題
+model Phase3Question {
+  id               Int               @id @default(autoincrement())
+  text             String
+  lessonId         Int
+  lesson           Phase3Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  options          Phase3Option[]
+  quizAttempts     Phase3QuizAttempt[]
+  clearedQuestions Phase3ClearedQuestion[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+
+// Phase1の選択肢
+model Phase1Option {
   id         Int           @id @default(autoincrement())
-  text       String // 選択肢のテキスト
-  isCorrect  Boolean // この選択肢が正解かどうか
+  text       String
+  isCorrect  Boolean
   questionId Int
-  question   Question      @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  attempts   QuizAttempt[] // Optionは複数のQuizAttemptを持つ
+  question   Phase1Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  attempts   Phase1QuizAttempt[]
 }
 
-model QuizAttempt {
+// Phase2の選択肢
+model Phase2Option {
+  id         Int           @id @default(autoincrement())
+  text       String
+  isCorrect  Boolean
+  questionId Int
+  question   Phase2Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  attempts   Phase2QuizAttempt[]
+}
+
+// Phase3の選択肢
+model Phase3Option {
+  id         Int           @id @default(autoincrement())
+  text       String
+  isCorrect  Boolean
+  questionId Int
+  question   Phase3Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  attempts   Phase3QuizAttempt[]
+}
+
+
+// Phase1のクイズ試行
+model Phase1QuizAttempt {
   id               Int      @id @default(autoincrement())
-  clerkUserId      String? // ClerkのユーザーIDを直接保存
-  sessionId        String? // ゲストユーザーのセッションID
+  clerkUserId      String?
+  sessionId        String?
   questionId       Int
-  question         Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  selectedOptionId Int? // ユーザーが選択した選択肢のID（オプショナル）
-  selectedOption   Option?  @relation(fields: [selectedOptionId], references: [id], onDelete: Cascade)
-  isCorrect        Boolean // 提出された回答が正解だったか
+  question         Phase1Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOptionId Int?
+  selectedOption   Phase1Option?  @relation(fields: [selectedOptionId], references: [id], onDelete: Cascade)
+  isCorrect        Boolean
   submittedAt      DateTime @default(now())
 }
+
+// Phase2のクイズ試行
+model Phase2QuizAttempt {
+  id               Int      @id @default(autoincrement())
+  clerkUserId      String?
+  sessionId        String?
+  questionId       Int
+  question         Phase2Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOptionId Int?
+  selectedOption   Phase2Option?  @relation(fields: [selectedOptionId], references: [id], onDelete: Cascade)
+  isCorrect        Boolean
+  submittedAt      DateTime @default(now())
+}
+
+// Phase3のクイズ試行
+model Phase3QuizAttempt {
+  id               Int      @id @default(autoincrement())
+  clerkUserId      String?
+  sessionId        String?
+  questionId       Int
+  question         Phase3Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOptionId Int?
+  selectedOption   Phase3Option?  @relation(fields: [selectedOptionId], references: [id], onDelete: Cascade)
+  isCorrect        Boolean
+  submittedAt      DateTime @default(now())
+}
+
 
 model User {
   id               Int            @id @default(autoincrement())
   email            String         @unique
-  password         String // パスワードフィールドを追加
+  password         String
   name             String?
-  clerkId          String?        @unique // ClerkのユーザーID
+  clerkId          String?        @unique
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-  subscriptions    Subscription[] // ユーザーのサブスクリプション
-  clearedQuestions ClearedQuestion[] // ユーザーがクリアした問題
+  subscriptions    Subscription[]
+  
+  // Phase別の進捗
+  phase1Progress   Phase1Progress[]
+  phase2Progress   Phase2Progress[]
+  phase3Progress   Phase3Progress[]
+  
+  // Phase別のクリア済み問題
+  phase1ClearedQuestions Phase1ClearedQuestion[]
+  phase2ClearedQuestions Phase2ClearedQuestion[]
+  phase3ClearedQuestions Phase3ClearedQuestion[]
+  
 }
 
-model ClearedQuestion {
+// Phase1の進捗
+model Phase1Progress {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId   Int
+  lesson     Phase1Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completed  Boolean  @default(false)
+  completedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  @@unique([userId, lessonId])
+}
+
+// Phase2の進捗
+model Phase2Progress {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId   Int
+  lesson     Phase2Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completed  Boolean  @default(false)
+  completedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  @@unique([userId, lessonId])
+}
+
+// Phase3の進捗
+model Phase3Progress {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId   Int
+  lesson     Phase3Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completed  Boolean  @default(false)
+  completedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  @@unique([userId, lessonId])
+}
+
+// Phase1のクリア済み問題
+model Phase1ClearedQuestion {
   id         Int      @id @default(autoincrement())
   userId     Int
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   questionId Int
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  question   Phase1Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   clearedAt  DateTime @default(now())
   
-  @@unique([userId, questionId]) // 同じユーザーが同じ問題を重複してクリアしないように
+  @@unique([userId, questionId])
 }
+
+// Phase2のクリア済み問題
+model Phase2ClearedQuestion {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId Int
+  question   Phase2Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  clearedAt  DateTime @default(now())
+  
+  @@unique([userId, questionId])
+}
+
+// Phase3のクリア済み問題
+model Phase3ClearedQuestion {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId Int
+  question   Phase3Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  clearedAt  DateTime @default(now())
+  
+  @@unique([userId, questionId])
+}
+
 
 model Subscription {
   id                   Int      @id @default(autoincrement())

@@ -3,8 +3,21 @@ import express from 'express';
 import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
 import session from 'express-session';
 // import Stripe from 'stripe';
-// 生成した Prisma Client をインポート
-import { PrismaClient } from '@prisma/client';
+// Phase別テーブル管理ライブラリをインポート
+import { 
+  getPhaseTables,
+  getPhaseFromLessonId,
+  getPhase1Lessons,
+  getPhaseLessons,
+  getPhaseQuizAttempts,
+  getPhaseClearedQuestions,
+  getPhaseLessonBySlug,
+  savePhaseQuizAttempt,
+  savePhaseClearedQuestion,
+  updatePhaseProgress,
+  getPhase1ProgressPercentage,
+  prisma
+} from './lib/phase-database';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -15,10 +28,7 @@ declare module 'express-session' {
   }
 }
 
-const prisma = new PrismaClient({
-  // 開発中は、実行されたクエリをログに表示する
-  log: ['query'],
-});
+// prismaはphase-database.tsからインポート
 
 // Stripeの初期化（コメントアウト）
 // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -122,7 +132,7 @@ async function getCachedQuizAttempts(userId?: string, sessionId?: string) {
     return cached.data;
   }
   
-  const attempts = await prisma.quizAttempt.findMany({
+  const attempts = await prisma.phase1QuizAttempt.findMany({
     where: {
       OR: [
         userId ? { clerkUserId: userId } : {}, // ClerkのユーザーIDを直接使用
@@ -428,22 +438,69 @@ app.get('/phase2', async (req, res) => {
         
         // ゲストモードで再レンダリング
         const phase1Progress = await getPhase1Progress(null);
+        const phase2Lessons = await getPhaseLessons(2);
+        
+        // Phase2のレッスンをチャプター別にグループ化
+        const phase2Chapters = phase2Lessons.reduce((acc: any[], lesson: any) => {
+          let chapter = acc.find(c => c.chapter === lesson.chapter);
+          if (!chapter) {
+            chapter = {
+              chapter: lesson.chapter,
+              title: `Stage ${lesson.chapter}`,
+              lessons: [],
+              totalQuestions: 0,
+              clearedQuestions: 0,
+              progressPercentage: 0
+            };
+            acc.push(chapter);
+          }
+          chapter.lessons.push(lesson);
+          chapter.totalQuestions += lesson.questions.length;
+          return acc;
+        }, []);
+        
         return res.render('phase2', { 
           user: null,
           isGuest: true,
           publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
-          phase1Progress: phase1Progress
+          phase1Progress: phase1Progress,
+          phase2Lessons: phase2Lessons,
+          chapters: phase2Chapters
         });
       }
     }
 
     const phase1Progress = await getPhase1Progress(userId);
     
+    // Phase2のレッスンデータを取得
+    const phase2Lessons = await getPhaseLessons(2);
+    
+    // Phase2のレッスンをチャプター別にグループ化
+    const phase2Chapters = phase2Lessons.reduce((acc: any[], lesson: any) => {
+      let chapter = acc.find(c => c.chapter === lesson.chapter);
+      if (!chapter) {
+        chapter = {
+          chapter: lesson.chapter,
+          title: `Stage ${lesson.chapter}`,
+          lessons: [],
+          totalQuestions: 0,
+          clearedQuestions: 0,
+          progressPercentage: 0
+        };
+        acc.push(chapter);
+      }
+      chapter.lessons.push(lesson);
+      chapter.totalQuestions += lesson.questions.length;
+      return acc;
+    }, []);
+    
     res.render('phase2', { 
       user: user,
       isGuest: !userId,
       publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
-      phase1Progress: phase1Progress
+      phase1Progress: phase1Progress,
+      phase2Lessons: phase2Lessons,
+      chapters: phase2Chapters
     });
   } catch (error) {
     console.error('Error in /phase2 route:', error);
@@ -521,15 +578,8 @@ app.get('/terms', (req, res) => {
 // 株学習プラットフォームのメインページ（ゲストモード対応）
 app.get('/learning', async (req, res) => {
   try {
-    // 1. 全てのレッスンと、それに紐づく問題を取得
-    const lessonsWithQuestions = await prisma.lesson.findMany({
-      include: {
-        questions: true,
-      },
-      orderBy: {
-        id: 'asc',
-      },
-    });
+    // 1. Phase1のレッスンと、それに紐づく問題を取得
+    const lessonsWithQuestions = await getPhase1Lessons();
 
     // 2. 現在のユーザー（ログイン済みまたはゲスト）の正解した回答履歴を取得（キャッシュ使用）
     const { userId, sessionId } = getUserIdentifier(req);
@@ -716,8 +766,12 @@ app.post('/lessons/:slug/quiz/submit', async (req, res) => {
   const slug = req.params.slug;
   const { questionId, selectedOptionId } = req.body;
 
+  // レッスンのPhaseを判定して適切なテーブルを使用
+  const phase = getPhaseFromLessonId(slug);
+  const tables = getPhaseTables(phase);
+  
   // レッスンを取得してIDを取得
-  const lesson = await prisma.lesson.findUnique({
+  const lesson = await tables.lesson.findUnique({
     where: { slug }
   });
 
@@ -737,7 +791,7 @@ app.post('/lessons/:slug/quiz/submit', async (req, res) => {
   });
 
   // 選択された選択肢が正しいか確認
-  const selectedOption = await prisma.option.findUnique({
+  const selectedOption = await tables.option.findUnique({
     where: { id: parseInt(selectedOptionId, 10) },
   });
 
@@ -750,14 +804,12 @@ app.post('/lessons/:slug/quiz/submit', async (req, res) => {
   // ログイン済みの場合のみ進捗を保存
   if (userId) {
     // QuizAttemptに記録
-    await prisma.quizAttempt.create({
-      data: {
-        clerkUserId: userId, // ClerkのユーザーIDを直接保存
-        sessionId: null,
-        questionId: parseInt(questionId, 10),
-        selectedOptionId: parseInt(selectedOptionId, 10),
-        isCorrect: isCorrect,
-      },
+    await savePhaseQuizAttempt(phase, {
+      clerkUserId: userId,
+      sessionId: null,
+      questionId: parseInt(questionId, 10),
+      selectedOptionId: parseInt(selectedOptionId, 10),
+      isCorrect: isCorrect,
     });
 
     // キャッシュをクリア（進捗データを即座に反映）
@@ -768,7 +820,7 @@ app.post('/lessons/:slug/quiz/submit', async (req, res) => {
   }
 
   // 正解の選択肢IDを取得
-  const correctOption = await prisma.option.findFirst({
+  const correctOption = await tables.option.findFirst({
     where: { questionId: parseInt(questionId, 10), isCorrect: true },
   });
 
@@ -789,15 +841,15 @@ app.get('/search', async (req, res) => {
       return res.render('search-results', { lessons: [], query: '' });
     }
 
-    // まず、データベースにレッスンが存在するかを確認
-    const totalLessons = await prisma.lesson.count();
-    console.log('Total lessons in database:', totalLessons);
+    // Phase1のレッスンを検索対象とする
+    const totalLessons = await prisma.phase1Lesson.count();
+    console.log('Total Phase1 lessons in database:', totalLessons);
 
     // SQLiteでは大文字小文字を区別しない検索のために、クエリを小文字に変換
     const searchQuery = query.toLowerCase();
     
-    // まず、すべてのレッスンを取得して、JavaScriptで検索を実行
-    const allLessons = await prisma.lesson.findMany();
+    // Phase1のレッスンを取得して、JavaScriptで検索を実行
+    const allLessons = await prisma.phase1Lesson.findMany();
     console.log('All lessons:', allLessons.map(l => ({ id: l.id, title: l.title, content: l.content })));
     
     const lessons = allLessons.filter(lesson => 
@@ -1091,16 +1143,26 @@ app.get('/lessons/:slug', async (req, res) => {
       console.log('Guest mode: Progress disabled for lesson');
     }
 
-    const lesson = await prisma.lesson.findUnique({
-      where: { slug },
-      include: {
-        questions: {
-          include: {
-            options: true,
+    // レッスンのPhaseを判定して適切なテーブルを使用
+    const phase = getPhaseFromLessonId(slug);
+    let lesson;
+    
+    if (phase === 1) {
+      // Phase1の場合はPhase1テーブルから取得
+      lesson = await prisma.phase1Lesson.findUnique({
+        where: { slug },
+        include: {
+          questions: {
+            include: {
+              options: true,
+            },
           },
         },
-      },
-    });
+      });
+    } else {
+      // Phase2/3の場合はPhase別テーブルから取得
+      lesson = await getPhaseLessonBySlug(phase, slug);
+    }
     
     if (!lesson) {
       return res.status(404).render('error', { 
@@ -1114,10 +1176,18 @@ app.get('/lessons/:slug', async (req, res) => {
     const nextLessonId = lesson.id + 1;
     
     try {
-      // 次のIDのレッスンが存在するかチェック
-      nextLesson = await prisma.lesson.findUnique({
-        where: { id: nextLessonId }
-      });
+      if (phase === 1) {
+        // Phase1の場合はPhase1テーブルから取得
+        nextLesson = await prisma.phase1Lesson.findUnique({
+          where: { id: nextLessonId }
+        });
+      } else {
+        // Phase2/3の場合はPhase別のテーブルから取得
+        const tables = getPhaseTables(phase);
+        nextLesson = await tables.lesson.findUnique({
+          where: { id: nextLessonId }
+        });
+      }
     } catch (error) {
       console.error('Error fetching next lesson:', error);
       // 次のレッスンの取得に失敗しても処理を続行
@@ -1184,41 +1254,8 @@ async function getPhase1Progress(userId: string | null): Promise<number> {
   if (!userId) return 0;
   
   try {
-    // Phase1のレッスンを取得（chapter 1-5）
-    const phase1Lessons = await prisma.lesson.findMany({
-      where: {
-        chapter: {
-          gte: 1,
-          lte: 5
-        }
-      },
-      include: { questions: true }
-    });
-    
-    // Phase1の全問題IDを取得
-    const phase1QuestionIds = phase1Lessons.flatMap(lesson => lesson.questions.map(q => q.id));
-    
-    // ユーザーがPhase1の問題で正解した回数を取得
-    const correctAttempts = await prisma.quizAttempt.findMany({
-      where: {
-        clerkUserId: userId,
-        questionId: {
-          in: phase1QuestionIds
-        },
-        isCorrect: true
-      },
-      select: {
-        questionId: true
-      }
-    });
-    
-    // ユニークな正解問題数を計算（同じ問題を複数回正解しても1回としてカウント）
-    const uniqueCorrectQuestionIds = new Set(correctAttempts.map(attempt => attempt.questionId));
-    
-    const totalQuestions = phase1QuestionIds.length;
-    const clearedQuestions = uniqueCorrectQuestionIds.size;
-    
-    return totalQuestions > 0 ? Math.round((clearedQuestions / totalQuestions) * 100) : 0;
+    // Phase1の進捗率を計算
+    return await getPhase1ProgressPercentage(userId);
   } catch (error) {
     console.error('Error calculating Phase1 progress:', error);
     return 0;

@@ -515,10 +515,20 @@
                 </div>
                 <div class="chapter-content" id="chapter-0" data-visible="false">
                     <ul class="lesson-list">
-                        <li><a href="/under-development" class="lesson-link" data-original-title="Stage 6-1: 移動平均線でトレンドを掴もう">Stage 6-1: 移動平均線でトレンドを掴もう</a></li>
-                        <li><a href="/under-development" class="lesson-link" data-original-title="Stage 6-2: RSIで「買われすぎ・売られすぎ」を判断しよう">Stage 6-2: RSIで「買われすぎ・売られすぎ」を判断しよう</a></li>
-                        <li><a href="/under-development" class="lesson-link" data-original-title="Stage 6-3: PERとPBRで「割安株」を見つけよう">Stage 6-3: PERとPBRで「割安株」を見つけよう</a></li>
-                        <li><a href="/under-development" class="lesson-link" data-original-title="Stage 6-4: ROEで「稼ぐ力」のある企業を探そう">Stage 6-4: ROEで「稼ぐ力」のある企業を探そう</a></li>
+                        <% if (chapters && chapters.length > 0) { %>
+                            <% chapters.forEach((chapter, index) => { %>
+                                <% if (chapter.chapter === 6) { %>
+                                    <% chapter.lessons.forEach(lesson => { %>
+                                        <li><a href="/lessons/<%= lesson.slug %>" class="lesson-link" data-original-title="<%= lesson.title %>"><%= lesson.title %></a></li>
+                                    <% }); %>
+                                <% } %>
+                            <% }); %>
+                        <% } else { %>
+                            <li><a href="/under-development" class="lesson-link" data-original-title="Stage 6-1: 移動平均線でトレンドを掴もう">Stage 6-1: 移動平均線でトレンドを掴もう</a></li>
+                            <li><a href="/under-development" class="lesson-link" data-original-title="Stage 6-2: RSIで「買われすぎ・売られすぎ」を判断しよう">Stage 6-2: RSIで「買われすぎ・売られすぎ」を判断しよう</a></li>
+                            <li><a href="/under-development" class="lesson-link" data-original-title="Stage 6-3: PERとPBRで「割安株」を見つけよう">Stage 6-3: PERとPBRで「割安株」を見つけよう</a></li>
+                            <li><a href="/under-development" class="lesson-link" data-original-title="Stage 6-4: ROEで「稼ぐ力」のある企業を探そう">Stage 6-4: ROEで「稼ぐ力」のある企業を探そう</a></li>
+                        <% } %>
                     </ul>
                 </div>
             </section>
