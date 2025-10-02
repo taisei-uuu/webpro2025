@@ -4,9 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>電子公告 - Stock with株式会社</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        .navbar-brand {
+            font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #1e40af !important;
+            display: flex;
+            align-items: center;
+            line-height: 1;
+        }
+        .navbar-brand .brand-with {
+            font-weight: 400;
+            color: #1e40af;
+        }
+        .navbar-nav .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            margin: 0 4px;
+            color: #000000 !important;
+            border-left: 1px solid rgba(0, 0, 0, 0.1);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .navbar-nav .nav-item:first-child .nav-link {
+            border-left: none;
+        }
+        .navbar-nav .nav-item:last-child .nav-link {
+            border-right: none;
+        }
+        .navbar-nav .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 4px;
+            left: 50%;
+            background-color: #1e40af;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        .navbar-nav .nav-link:hover::after {
+            width: calc(100% - 32px);
+        }
+        .navbar-nav .nav-link:hover {
+            color: #1e40af !important;
+        }
+        .navbar-nav .nav-link i {
+            font-size: 1.2rem;
+        }
+        .navbar-nav .nav-link .fa-instagram {
+            color: #e1306c;
+        }
+        .navbar-nav .nav-link:hover .fa-instagram {
+            color: #1e40af !important;
+        }
+        .navbar-nav .nav-item:has(.fa-instagram) .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 4px;
+            left: 50%;
+            background-color: #1e40af;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        .navbar-nav .nav-item:has(.fa-instagram) .nav-link:hover::after {
+            width: 20px;
+        }
         .notice-card {
             transition: all 0.3s ease;
         }
@@ -31,215 +104,260 @@
         .notice-type:hover::before {
             left: 100%;
         }
+        body {
+            padding-top: 76px;
+        }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- ヘッダー -->
-    <header class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center">
-                    <a href="/" class="text-2xl font-bold text-blue-600">
-                        <i class="fas fa-chart-line mr-2"></i>Stock with
-                    </a>
-                </div>
-                <nav class="hidden md:flex space-x-8">
-                    <a href="/" class="text-gray-700 hover:text-blue-600 transition-colors">ホーム</a>
-                    <a href="/learning" class="text-gray-700 hover:text-blue-600 transition-colors">学習プラットフォーム</a>
-                    <a href="/notice" class="text-blue-600 font-medium">電子公告</a>
-                </nav>
+<body class="bg-light">
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+        <div class="container">
+            <a class="navbar-brand text-primary" href="/">
+                <img src="/logo.png" alt="Stock with" height="40" class="me-2">
+                STOCK&nbsp;<span class="brand-with">WITH</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">
+                            <i class="fas fa-info-circle me-1"></i>
+                            ABOUT US
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn btn-link" onclick="window.Clerk.openSignIn()" style="border: none; background: none; padding: 8px 16px;">
+                            <i class="fas fa-right-to-bracket me-1"></i>
+                            ログイン
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://www.instagram.com/utsubo_zmoney?igsh=NTJsa3pkZnZzNXd1&utm_source=qr" target="_blank" rel="noopener noreferrer" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-3" href="/learning">学習を始める</a>
+                    </li>
+                </ul>
             </div>
         </div>
-    </header>
+    </nav>
 
     <!-- メインコンテンツ -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="container py-5">
         <!-- ページタイトル -->
-        <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold text-gray-900 mb-4">
-                <i class="fas fa-bullhorn text-blue-600 mr-3"></i>電子公告
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold text-primary mb-3">
+                <i class="fas fa-bullhorn me-3"></i>電子公告
             </h1>
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p class="lead text-muted">
                 Stock with株式会社の重要な情報をお知らせいたします。定期的にご確認いただき、最新の情報をお見逃しなく。
             </p>
         </div>
 
         <!-- 検索・フィルター -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <div class="flex flex-col md:flex-row gap-4">
-                <div class="flex-1">
-                    <div class="relative">
-                        <input type="text" id="searchInput" placeholder="公告を検索..." 
-                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" id="searchInput" class="form-control" placeholder="公告を検索...">
+                        </div>
                     </div>
-                </div>
-                <div class="flex gap-2">
-                    <select id="typeFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="">すべての種類</option>
-                        <option value="important">重要なお知らせ</option>
-                        <option value="financial">財務情報</option>
-                        <option value="business">事業報告</option>
-                        <option value="legal">法的事項</option>
-                        <option value="other">その他</option>
-                    </select>
-                    <select id="yearFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="">すべての年</option>
-                        <option value="2024">2024年</option>
-                        <option value="2023">2023年</option>
-                        <option value="2022">2022年</option>
-                    </select>
+                    <div class="col-md-3">
+                        <select id="typeFilter" class="form-select">
+                            <option value="">すべての種類</option>
+                            <option value="important">重要なお知らせ</option>
+                            <option value="financial">財務情報</option>
+                            <option value="business">事業報告</option>
+                            <option value="legal">法的事項</option>
+                            <option value="other">その他</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="yearFilter" class="form-select">
+                            <option value="">すべての年</option>
+                            <option value="2024">2024年</option>
+                            <option value="2023">2023年</option>
+                            <option value="2022">2022年</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- 公告一覧 -->
-        <div class="space-y-6" id="noticesContainer">
+        <div id="noticesContainer">
             <% if (notices && notices.length > 0) { %>
                 <% notices.forEach(function(notice) { %>
-                    <div class="notice-card bg-white rounded-lg shadow-sm border border-gray-200 p-6" 
+                    <div class="notice-card card mb-4" 
                          data-type="<%= notice.type %>" 
                          data-year="<%= new Date(notice.publishedAt).getFullYear() %>"
                          data-title="<%= notice.title.toLowerCase() %>"
                          data-content="<%= notice.content.toLowerCase() %>">
-                        <div class="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
-                            <div class="flex-1">
-                                <div class="flex items-center mb-2">
-                                    <span class="notice-type px-3 py-1 rounded-full text-sm font-medium mr-3
-                                        <%= notice.type === 'important' ? 'bg-red-100 text-red-800' : 
-                                            notice.type === 'financial' ? 'bg-green-100 text-green-800' :
-                                            notice.type === 'business' ? 'bg-blue-100 text-blue-800' :
-                                            notice.type === 'legal' ? 'bg-purple-100 text-purple-800' :
-                                            'bg-gray-100 text-gray-800' %>">
-                                        <i class="fas <%= notice.type === 'important' ? 'fa-exclamation-triangle' : 
-                                            notice.type === 'financial' ? 'fa-chart-line' :
-                                            notice.type === 'business' ? 'fa-briefcase' :
-                                            notice.type === 'legal' ? 'fa-gavel' :
-                                            'fa-info-circle' %> mr-1"></i>
-                                        <%= notice.type === 'important' ? '重要なお知らせ' : 
-                                            notice.type === 'financial' ? '財務情報' :
-                                            notice.type === 'business' ? '事業報告' :
-                                            notice.type === 'legal' ? '法的事項' :
-                                            'その他' %>
-                                    </span>
-                                    <span class="text-sm text-gray-500">
-                                        <i class="fas fa-calendar-alt mr-1"></i>
-                                        <%= new Date(notice.publishedAt).toLocaleDateString('ja-JP', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        }) %>
-                                    </span>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="notice-type badge me-2
+                                            <%= notice.type === 'important' ? 'bg-danger' : 
+                                                notice.type === 'financial' ? 'bg-success' :
+                                                notice.type === 'business' ? 'bg-primary' :
+                                                notice.type === 'legal' ? 'bg-warning' :
+                                                'bg-secondary' %>">
+                                            <i class="fas <%= notice.type === 'important' ? 'fa-exclamation-triangle' : 
+                                                notice.type === 'financial' ? 'fa-chart-line' :
+                                                notice.type === 'business' ? 'fa-briefcase' :
+                                                notice.type === 'legal' ? 'fa-gavel' :
+                                                'fa-info-circle' %> me-1"></i>
+                                            <%= notice.type === 'important' ? '重要なお知らせ' : 
+                                                notice.type === 'financial' ? '財務情報' :
+                                                notice.type === 'business' ? '事業報告' :
+                                                notice.type === 'legal' ? '法的事項' :
+                                                'その他' %>
+                                        </span>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            <%= new Date(notice.publishedAt).toLocaleDateString('ja-JP', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                            }) %>
+                                        </small>
+                                    </div>
+                                    <h5 class="card-title mb-2">
+                                        <%= notice.title %>
+                                    </h5>
+                                    <p class="card-text text-muted">
+                                        <%= notice.content.substring(0, 200) %><%= notice.content.length > 200 ? '...' : '' %>
+                                    </p>
+                                    <% if (notice.attachments && notice.attachments.length > 0) { %>
+                                        <small class="text-muted">
+                                            <i class="fas fa-paperclip me-1"></i>
+                                            <%= notice.attachments.length %>個の添付ファイル
+                                        </small>
+                                    <% } %>
                                 </div>
-                                <h3 class="text-xl font-semibold text-gray-900 mb-2">
-                                    <%= notice.title %>
-                                </h3>
-                                <p class="text-gray-600 mb-4 line-clamp-3">
-                                    <%= notice.content.substring(0, 200) %><%= notice.content.length > 200 ? '...' : '' %>
-                                </p>
+                                <div class="col-md-4 text-md-end">
+                                    <button onclick="toggleNotice('<%= notice.id %>')" 
+                                            class="btn btn-primary">
+                                        <i class="fas fa-eye me-1"></i>詳細を見る
+                                    </button>
+                                </div>
                             </div>
-                            <div class="flex flex-col md:items-end space-y-2">
+                            
+                            <!-- 詳細表示エリア（初期状態では非表示） -->
+                            <div id="notice-<%= notice.id %>" class="hidden border-top pt-3 mt-3">
+                                <div class="card-text">
+                                    <div class="whitespace-pre-wrap"><%= notice.content %></div>
+                                </div>
                                 <% if (notice.attachments && notice.attachments.length > 0) { %>
-                                    <div class="flex items-center text-sm text-gray-500">
-                                        <i class="fas fa-paperclip mr-1"></i>
-                                        <%= notice.attachments.length %>個の添付ファイル
+                                    <div class="mt-3">
+                                        <h6 class="fw-bold">
+                                            <i class="fas fa-paperclip me-1"></i>添付ファイル
+                                        </h6>
+                                        <div class="list-group">
+                                            <% notice.attachments.forEach(function(attachment) { %>
+                                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                                                        <span class="fw-medium"><%= attachment.name %></span>
+                                                        <small class="text-muted ms-2">(<%= attachment.size %>)</small>
+                                                    </div>
+                                                    <a href="<%= attachment.url %>" 
+                                                       class="btn btn-sm btn-outline-primary"
+                                                       target="_blank">
+                                                        <i class="fas fa-download me-1"></i>ダウンロード
+                                                    </a>
+                                                </div>
+                                            <% }); %>
+                                        </div>
                                     </div>
                                 <% } %>
-                                <button onclick="toggleNotice('<%= notice.id %>')" 
-                                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                    <i class="fas fa-eye mr-1"></i>詳細を見る
-                                </button>
                             </div>
-                        </div>
-                        
-                        <!-- 詳細表示エリア（初期状態では非表示） -->
-                        <div id="notice-<%= notice.id %>" class="hidden border-t pt-4 mt-4">
-                            <div class="prose max-w-none">
-                                <div class="whitespace-pre-wrap text-gray-700"><%= notice.content %></div>
-                            </div>
-                            <% if (notice.attachments && notice.attachments.length > 0) { %>
-                                <div class="mt-4">
-                                    <h4 class="font-medium text-gray-900 mb-2">
-                                        <i class="fas fa-paperclip mr-1"></i>添付ファイル
-                                    </h4>
-                                    <div class="space-y-2">
-                                        <% notice.attachments.forEach(function(attachment) { %>
-                                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                                <div class="flex items-center">
-                                                    <i class="fas fa-file-pdf text-red-500 mr-2"></i>
-                                                    <span class="text-sm font-medium text-gray-900"><%= attachment.name %></span>
-                                                    <span class="text-xs text-gray-500 ml-2">(<%= attachment.size %>)</span>
-                                                </div>
-                                                <a href="<%= attachment.url %>" 
-                                                   class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-                                                   target="_blank">
-                                                    <i class="fas fa-download mr-1"></i>ダウンロード
-                                                </a>
-                                            </div>
-                                        <% }); %>
-                                    </div>
-                                </div>
-                            <% } %>
                         </div>
                     </div>
                 <% }); %>
             <% } else { %>
-                <div class="text-center py-12">
-                    <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
-                    <h3 class="text-xl font-medium text-gray-900 mb-2">公告がありません</h3>
-                    <p class="text-gray-500">現在、表示する公告がありません。</p>
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox text-muted" style="font-size: 4rem;"></i>
+                    <h3 class="mt-3 text-muted">公告がありません</h3>
+                    <p class="text-muted">現在、表示する公告がありません。</p>
                 </div>
             <% } %>
         </div>
 
         <!-- ページネーション -->
-        <div class="flex justify-center mt-8">
-            <nav class="flex space-x-2">
-                <button class="px-3 py-2 text-gray-500 hover:text-gray-700 disabled:opacity-50" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="px-3 py-2 bg-blue-600 text-white rounded">1</button>
-                <button class="px-3 py-2 text-gray-500 hover:text-gray-700">2</button>
-                <button class="px-3 py-2 text-gray-500 hover:text-gray-700">3</button>
-                <button class="px-3 py-2 text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </nav>
-        </div>
-    </main>
+        <nav aria-label="公告ページネーション" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-chevron-left"></i>
+                    </span>
+                </li>
+                <li class="page-item active">
+                    <span class="page-link">1</span>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="#">2</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="#">3</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="#">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
 
     <!-- フッター -->
-    <footer class="bg-gray-900 text-white py-8 mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Stock with株式会社</h3>
-                    <p class="text-gray-300 text-sm">
-                        投資教育プラットフォームを通じて、誰もが安心して投資を始められる社会を目指します。
-                    </p>
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-2">
+                        <img src="/logo.png" alt="Stock with" height="30" class="me-2">
+                        <h5 class="mb-0">Stock with</h5>
+                    </div>
+                    <p class="text-muted">株式投資学習プラットフォーム</p>
                 </div>
-                <div>
-                    <h4 class="text-md font-semibold mb-4">リンク</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="/" class="text-gray-300 hover:text-white transition-colors">ホーム</a></li>
-                        <li><a href="/learning" class="text-gray-300 hover:text-white transition-colors">学習プラットフォーム</a></li>
-                        <li><a href="/notice" class="text-gray-300 hover:text-white transition-colors">電子公告</a></li>
-                    </ul>
+                <div class="col-md-6 text-md-end">
+                    <div class="mb-2">
+                        <a href="/privacy" class="text-muted text-decoration-none me-3">
+                            <i class="fas fa-shield-alt me-1"></i>プライバシーポリシー
+                        </a>
+                        <a href="/terms" class="text-muted text-decoration-none me-3">
+                            <i class="fas fa-file-contract me-1"></i>利用規約
+                        </a>
+                        <a href="/notice" class="text-muted text-decoration-none me-3">
+                            <i class="fas fa-bullhorn me-1"></i>電子公告
+                        </a>
+                        <a href="/admin/notice" class="text-muted text-decoration-none">
+                            <i class="fas fa-cogs me-1"></i>管理画面
+                        </a>
+                    </div>
+                    <p class="text-muted mb-0">&copy; 2024 Stock with株式会社. All rights reserved.</p>
                 </div>
-                <div>
-                    <h4 class="text-md font-semibold mb-4">お問い合わせ</h4>
-                    <p class="text-gray-300 text-sm">
-                        <i class="fas fa-envelope mr-2"></i>info@webpro.co.jp<br>
-                        <i class="fas fa-phone mr-2"></i>03-1234-5678
-                    </p>
-                </div>
-            </div>
-            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-300">
-                <p>&copy; 2024 Stock with株式会社. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.Clerk = window.Clerk || {};
+        window.Clerk.publishableKey = '<%= publishableKey || "" %>';
+    </script>
     <script>
         // 公告の詳細表示切り替え
         function toggleNotice(noticeId) {
@@ -248,10 +366,10 @@
             
             if (noticeDetail.classList.contains('hidden')) {
                 noticeDetail.classList.remove('hidden');
-                button.innerHTML = '<i class="fas fa-eye-slash mr-1"></i>詳細を閉じる';
+                button.innerHTML = '<i class="fas fa-eye-slash me-1"></i>詳細を閉じる';
             } else {
                 noticeDetail.classList.add('hidden');
-                button.innerHTML = '<i class="fas fa-eye mr-1"></i>詳細を見る';
+                button.innerHTML = '<i class="fas fa-eye me-1"></i>詳細を見る';
             }
         }
 
