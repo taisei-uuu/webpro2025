@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電子公告管理 - 株式会社WebPro</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .admin-card {
+            transition: all 0.3s ease;
+        }
+        .admin-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            position: relative;
+            overflow: hidden;
+        }
+        .status-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .status-badge:hover::before {
+            left: 100%;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- ヘッダー -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-blue-600">
+                        <i class="fas fa-chart-line mr-2"></i>WebPro
+                    </a>
+                    <span class="ml-4 px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
+                        <i class="fas fa-shield-alt mr-1"></i>管理画面
+                    </span>
+                </div>
+                <nav class="flex space-x-4">
+                    <a href="/notice" class="text-gray-700 hover:text-blue-600 transition-colors">
+                        <i class="fas fa-eye mr-1"></i>公開ページを見る
+                    </a>
+                    <button onclick="window.Clerk.signOut()" class="text-red-600 hover:text-red-800 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-1"></i>ログアウト
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- ページタイトル -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-cogs text-blue-600 mr-3"></i>電子公告管理
+                </h1>
+                <p class="text-gray-600 mt-2">電子公告の追加・編集・削除ができます</p>
+            </div>
+            <button onclick="openCreateModal()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>新しい公告を追加
+            </button>
+        </div>
+
+        <!-- 統計情報 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-full">
+                        <i class="fas fa-bullhorn text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">総公告数</p>
+                        <p class="text-2xl font-bold text-gray-900"><%= notices.length %></p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-full">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">公開中</p>
+                        <p class="text-2xl font-bold text-gray-900"><%= notices.filter(n => n.isActive).length %></p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="flex items-center">
+                    <div class="p-3 bg-yellow-100 rounded-full">
+                        <i class="fas fa-pause-circle text-yellow-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">非公開</p>
+                        <p class="text-2xl font-bold text-gray-900"><%= notices.filter(n => !n.isActive).length %></p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-100 rounded-full">
+                        <i class="fas fa-paperclip text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">添付ファイル</p>
+                        <p class="text-2xl font-bold text-gray-900"><%= notices.reduce((sum, n) => sum + n.attachments.length, 0) %></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 公告一覧 -->
+        <div class="bg-white rounded-lg shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">公告一覧</h3>
+            </div>
+            <div class="divide-y divide-gray-200">
+                <% if (notices && notices.length > 0) { %>
+                    <% notices.forEach(function(notice) { %>
+                        <div class="admin-card p-6">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center mb-2">
+                                        <span class="status-badge px-3 py-1 rounded-full text-sm font-medium mr-3
+                                            <%= notice.isActive ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' %>">
+                                            <i class="fas <%= notice.isActive ? 'fa-check-circle' : 'fa-pause-circle' %> mr-1"></i>
+                                            <%= notice.isActive ? '公開中' : '非公開' %>
+                                        </span>
+                                        <span class="px-3 py-1 rounded-full text-sm font-medium mr-3
+                                            <%= notice.type === 'important' ? 'bg-red-100 text-red-800' : 
+                                                notice.type === 'financial' ? 'bg-green-100 text-green-800' :
+                                                notice.type === 'business' ? 'bg-blue-100 text-blue-800' :
+                                                notice.type === 'legal' ? 'bg-purple-100 text-purple-800' :
+                                                'bg-gray-100 text-gray-800' %>">
+                                            <i class="fas <%= notice.type === 'important' ? 'fa-exclamation-triangle' : 
+                                                notice.type === 'financial' ? 'fa-chart-line' :
+                                                notice.type === 'business' ? 'fa-briefcase' :
+                                                notice.type === 'legal' ? 'fa-gavel' :
+                                                'fa-info-circle' %> mr-1"></i>
+                                            <%= notice.type === 'important' ? '重要' : 
+                                                notice.type === 'financial' ? '財務' :
+                                                notice.type === 'business' ? '事業' :
+                                                notice.type === 'legal' ? '法的事項' :
+                                                'その他' %>
+                                        </span>
+                                        <span class="text-sm text-gray-500">
+                                            <i class="fas fa-calendar-alt mr-1"></i>
+                                            <%= new Date(notice.publishedAt).toLocaleDateString('ja-JP') %>
+                                        </span>
+                                    </div>
+                                    <h4 class="text-xl font-semibold text-gray-900 mb-2">
+                                        <%= notice.title %>
+                                    </h4>
+                                    <p class="text-gray-600 mb-4 line-clamp-2">
+                                        <%= notice.content.substring(0, 150) %><%= notice.content.length > 150 ? '...' : '' %>
+                                    </p>
+                                    <% if (notice.attachments && notice.attachments.length > 0) { %>
+                                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                                            <i class="fas fa-paperclip mr-1"></i>
+                                            <%= notice.attachments.length %>個の添付ファイル
+                                        </div>
+                                    <% } %>
+                                </div>
+                                <div class="flex space-x-2 ml-4">
+                                    <button onclick="toggleNoticeStatus(<%= notice.id %>, <%= notice.isActive %>)" 
+                                            class="px-3 py-2 <%= notice.isActive ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200' %> rounded-lg transition-colors">
+                                        <i class="fas <%= notice.isActive ? 'fa-pause' : 'fa-play' %> mr-1"></i>
+                                        <%= notice.isActive ? '非公開にする' : '公開する' %>
+                                    </button>
+                                    <button onclick="openEditModal(<%= notice.id %>)" 
+                                            class="px-3 py-2 bg-blue-100 text-blue-800 hover:bg-blue-200 rounded-lg transition-colors">
+                                        <i class="fas fa-edit mr-1"></i>編集
+                                    </button>
+                                    <button onclick="deleteNotice(<%= notice.id %>)" 
+                                            class="px-3 py-2 bg-red-100 text-red-800 hover:bg-red-200 rounded-lg transition-colors">
+                                        <i class="fas fa-trash mr-1"></i>削除
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                <% } else { %>
+                    <div class="text-center py-12">
+                        <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-medium text-gray-900 mb-2">公告がありません</h3>
+                        <p class="text-gray-500">新しい公告を追加してください。</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </main>
+
+    <!-- 作成・編集モーダル -->
+    <div id="noticeModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-2xl font-bold text-gray-900">新しい公告を追加</h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="noticeForm" enctype="multipart/form-data">
+                <input type="hidden" id="noticeId" name="id">
+                
+                <div class="space-y-6">
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700 mb-2">タイトル *</label>
+                        <input type="text" id="title" name="title" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label for="type" class="block text-sm font-medium text-gray-700 mb-2">種類 *</label>
+                        <select id="type" name="type" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">選択してください</option>
+                            <option value="important">重要なお知らせ</option>
+                            <option value="financial">財務情報</option>
+                            <option value="business">事業報告</option>
+                            <option value="legal">法的事項</option>
+                            <option value="other">その他</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="content" class="block text-sm font-medium text-gray-700 mb-2">内容 *</label>
+                        <textarea id="content" name="content" rows="8" required
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="publishedAt" class="block text-sm font-medium text-gray-700 mb-2">公開日時</label>
+                        <input type="datetime-local" id="publishedAt" name="publishedAt"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label for="isActive" class="flex items-center">
+                            <input type="checkbox" id="isActive" name="isActive" class="mr-2">
+                            <span class="text-sm font-medium text-gray-700">公開する</span>
+                        </label>
+                    </div>
+                    
+                    <div>
+                        <label for="attachments" class="block text-sm font-medium text-gray-700 mb-2">添付ファイル</label>
+                        <input type="file" id="attachments" name="attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <p class="text-xs text-gray-500 mt-1">PDF, Word, Excelファイルを選択してください（複数選択可能）</p>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-4 mt-8">
+                    <button type="button" onclick="closeModal()" 
+                            class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                        キャンセル
+                    </button>
+                    <button type="submit" 
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-save mr-2"></i>保存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // モーダル制御
+        function openCreateModal() {
+            document.getElementById('modalTitle').textContent = '新しい公告を追加';
+            document.getElementById('noticeForm').reset();
+            document.getElementById('noticeId').value = '';
+            document.getElementById('isActive').checked = true;
+            document.getElementById('publishedAt').value = new Date().toISOString().slice(0, 16);
+            document.getElementById('noticeModal').classList.add('show');
+        }
+
+        function openEditModal(noticeId) {
+            // ここで既存の公告データを取得してフォームに設定
+            // 実装は後で追加
+            document.getElementById('modalTitle').textContent = '公告を編集';
+            document.getElementById('noticeId').value = noticeId;
+            document.getElementById('noticeModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('noticeModal').classList.remove('show');
+        }
+
+        // フォーム送信
+        document.getElementById('noticeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const noticeId = document.getElementById('noticeId').value;
+            const url = noticeId ? `/admin/notice/${noticeId}` : '/admin/notice';
+            const method = noticeId ? 'PUT' : 'POST';
+            
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('エラーが発生しました。');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('エラーが発生しました。');
+            }
+        });
+
+        // 公告の公開/非公開切り替え
+        async function toggleNoticeStatus(noticeId, currentStatus) {
+            try {
+                const response = await fetch(`/admin/notice/${noticeId}/toggle`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ isActive: !currentStatus })
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('エラーが発生しました。');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('エラーが発生しました。');
+            }
+        }
+
+        // 公告の削除
+        async function deleteNotice(noticeId) {
+            if (!confirm('この公告を削除してもよろしいですか？')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/admin/notice/${noticeId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('エラーが発生しました。');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('エラーが発生しました。');
+            }
+        }
+
+        // モーダル外クリックで閉じる
+        document.getElementById('noticeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

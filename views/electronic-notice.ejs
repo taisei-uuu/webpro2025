@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電子公告 - 株式会社WebPro</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .notice-card {
+            transition: all 0.3s ease;
+        }
+        .notice-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .notice-type {
+            position: relative;
+            overflow: hidden;
+        }
+        .notice-type::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .notice-type:hover::before {
+            left: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- ヘッダー -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-blue-600">
+                        <i class="fas fa-chart-line mr-2"></i>WebPro
+                    </a>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <a href="/" class="text-gray-700 hover:text-blue-600 transition-colors">ホーム</a>
+                    <a href="/learning" class="text-gray-700 hover:text-blue-600 transition-colors">学習プラットフォーム</a>
+                    <a href="/electronic-notice" class="text-blue-600 font-medium">電子公告</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- ページタイトル -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-bullhorn text-blue-600 mr-3"></i>電子公告
+            </h1>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                株式会社WebProの重要な情報をお知らせいたします。定期的にご確認いただき、最新の情報をお見逃しなく。
+            </p>
+        </div>
+
+        <!-- 検索・フィルター -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="公告を検索..." 
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <select id="typeFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">すべての種類</option>
+                        <option value="important">重要なお知らせ</option>
+                        <option value="financial">財務情報</option>
+                        <option value="business">事業報告</option>
+                        <option value="legal">法的事項</option>
+                        <option value="other">その他</option>
+                    </select>
+                    <select id="yearFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">すべての年</option>
+                        <option value="2024">2024年</option>
+                        <option value="2023">2023年</option>
+                        <option value="2022">2022年</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 公告一覧 -->
+        <div class="space-y-6" id="noticesContainer">
+            <% if (notices && notices.length > 0) { %>
+                <% notices.forEach(function(notice) { %>
+                    <div class="notice-card bg-white rounded-lg shadow-sm border border-gray-200 p-6" 
+                         data-type="<%= notice.type %>" 
+                         data-year="<%= new Date(notice.publishedAt).getFullYear() %>"
+                         data-title="<%= notice.title.toLowerCase() %>"
+                         data-content="<%= notice.content.toLowerCase() %>">
+                        <div class="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2">
+                                    <span class="notice-type px-3 py-1 rounded-full text-sm font-medium mr-3
+                                        <%= notice.type === 'important' ? 'bg-red-100 text-red-800' : 
+                                            notice.type === 'financial' ? 'bg-green-100 text-green-800' :
+                                            notice.type === 'business' ? 'bg-blue-100 text-blue-800' :
+                                            notice.type === 'legal' ? 'bg-purple-100 text-purple-800' :
+                                            'bg-gray-100 text-gray-800' %>">
+                                        <i class="fas <%= notice.type === 'important' ? 'fa-exclamation-triangle' : 
+                                            notice.type === 'financial' ? 'fa-chart-line' :
+                                            notice.type === 'business' ? 'fa-briefcase' :
+                                            notice.type === 'legal' ? 'fa-gavel' :
+                                            'fa-info-circle' %> mr-1"></i>
+                                        <%= notice.type === 'important' ? '重要なお知らせ' : 
+                                            notice.type === 'financial' ? '財務情報' :
+                                            notice.type === 'business' ? '事業報告' :
+                                            notice.type === 'legal' ? '法的事項' :
+                                            'その他' %>
+                                    </span>
+                                    <span class="text-sm text-gray-500">
+                                        <i class="fas fa-calendar-alt mr-1"></i>
+                                        <%= new Date(notice.publishedAt).toLocaleDateString('ja-JP', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        }) %>
+                                    </span>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                                    <%= notice.title %>
+                                </h3>
+                                <p class="text-gray-600 mb-4 line-clamp-3">
+                                    <%= notice.content.substring(0, 200) %><%= notice.content.length > 200 ? '...' : '' %>
+                                </p>
+                            </div>
+                            <div class="flex flex-col md:items-end space-y-2">
+                                <% if (notice.attachments && notice.attachments.length > 0) { %>
+                                    <div class="flex items-center text-sm text-gray-500">
+                                        <i class="fas fa-paperclip mr-1"></i>
+                                        <%= notice.attachments.length %>個の添付ファイル
+                                    </div>
+                                <% } %>
+                                <button onclick="toggleNotice('<%= notice.id %>')" 
+                                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-eye mr-1"></i>詳細を見る
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 詳細表示エリア（初期状態では非表示） -->
+                        <div id="notice-<%= notice.id %>" class="hidden border-t pt-4 mt-4">
+                            <div class="prose max-w-none">
+                                <div class="whitespace-pre-wrap text-gray-700"><%= notice.content %></div>
+                            </div>
+                            <% if (notice.attachments && notice.attachments.length > 0) { %>
+                                <div class="mt-4">
+                                    <h4 class="font-medium text-gray-900 mb-2">
+                                        <i class="fas fa-paperclip mr-1"></i>添付ファイル
+                                    </h4>
+                                    <div class="space-y-2">
+                                        <% notice.attachments.forEach(function(attachment) { %>
+                                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                <div class="flex items-center">
+                                                    <i class="fas fa-file-pdf text-red-500 mr-2"></i>
+                                                    <span class="text-sm font-medium text-gray-900"><%= attachment.name %></span>
+                                                    <span class="text-xs text-gray-500 ml-2">(<%= attachment.size %>)</span>
+                                                </div>
+                                                <a href="<%= attachment.url %>" 
+                                                   class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                                                   target="_blank">
+                                                    <i class="fas fa-download mr-1"></i>ダウンロード
+                                                </a>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="text-center py-12">
+                    <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-medium text-gray-900 mb-2">公告がありません</h3>
+                    <p class="text-gray-500">現在、表示する公告がありません。</p>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- ページネーション -->
+        <div class="flex justify-center mt-8">
+            <nav class="flex space-x-2">
+                <button class="px-3 py-2 text-gray-500 hover:text-gray-700 disabled:opacity-50" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="px-3 py-2 bg-blue-600 text-white rounded">1</button>
+                <button class="px-3 py-2 text-gray-500 hover:text-gray-700">2</button>
+                <button class="px-3 py-2 text-gray-500 hover:text-gray-700">3</button>
+                <button class="px-3 py-2 text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </nav>
+        </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="bg-gray-900 text-white py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">株式会社WebPro</h3>
+                    <p class="text-gray-300 text-sm">
+                        投資教育プラットフォームを通じて、誰もが安心して投資を始められる社会を目指します。
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-md font-semibold mb-4">リンク</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="/" class="text-gray-300 hover:text-white transition-colors">ホーム</a></li>
+                        <li><a href="/learning" class="text-gray-300 hover:text-white transition-colors">学習プラットフォーム</a></li>
+                        <li><a href="/electronic-notice" class="text-gray-300 hover:text-white transition-colors">電子公告</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-md font-semibold mb-4">お問い合わせ</h4>
+                    <p class="text-gray-300 text-sm">
+                        <i class="fas fa-envelope mr-2"></i>info@webpro.co.jp<br>
+                        <i class="fas fa-phone mr-2"></i>03-1234-5678
+                    </p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-300">
+                <p>&copy; 2024 株式会社WebPro. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 公告の詳細表示切り替え
+        function toggleNotice(noticeId) {
+            const noticeDetail = document.getElementById(`notice-${noticeId}`);
+            const button = event.target;
+            
+            if (noticeDetail.classList.contains('hidden')) {
+                noticeDetail.classList.remove('hidden');
+                button.innerHTML = '<i class="fas fa-eye-slash mr-1"></i>詳細を閉じる';
+            } else {
+                noticeDetail.classList.add('hidden');
+                button.innerHTML = '<i class="fas fa-eye mr-1"></i>詳細を見る';
+            }
+        }
+
+        // 検索・フィルター機能
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const typeFilter = document.getElementById('typeFilter');
+            const yearFilter = document.getElementById('yearFilter');
+            const noticesContainer = document.getElementById('noticesContainer');
+
+            function filterNotices() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const selectedType = typeFilter.value;
+                const selectedYear = yearFilter.value;
+
+                const notices = noticesContainer.querySelectorAll('.notice-card');
+                
+                notices.forEach(notice => {
+                    const title = notice.dataset.title;
+                    const content = notice.dataset.content;
+                    const type = notice.dataset.type;
+                    const year = notice.dataset.year;
+
+                    const matchesSearch = !searchTerm || 
+                        title.includes(searchTerm) || 
+                        content.includes(searchTerm);
+                    
+                    const matchesType = !selectedType || type === selectedType;
+                    const matchesYear = !selectedYear || year === selectedYear;
+
+                    if (matchesSearch && matchesType && matchesYear) {
+                        notice.style.display = 'block';
+                    } else {
+                        notice.style.display = 'none';
+                    }
+                });
+            }
+
+            searchInput.addEventListener('input', filterNotices);
+            typeFilter.addEventListener('change', filterNotices);
+            yearFilter.addEventListener('change', filterNotices);
+        });
+    </script>
+</body>
+</html>

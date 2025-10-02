@@ -39,13 +39,14 @@ const app = express();
 // 環境変数 PORT があればそれを使う。なければ 8888 を使う
 const PORT = process.env.PORT || 8888;
 
+// JSONボディを解析するミドルウェア
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // EJS をビューエンジンとして設定する
 app.set('view engine', 'ejs');
 // viewsディレクトリのパスを絶対パスで指定
 app.set('views', path.join(__dirname, 'views'));
-
-// POSTリクエストのbodyを解釈するためのミドルウェア
-app.use(express.urlencoded({ extended: true }));
 
 // publicディレクトリを静的ファイルとして配信
 app.use(express.static(path.join(__dirname, 'public')));
@@ -1265,6 +1266,224 @@ async function getPhase1Progress(userId: string | null): Promise<number> {
 // 開発中ページ
 app.get('/under-development', (req, res) => {
   res.render('under-development');
+});
+
+// 電子公告ページ
+app.get('/notice', async (req, res) => {
+  try {
+    // 電子公告を取得（公開済みのもののみ、新しい順）
+    const notices = await prisma.electronicNotice.findMany({
+      where: {
+        isActive: true
+      },
+      include: {
+        attachments: true
+      },
+      orderBy: {
+        publishedAt: 'desc'
+      }
+    });
+
+    res.render('electronic-notice', {
+      notices,
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+    });
+  } catch (error) {
+    console.error('Error fetching electronic notices:', error);
+    res.status(500).render('error', {
+      message: '電子公告の取得中にエラーが発生しました。',
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+    });
+  }
+});
+
+// 電子公告管理画面（管理者のみアクセス可能）
+app.get('/admin/notice', requireAuth(), async (req, res) => {
+  try {
+    const { userId } = getAuth(req);
+    
+    if (!userId) {
+      return res.status(401).render('error', {
+        message: '認証が必要です。',
+        publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+      });
+    }
+
+    // ユーザー情報を取得してメールアドレスを確認
+    const user = await clerkClient.users.getUser(userId);
+    const userEmail = user.emailAddresses[0]?.emailAddress;
+
+    // 管理者メールアドレスかチェック
+    if (userEmail !== 'taisei040428@gmail.com') {
+      return res.status(403).render('error', {
+        message: 'このページにアクセスする権限がありません。',
+        publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+      });
+    }
+
+    // 全ての電子公告を取得（非公開も含む）
+    const notices = await prisma.electronicNotice.findMany({
+      include: {
+        attachments: true
+      },
+      orderBy: {
+        publishedAt: 'desc'
+      }
+    });
+
+    res.render('admin-electronic-notice', {
+      notices,
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+    });
+  } catch (error) {
+    console.error('Error accessing admin panel:', error);
+    res.status(500).render('error', {
+      message: '管理画面へのアクセス中にエラーが発生しました。',
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+    });
+  }
+});
+
+// 電子公告のCRUD操作API
+
+// 新しい公告を作成
+app.post('/admin/notice', requireAuth(), async (req, res) => {
+  try {
+    const { userId } = getAuth(req);
+    
+    if (!userId) {
+      return res.status(401).json({ error: '認証が必要です。' });
+    }
+
+    // ユーザー情報を取得してメールアドレスを確認
+    const user = await clerkClient.users.getUser(userId);
+    const userEmail = user.emailAddresses[0]?.emailAddress;
+
+    // 管理者メールアドレスかチェック
+    if (userEmail !== 'taisei040428@gmail.com') {
+      return res.status(403).json({ error: 'この操作を実行する権限がありません。' });
+    }
+
+    const { title, content, type, publishedAt, isActive } = req.body;
+
+    const notice = await prisma.electronicNotice.create({
+      data: {
+        title,
+        content,
+        type,
+        publishedAt: publishedAt ? new Date(publishedAt) : new Date(),
+        isActive: isActive === 'true' || isActive === true
+      }
+    });
+
+    res.json({ success: true, notice });
+  } catch (error) {
+    console.error('Error creating notice:', error);
+    res.status(500).json({ error: '公告の作成中にエラーが発生しました。' });
+  }
+});
+
+// 公告を更新
+app.put('/admin/notice/:id', requireAuth(), async (req, res) => {
+  try {
+    const { userId } = getAuth(req);
+    
+    if (!userId) {
+      return res.status(401).json({ error: '認証が必要です。' });
+    }
+
+    // ユーザー情報を取得してメールアドレスを確認
+    const user = await clerkClient.users.getUser(userId);
+    const userEmail = user.emailAddresses[0]?.emailAddress;
+
+    // 管理者メールアドレスかチェック
+    if (userEmail !== 'taisei040428@gmail.com') {
+      return res.status(403).json({ error: 'この操作を実行する権限がありません。' });
+    }
+
+    const { id } = req.params;
+    const { title, content, type, publishedAt, isActive } = req.body;
+
+    const notice = await prisma.electronicNotice.update({
+      where: { id: parseInt(id) },
+      data: {
+        title,
+        content,
+        type,
+        publishedAt: publishedAt ? new Date(publishedAt) : undefined,
+        isActive: isActive === 'true' || isActive === true
+      }
+    });
+
+    res.json({ success: true, notice });
+  } catch (error) {
+    console.error('Error updating notice:', error);
+    res.status(500).json({ error: '公告の更新中にエラーが発生しました。' });
+  }
+});
+
+// 公告の公開/非公開を切り替え
+app.post('/admin/notice/:id/toggle', requireAuth(), async (req, res) => {
+  try {
+    const { userId } = getAuth(req);
+    
+    if (!userId) {
+      return res.status(401).json({ error: '認証が必要です。' });
+    }
+
+    // ユーザー情報を取得してメールアドレスを確認
+    const user = await clerkClient.users.getUser(userId);
+    const userEmail = user.emailAddresses[0]?.emailAddress;
+
+    // 管理者メールアドレスかチェック
+    if (userEmail !== 'taisei040428@gmail.com') {
+      return res.status(403).json({ error: 'この操作を実行する権限がありません。' });
+    }
+
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    const notice = await prisma.electronicNotice.update({
+      where: { id: parseInt(id) },
+      data: { isActive }
+    });
+
+    res.json({ success: true, notice });
+  } catch (error) {
+    console.error('Error toggling notice status:', error);
+    res.status(500).json({ error: '公告の状態変更中にエラーが発生しました。' });
+  }
+});
+
+// 公告を削除
+app.delete('/admin/notice/:id', requireAuth(), async (req, res) => {
+  try {
+    const { userId } = getAuth(req);
+    
+    if (!userId) {
+      return res.status(401).json({ error: '認証が必要です。' });
+    }
+
+    // ユーザー情報を取得してメールアドレスを確認
+    const user = await clerkClient.users.getUser(userId);
+    const userEmail = user.emailAddresses[0]?.emailAddress;
+
+    // 管理者メールアドレスかチェック
+    if (userEmail !== 'taisei040428@gmail.com') {
+      return res.status(403).json({ error: 'この操作を実行する権限がありません。' });
+    }
+
+    const { id } = req.params;
+
+    await prisma.electronicNotice.delete({
+      where: { id: parseInt(id) }
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting notice:', error);
+    res.status(500).json({ error: '公告の削除中にエラーが発生しました。' });
+  }
 });
 
 // 指定したポートでサーバーを起動し、リクエストを待ち始める

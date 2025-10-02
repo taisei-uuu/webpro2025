@@ -325,6 +325,7 @@ async function main() {
     console.log(`Created Phase1 lesson with id: ${lesson.id}`);
   }
 
+
   console.log(`Seeding finished.`);
 }
 

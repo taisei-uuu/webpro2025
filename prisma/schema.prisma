@@ -287,3 +287,27 @@ model Subscription {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }
+
+// 電子公告
+model ElectronicNotice {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String
+  type        String   // important, financial, business, legal, other
+  publishedAt DateTime @default(now())
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  attachments ElectronicNoticeAttachment[]
+}
+
+// 電子公告の添付ファイル
+model ElectronicNoticeAttachment {
+  id        Int              @id @default(autoincrement())
+  noticeId  Int
+  notice    ElectronicNotice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  name      String
+  url       String
+  size      String
+  createdAt DateTime         @default(now())
+}
