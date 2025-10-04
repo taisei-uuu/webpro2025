@@ -17,7 +17,7 @@ function isInAppBrowser() {
     warningBanner.innerHTML = `
       <div style="position: fixed; top: 0; left: 0; right: 0; background-color: #ffc107; color: #333; padding: 15px; text-align: center; z-index: 10000; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
         <strong>現在、アプリ内ブラウザで表示されています。</strong><br>
-        正常に動作しない可能性があるため、SafariまたはChromeで開いてください。
+        正常に動作しない可能性があるため、右上の・・・から「外部ブラウザで開く」を選択、またはSafariやChromeで開いてください。
         <button onclick="document.getElementById('in-app-browser-warning').style.display='none'" style="border: none; background: transparent; font-size: 20px; position: absolute; top: 10px; right: 15px; cursor: pointer;">&times;</button>
       </div>
     `;
