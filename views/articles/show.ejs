@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= article.title %> - Stock with
+    </title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Clerk認証スクリプト -->
+    <script>
+        window.Clerk = window.Clerk || {};
+        window.Clerk.publishableKey = '<%= publishableKey || "" %>';
+    </script>
+    <% if (publishableKey) { %>
+        <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>"
+            src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+        <% } %>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+        <main class="site-main">
+            <div class="container">
+                <%- include('../partials/navigation', { path: '/articles' }) %>
+
+                    <article class="article-container">
+                        <header class="article-header">
+                            <h1 class="article-title">
+                                <%= article.title %>
+                            </h1>
+                            <div class="article-meta">
+                                <span class="article-date">
+                                    <i class="far fa-calendar-alt"></i>
+                                    <%= new Date(article.publishedAt).toLocaleDateString('ja-JP') %>
+                                </span>
+                            </div>
+                        </header>
+
+                        <div class="article-content">
+                            <%- article.content.replace(/\n/g, '<br>' ) %>
+                        </div>
+
+                        <div class="article-footer">
+                            <a href="/articles" class="btn btn-outline">
+                                <i class="fas fa-arrow-left"></i> 記事一覧に戻る
+                            </a>
+                        </div>
+                    </article>
+            </div>
+        </main>
+
+        <footer class="site-footer">
+            <div class="container">
+                <p>&copy; 2025 Stock with株式会社. All Rights Reserved.</p>
+            </div>
+        </footer>
+
+        <style>
+            .article-container {
+                max-width: 800px;
+                margin: 0 auto;
+                background: white;
+                padding: 2rem;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            }
+
+            .article-header {
+                margin-bottom: 2rem;
+                border-bottom: 1px solid #e2e8f0;
+                padding-bottom: 1rem;
+            }
+
+            .article-title {
+                font-size: 2rem;
+                color: #1e293b;
+                margin-bottom: 0.5rem;
+            }
+
+            .article-meta {
+                color: #64748b;
+                font-size: 0.9rem;
+            }
+
+            .article-content {
+                font-size: 1.1rem;
+                line-height: 1.8;
+                color: #334155;
+                margin-bottom: 3rem;
+            }
+
+            .article-footer {
+                border-top: 1px solid #e2e8f0;
+                padding-top: 2rem;
+            }
+
+            @media (max-width: 768px) {
+                .article-container {
+                    padding: 1.5rem;
+                }
+
+                .article-title {
+                    font-size: 1.5rem;
+                }
+            }
+        </style>
+
+        <script>
+            // Clerkの初期化と認証UIの更新
+            window.addEventListener('load', async () => {
+                if (window.Clerk && typeof window.Clerk.load === 'function') {
+                    await window.Clerk.load();
+                    updateAuthUI();
+                }
+            });
+
+            function handleUserProfile() {
+                if (window.Clerk && window.Clerk.user) {
+                    window.Clerk.openUserProfile();
+                } else {
+                    window.Clerk.openSignIn();
+                }
+            }
+
+            function updateAuthUI() {
+                const user = window.Clerk.user;
+                const userGreeting = document.getElementById('user-greeting');
+                const loginBtn = document.getElementById('login-btn');
+
+                if (user) {
+                    if (userGreeting) userGreeting.style.display = 'none';
+                    if (loginBtn) {
+                        loginBtn.innerHTML = '<i class="fas fa-user"></i>';
+                        loginBtn.onclick = handleUserProfile;
+                    }
+                } else {
+                    if (userGreeting) userGreeting.style.display = 'none';
+                    if (loginBtn) {
+                        loginBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i> ログイン';
+                        loginBtn.onclick = () => window.Clerk.openSignIn();
+                    }
+                }
+            }
+        </script>
+</body>
+
+</html>

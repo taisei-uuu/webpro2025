@@ -4,7 +4,7 @@ import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/expre
 import session from 'express-session';
 // import Stripe from 'stripe';
 // Phase別テーブル管理ライブラリをインポート
-import { 
+import {
   getPhaseTables,
   getPhaseFromLessonId,
   getPhase1Lessons,
@@ -18,6 +18,11 @@ import {
   getPhase1ProgressPercentage,
   prisma
 } from './lib/phase-database';
+import {
+  getArticles,
+  getArticleBySlug,
+  createArticle
+} from './lib/article-database';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -103,7 +108,7 @@ function getUserIdentifier(req: express.Request): { userId?: string; sessionId?:
 // グローバルエラーハンドリングミドルウェア
 app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Global error handler:', error);
-  
+
   // セッション関連のエラーの場合
   if (error.code === 'EBADCSRFTOKEN' || error.message.includes('session')) {
     // セッションをクリアしてリダイレクト
@@ -112,9 +117,9 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
     });
     return res.redirect('/');
   }
-  
+
   // その他のエラーは500エラーとして処理
-  res.status(500).render('error', { 
+  res.status(500).render('error', {
     message: 'サーバーエラーが発生しました。しばらく時間をおいてから再度お試しください。',
     publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
   });
@@ -128,11 +133,11 @@ const CACHE_DURATION = 5000; // 5秒に短縮（開発・テスト用）
 async function getCachedQuizAttempts(userId?: string, sessionId?: string) {
   const cacheKey = userId ? `user_${userId}` : `session_${sessionId}`;
   const cached = quizAttemptsCache.get(cacheKey);
-  
+
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return cached.data;
   }
-  
+
   const attempts = await prisma.phase1QuizAttempt.findMany({
     where: {
       OR: [
@@ -145,12 +150,12 @@ async function getCachedQuizAttempts(userId?: string, sessionId?: string) {
       questionId: true,
     },
   });
-  
+
   quizAttemptsCache.set(cacheKey, {
     data: attempts,
     timestamp: Date.now()
   });
-  
+
   return attempts;
 }
 
@@ -388,15 +393,15 @@ app.get('/', (req, res) => {
     // デバッグ情報を表示
     console.log('CLERK_PUBLISHABLE_KEY:', process.env.CLERK_PUBLISHABLE_KEY ? 'Set' : 'Not set');
     console.log('CLERK_SECRET_KEY:', process.env.CLERK_SECRET_KEY ? 'Set' : 'Not set');
-    
-    res.render('home', { 
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+
+    res.render('home', {
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
     });
   } catch (error) {
     console.error('Error in / route:', error);
-    res.status(500).render('error', { 
+    res.status(500).render('error', {
       message: 'ページの読み込み中にエラーが発生しました。',
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
     });
   }
 });
@@ -405,13 +410,13 @@ app.get('/', (req, res) => {
 app.get('/privacy', (req, res) => {
   try {
     res.render('privacy', {
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
     });
   } catch (error) {
     console.error('Error in /privacy route:', error);
-    res.status(500).render('error', { 
+    res.status(500).render('error', {
       message: 'ページの読み込み中にエラーが発生しました。',
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
     });
   }
 });
@@ -421,7 +426,7 @@ app.get('/phase2', async (req, res) => {
   try {
     // 認証状態を取得
     const { userId, sessionId } = getUserIdentifier(req);
-    
+
     // ユーザー情報を取得（ログイン済みの場合のみ）
     let user: any = null;
     if (userId && process.env.CLERK_SECRET_KEY) {
@@ -431,16 +436,16 @@ app.get('/phase2', async (req, res) => {
         console.error('Error fetching user from Clerk:', error);
         // ユーザー情報の取得に失敗した場合は、認証状態をリセット
         console.log('Resetting auth state due to user fetch error');
-        
+
         // セッションをクリアしてゲストモードに切り替え
         req.session.destroy((err) => {
           if (err) console.error('Error destroying session:', err);
         });
-        
+
         // ゲストモードで再レンダリング
         const phase1Progress = await getPhase1Progress(null);
         const phase2Lessons = await getPhaseLessons(2);
-        
+
         // Phase2のレッスンをチャプター別にグループ化
         const phase2Chapters = phase2Lessons.reduce((acc: any[], lesson: any) => {
           let chapter = acc.find(c => c.chapter === lesson.chapter);
@@ -459,8 +464,8 @@ app.get('/phase2', async (req, res) => {
           chapter.totalQuestions += lesson.questions.length;
           return acc;
         }, []);
-        
-        return res.render('phase2', { 
+
+        return res.render('phase2', {
           user: null,
           isGuest: true,
           publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
@@ -472,10 +477,10 @@ app.get('/phase2', async (req, res) => {
     }
 
     const phase1Progress = await getPhase1Progress(userId);
-    
+
     // Phase2のレッスンデータを取得
     const phase2Lessons = await getPhaseLessons(2);
-    
+
     // Phase2のレッスンをチャプター別にグループ化
     const phase2Chapters = phase2Lessons.reduce((acc: any[], lesson: any) => {
       let chapter = acc.find(c => c.chapter === lesson.chapter);
@@ -494,8 +499,8 @@ app.get('/phase2', async (req, res) => {
       chapter.totalQuestions += lesson.questions.length;
       return acc;
     }, []);
-    
-    res.render('phase2', { 
+
+    res.render('phase2', {
       user: user,
       isGuest: !userId,
       publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
@@ -505,9 +510,9 @@ app.get('/phase2', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in /phase2 route:', error);
-    res.status(500).render('error', { 
+    res.status(500).render('error', {
       message: 'ページの読み込み中にエラーが発生しました。',
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
     });
   }
 });
@@ -517,7 +522,7 @@ app.get('/phase3', async (req, res) => {
   try {
     // 認証状態を取得
     const { userId, sessionId } = getUserIdentifier(req);
-    
+
     // ユーザー情報を取得（ログイン済みの場合のみ）
     let user: any = null;
     if (userId && process.env.CLERK_SECRET_KEY) {
@@ -527,15 +532,15 @@ app.get('/phase3', async (req, res) => {
         console.error('Error fetching user from Clerk:', error);
         // ユーザー情報の取得に失敗した場合は、認証状態をリセット
         console.log('Resetting auth state due to user fetch error');
-        
+
         // セッションをクリアしてゲストモードに切り替え
         req.session.destroy((err) => {
           if (err) console.error('Error destroying session:', err);
         });
-        
+
         // ゲストモードで再レンダリング
         const phase1Progress = await getPhase1Progress(null);
-        return res.render('phase3', { 
+        return res.render('phase3', {
           user: null,
           isGuest: true,
           publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
@@ -545,8 +550,8 @@ app.get('/phase3', async (req, res) => {
     }
 
     const phase1Progress = await getPhase1Progress(userId);
-    
-    res.render('phase3', { 
+
+    res.render('phase3', {
       user: user,
       isGuest: !userId,
       publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
@@ -554,9 +559,9 @@ app.get('/phase3', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in /phase3 route:', error);
-    res.status(500).render('error', { 
+    res.status(500).render('error', {
       message: 'ページの読み込み中にエラーが発生しました。',
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
     });
   }
 });
@@ -565,13 +570,13 @@ app.get('/phase3', async (req, res) => {
 app.get('/terms', (req, res) => {
   try {
     res.render('terms', {
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
     });
   } catch (error) {
     console.error('Error in /terms route:', error);
-    res.status(500).render('error', { 
+    res.status(500).render('error', {
       message: 'ページの読み込み中にエラーが発生しました。',
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
     });
   }
 });
@@ -584,7 +589,7 @@ app.get('/learning', async (req, res) => {
 
     // 2. 現在のユーザー（ログイン済みまたはゲスト）の正解した回答履歴を取得（キャッシュ使用）
     const { userId, sessionId } = getUserIdentifier(req);
-    
+
     // デバッグ情報を追加
     console.log('Learning route - Auth state:', {
       userId,
@@ -594,16 +599,16 @@ app.get('/learning', async (req, res) => {
       userIdType: typeof userId,
       userIdValue: userId
     });
-    
+
     // ゲストモードでは進捗を無効化
     let correctAttempts: any[] = [];
     let clearedQuestionIds = new Set<number>();
-    
+
     if (userId) {
       // ログイン済みの場合のみ進捗を取得
       correctAttempts = await getCachedQuizAttempts(userId, sessionId);
       clearedQuestionIds = new Set(correctAttempts.map(a => a.questionId));
-      
+
       // デバッグ情報を追加
       console.log('Progress debug:', {
         userId,
@@ -692,7 +697,7 @@ app.get('/learning', async (req, res) => {
 
     // Phase1の総問題数を計算（現在の全レッスンの問題数）
     const totalQuestions = lessonsWithQuestions.reduce((total, lesson) => total + lesson.questions.length, 0);
-    
+
     // Phase1の進捗率を計算
     const phase1Progress = totalQuestions > 0 ? Math.round((clearedQuestionIds.size / totalQuestions) * 100) : 0;
 
@@ -705,39 +710,39 @@ app.get('/learning', async (req, res) => {
         console.error('Error fetching user from Clerk:', error);
         // ユーザー情報の取得に失敗した場合は、認証状態をリセット
         console.log('Resetting auth state due to user fetch error');
-        
+
         // セッションをクリアしてゲストモードに切り替え
         req.session.destroy((err) => {
           if (err) console.error('Error destroying session:', err);
         });
-        
+
         // ゲストモードで再レンダリング
-        return res.render('index', { 
-          chapters: chaptersWithProgress, 
+        return res.render('index', {
+          chapters: chaptersWithProgress,
           user: null,
           isGuest: true,
           totalQuestions: totalQuestions,
           clearedQuestionIds: clearedQuestionIds,
           phase1Progress: phase1Progress,
-          publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+          publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
         });
       }
     }
 
-    res.render('index', { 
-      chapters: chaptersWithProgress, 
+    res.render('index', {
+      chapters: chaptersWithProgress,
       user: user,
       isGuest: !userId, // ゲストモードかどうかのフラグ
       totalQuestions: totalQuestions,
       clearedQuestionIds: clearedQuestionIds,
       phase1Progress: phase1Progress,
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '' 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
     });
   } catch (error) {
     console.error('Error in /learning route:', error);
-    res.status(500).render('error', { 
+    res.status(500).render('error', {
       message: 'サーバーエラーが発生しました。しばらく時間をおいてから再度お試しください。',
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
     });
   }
 });
@@ -746,6 +751,130 @@ app.get('/learning', async (req, res) => {
 // app.get('/admin/lessons/new', (req, res) => {
 //   res.render('new-lesson');
 // });
+
+// 記事一覧ページ
+app.get('/articles', async (req, res) => {
+  try {
+    const articles = await getArticles();
+    const { userId } = getUserIdentifier(req);
+
+    // ユーザー情報を取得（ログイン済みの場合のみ）
+    let user: any = null;
+    if (userId && process.env.CLERK_SECRET_KEY) {
+      try {
+        user = await clerkClient.users.getUser(userId.toString());
+      } catch (error) {
+        console.error('Error fetching user from Clerk:', error);
+      }
+    }
+
+    res.render('articles/index', {
+      articles,
+      user,
+      isGuest: !userId,
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
+    });
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    res.status(500).render('error', {
+      message: '記事の取得中にエラーが発生しました。',
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+    });
+  }
+});
+
+// 記事詳細ページ
+app.get('/articles/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const article = await getArticleBySlug(slug);
+
+    if (!article) {
+      return res.status(404).render('error', {
+        message: '記事が見つかりませんでした。',
+        publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+      });
+    }
+
+    const { userId } = getUserIdentifier(req);
+
+    // ユーザー情報を取得（ログイン済みの場合のみ）
+    let user: any = null;
+    if (userId && process.env.CLERK_SECRET_KEY) {
+      try {
+        user = await clerkClient.users.getUser(userId.toString());
+      } catch (error) {
+        console.error('Error fetching user from Clerk:', error);
+      }
+    }
+
+    res.render('articles/show', {
+      article,
+      user,
+      isGuest: !userId,
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
+    });
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    res.status(500).render('error', {
+      message: '記事の取得中にエラーが発生しました。',
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+    });
+  }
+});
+
+// 記事作成ページ（管理者用）
+app.get('/admin/articles/new', async (req, res) => {
+  try {
+    const { userId } = getUserIdentifier(req);
+
+    // ユーザー情報を取得（ログイン済みの場合のみ）
+    let user: any = null;
+    if (userId && process.env.CLERK_SECRET_KEY) {
+      try {
+        user = await clerkClient.users.getUser(userId.toString());
+      } catch (error) {
+        console.error('Error fetching user from Clerk:', error);
+      }
+    }
+
+    res.render('admin/articles/new', {
+      user,
+      isGuest: !userId,
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
+    });
+  } catch (error) {
+    console.error('Error loading article creation page:', error);
+    res.status(500).render('error', {
+      message: 'エラーが発生しました。',
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+    });
+  }
+});
+
+// 記事作成処理（管理者用）
+app.post('/admin/articles', async (req, res) => {
+  try {
+    const { title, slug, content } = req.body;
+
+    if (!title || !slug || !content) {
+      return res.status(400).send('必須項目が不足しています');
+    }
+
+    await createArticle({
+      title,
+      slug,
+      content
+    });
+
+    res.redirect('/articles');
+  } catch (error) {
+    console.error('Error creating article:', error);
+    res.status(500).send('記事の作成に失敗しました');
+  }
+});
+
+// // 新規レッスンを作成するルート
 
 // // 新規レッスンを作成するルート
 // app.post('/admin/lessons', async (req, res) => {
@@ -770,7 +899,7 @@ app.post('/lessons/:slug/quiz/submit', async (req, res) => {
   // レッスンのPhaseを判定して適切なテーブルを使用
   const phase = getPhaseFromLessonId(slug);
   const tables = getPhaseTables(phase);
-  
+
   // レッスンを取得してIDを取得
   const lesson = await tables.lesson.findUnique({
     where: { slug }
@@ -833,7 +962,7 @@ app.post('/lessons/:slug/quiz/submit', async (req, res) => {
 app.get('/search', async (req, res) => {
   try {
     const query = req.query.q as string;
-    
+
     console.log('Search query:', query);
 
     // クエリがない場合は空の結果を返す
@@ -848,12 +977,12 @@ app.get('/search', async (req, res) => {
 
     // SQLiteでは大文字小文字を区別しない検索のために、クエリを小文字に変換
     const searchQuery = query.toLowerCase();
-    
+
     // Phase1のレッスンを取得して、JavaScriptで検索を実行
     const allLessons = await prisma.phase1Lesson.findMany();
     console.log('All lessons:', allLessons.map(l => ({ id: l.id, title: l.title, content: l.content })));
-    
-    const lessons = allLessons.filter(lesson => 
+
+    const lessons = allLessons.filter(lesson =>
       lesson.title.toLowerCase().includes(searchQuery) ||
       lesson.content.toLowerCase().includes(searchQuery)
     );
@@ -861,15 +990,15 @@ app.get('/search', async (req, res) => {
     console.log('Found lessons:', lessons.length);
     console.log('Lesson titles:', lessons.map(l => l.title));
 
-    res.render('search-results', { 
-      lessons, 
+    res.render('search-results', {
+      lessons,
       query
     });
   } catch (error) {
     console.error('Search error:', error);
-    res.status(500).render('error', { 
+    res.status(500).render('error', {
       message: '検索中にエラーが発生しました。しばらく時間をおいてから再度お試しください。',
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
     });
   }
 });
@@ -879,7 +1008,7 @@ app.get('/lessons/ending-intro', async (req, res) => {
   try {
     // 認証状態を取得
     const { userId, sessionId } = getUserIdentifier(req);
-    
+
     // ユーザー情報を取得（ログイン済みの場合のみ）
     let user: any = null;
     if (userId && process.env.CLERK_SECRET_KEY) {
@@ -889,12 +1018,12 @@ app.get('/lessons/ending-intro', async (req, res) => {
         console.error('Error fetching user from Clerk:', error);
         // ユーザー情報の取得に失敗した場合は、認証状態をリセット
         console.log('Resetting auth state due to user fetch error');
-        
+
         // セッションをクリアしてゲストモードに切り替え
         req.session.destroy((err) => {
           if (err) console.error('Error destroying session:', err);
         });
-        
+
         // ゲストモードで再レンダリング
         return res.render('lesson', {
           lesson: {
@@ -993,9 +1122,9 @@ app.get('/lessons/ending-intro', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in /lessons/ending-intro route:', error);
-    res.status(500).render('error', { 
+    res.status(500).render('error', {
       message: 'ページの読み込み中にエラーが発生しました。',
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
     });
   }
 });
@@ -1005,7 +1134,7 @@ app.get('/lessons/stage0-intro', async (req, res) => {
   try {
     // 認証状態を取得
     const { userId, sessionId } = getUserIdentifier(req);
-    
+
     // ユーザー情報を取得（ログイン済みの場合のみ）
     let user: any = null;
     if (userId && process.env.CLERK_SECRET_KEY) {
@@ -1015,43 +1144,54 @@ app.get('/lessons/stage0-intro', async (req, res) => {
         console.error('Error fetching user from Clerk:', error);
         // ユーザー情報の取得に失敗した場合は、認証状態をリセット
         console.log('Resetting auth state due to user fetch error');
-        
+
         // セッションをクリアしてゲストモードに切り替え
         req.session.destroy((err) => {
           if (err) console.error('Error destroying session:', err);
         });
-        
+
         // ゲストモードで再レンダリング
         return res.render('lesson', {
           lesson: {
             id: 'stage0-intro',
             title: 'はじめに',
             content: `
-              <div class="stage0-lesson-content">
-                <p class="intro-greeting">みなさんこんにちは！このPhase1では、<span class="highlight-text">株式投資を0から始める方</span>を想定した構成となっています！</p>
-                
-                <p class="intro-description">
-                  <span class="highlight-text">実践が最大の学びであり、とりあえずやってみることが大事</span><br>
-                  <span>だと私たちは信じております。</span>
-                </p>
-                
-                <p class="intro-description">
-                  そのため、このPhase1では、株取引をする上で、最低限の基礎知識の提供を目的としています。一見難しそうに見える株式投資ですが、このPhase1を一通り学んでいただければ、1時間もかからないうちに、投資家デビューできることと思います。
-                </p>
-                
-                <p class="intro-description">
-                  「何から学べばよいかわからない」というのは実践を通して、「次はこれを学びたい」と変わっていきます。そのため、まずは実践できるための最低限の基礎知識をこのPhase1を通して身に着けていただければ幸いです！
-                </p>
-                
-                <p class="intro-description">
-                  <span class="highlight-text">それではがんばってください！！健闘を祈ります！！</span>
-                </p>
-                
-                <div style="text-align: center;">
-                  <a href="/lessons/stage1-1" class="next-stage-button">
-                    Stage1-1へ進む <i class="fa-solid fa-arrow-right"></i>
-                  </a>
-                </div>
+              <div class="page-wrapper">
+                  <header class="hero-section">
+                      <h1 class="hero-title">はじめに</h1>
+                      <p class="hero-subtitle">株式投資の世界へようこそ</p>
+                  </header>
+
+                  <main class="cards-container">
+                      <div class="impact-card">
+                          <div class="card-number">01</div>
+                          <h2 class="card-title">
+                              実践が<br />最大の学び
+                          </h2>
+                          <p class="card-text">
+                              とりあえずやってみることが<br />一番の近道です
+                          </p>
+                      </div>
+
+                      <div class="impact-card">
+                          <div class="card-number">02</div>
+                          <h2 class="card-title">
+                              学習は<br />すぐに終わる
+                          </h2>
+                          <p class="card-text">
+                              30分もあれば<br />投資家デビューできます
+                          </p>
+                      </div>
+                  </main>
+
+                  <div class="action-area">
+                      <a href="/lessons/stage1-1" class="cta-button">
+                          <span>Stage1-1へ進む</span>
+                          <svg xmlns="http://www.w3.org/2000/svg" class="cta-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                      </a>
+                  </div>
               </div>
             `,
             videoId: null,
@@ -1071,31 +1211,42 @@ app.get('/lessons/stage0-intro', async (req, res) => {
       id: 'stage0-intro',
       title: 'はじめに',
       content: `
-        <div class="stage0-lesson-content">
-          <p class="intro-greeting">みなさんこんにちは！このPhase1では、<span class="highlight-text">株式投資を0から始める方</span>を想定した構成となっています！</p>
-          
-          <p class="intro-description">
-            <span class="highlight-text">実践が最大の学びであり、とりあえずやってみることが大事</span><br>
-            <span>だと私たちは信じております。</span>
-          </p>
-          
-          <p class="intro-description">
-            そのため、このPhase1では、株取引をする上で、最低限の基礎知識の提供を目的としています。一見難しそうに見える株式投資ですが、このPhase1を一通り学んでいただければ、1時間もかからないうちに、投資家デビューできることと思います。
-          </p>
-          
-          <p class="intro-description">
-            「何から学べばよいかわからない」というのは実践を通して、「次はこれを学びたい」と変わっていきます。そのため、まずは実践できるための最低限の基礎知識をこのPhase1を通して身に着けていただければ幸いです！
-          </p>
-          
-          <p class="intro-description">
-            <span class="highlight-text">それではがんばってください！！健闘を祈ります！！</span>
-          </p>
-          
-          <div style="text-align: center;">
-            <a href="/lessons/stage1-1" class="next-stage-button">
-              Stage1-1へ進む <i class="fa-solid fa-arrow-right"></i>
-            </a>
-          </div>
+        <div class="page-wrapper">
+            <header class="hero-section">
+                <h1 class="hero-title">はじめに</h1>
+                <p class="hero-subtitle">株式投資の世界へようこそ</p>
+            </header>
+
+            <main class="cards-container">
+                <div class="impact-card">
+                    <div class="card-number">01</div>
+                    <h2 class="card-title">
+                        実践が<br />最大の学び
+                    </h2>
+                    <p class="card-text">
+                        とりあえずやってみることが<br />一番の近道です
+                    </p>
+                </div>
+
+                <div class="impact-card">
+                    <div class="card-number">02</div>
+                    <h2 class="card-title">
+                        学習は<br />すぐに終わる
+                    </h2>
+                    <p class="card-text">
+                        30分もあれば<br />投資家デビューできます
+                    </p>
+                </div>
+            </main>
+
+            <div class="action-area">
+                <a href="/lessons/stage1-1" class="cta-button">
+                    <span>Stage1-1へ進む</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="cta-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                </a>
+            </div>
         </div>
       `,
       videoId: null,
@@ -1113,9 +1264,9 @@ app.get('/lessons/stage0-intro', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in /lessons/stage0-intro route:', error);
-    res.status(500).render('error', { 
+    res.status(500).render('error', {
       message: 'ページの読み込み中にエラーが発生しました。',
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
     });
   }
 });
@@ -1128,10 +1279,10 @@ app.get('/lessons/:slug', async (req, res) => {
 
     // ユーザーの回答履歴を取得（キャッシュ使用）
     const { userId, sessionId } = getUserIdentifier(req);
-    
+
     // ゲストモードでは進捗を無効化
     let clearedQuestionIds = new Set<number>();
-    
+
     if (userId) {
       // ログイン済みの場合のみ進捗を取得
       const allAttempts = await getCachedQuizAttempts(userId, sessionId);
@@ -1147,7 +1298,7 @@ app.get('/lessons/:slug', async (req, res) => {
     // レッスンのPhaseを判定して適切なテーブルを使用
     const phase = getPhaseFromLessonId(slug);
     let lesson;
-    
+
     if (phase === 1) {
       // Phase1の場合はPhase1テーブルから取得
       lesson = await prisma.phase1Lesson.findUnique({
@@ -1164,18 +1315,18 @@ app.get('/lessons/:slug', async (req, res) => {
       // Phase2/3の場合はPhase別テーブルから取得
       lesson = await getPhaseLessonBySlug(phase, slug);
     }
-    
+
     if (!lesson) {
-      return res.status(404).render('error', { 
+      return res.status(404).render('error', {
         message: 'レッスンが見つかりません。',
-        publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+        publishableKey: process.env.CLERK_PUBLISHABLE_KEY
       });
     }
 
     // 次のレッスンを取得（現在のID + 1）
     let nextLesson: any = null;
     const nextLessonId = lesson.id + 1;
-    
+
     try {
       if (phase === 1) {
         // Phase1の場合はPhase1テーブルから取得
@@ -1203,12 +1354,12 @@ app.get('/lessons/:slug', async (req, res) => {
         console.error('Error fetching user from Clerk:', error);
         // ユーザー情報の取得に失敗した場合は、認証状態をリセット
         console.log('Resetting auth state due to user fetch error');
-        
+
         // セッションをクリアしてゲストモードに切り替え
         req.session.destroy((err) => {
           if (err) console.error('Error destroying session:', err);
         });
-        
+
         // ゲストモードで再レンダリング
         return res.render('lesson', {
           lesson,
@@ -1243,9 +1394,9 @@ app.get('/lessons/:slug', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in /lessons/:id route:', error);
-    res.status(500).render('error', { 
+    res.status(500).render('error', {
       message: 'レッスンの読み込み中にエラーが発生しました。しばらく時間をおいてから再度お試しください。',
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY 
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
     });
   }
 });
@@ -1253,7 +1404,7 @@ app.get('/lessons/:slug', async (req, res) => {
 // Phase1の進捗を計算する関数
 async function getPhase1Progress(userId: string | null): Promise<number> {
   if (!userId) return 0;
-  
+
   try {
     // Phase1の進捗率を計算
     return await getPhase1ProgressPercentage(userId);
@@ -1301,7 +1452,7 @@ app.get('/notice', async (req, res) => {
 app.get('/admin/notice', requireAuth(), async (req, res) => {
   try {
     const { userId } = getAuth(req);
-    
+
     if (!userId) {
       return res.status(401).render('error', {
         message: '認証が必要です。',
@@ -1350,7 +1501,7 @@ app.get('/admin/notice', requireAuth(), async (req, res) => {
 app.post('/admin/notice', requireAuth(), async (req, res) => {
   try {
     const { userId } = getAuth(req);
-    
+
     if (!userId) {
       return res.status(401).json({ error: '認証が必要です。' });
     }
@@ -1387,7 +1538,7 @@ app.post('/admin/notice', requireAuth(), async (req, res) => {
 app.put('/admin/notice/:id', requireAuth(), async (req, res) => {
   try {
     const { userId } = getAuth(req);
-    
+
     if (!userId) {
       return res.status(401).json({ error: '認証が必要です。' });
     }
@@ -1426,7 +1577,7 @@ app.put('/admin/notice/:id', requireAuth(), async (req, res) => {
 app.post('/admin/notice/:id/toggle', requireAuth(), async (req, res) => {
   try {
     const { userId } = getAuth(req);
-    
+
     if (!userId) {
       return res.status(401).json({ error: '認証が必要です。' });
     }
@@ -1459,7 +1610,7 @@ app.post('/admin/notice/:id/toggle', requireAuth(), async (req, res) => {
 app.delete('/admin/notice/:id', requireAuth(), async (req, res) => {
   try {
     const { userId } = getAuth(req);
-    
+
     if (!userId) {
       return res.status(401).json({ error: '認証が必要です。' });
     }

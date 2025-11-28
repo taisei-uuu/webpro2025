@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>記事一覧 - Stock with</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Clerk認証スクリプト -->
+    <script>
+        window.Clerk = window.Clerk || {};
+        window.Clerk.publishableKey = '<%= publishableKey || "" %>';
+    </script>
+    <% if (publishableKey) { %>
+        <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>"
+            src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+        <% } %>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+        <main class="site-main">
+            <div class="container">
+                <%- include('../partials/navigation', { path: '/articles' }) %>
+
+                    <h1 class="page-title">記事一覧</h1>
+
+                    <div class="articles-grid">
+                        <% if (articles && articles.length> 0) { %>
+                            <% articles.forEach(article=> { %>
+                                <a href="/articles/<%= article.slug %>" class="article-card">
+                                    <div class="article-content">
+                                        <h2 class="article-title">
+                                            <%= article.title %>
+                                        </h2>
+                                        <p class="article-date">
+                                            <%= new Date(article.publishedAt).toLocaleDateString('ja-JP') %>
+                                        </p>
+                                        <div class="article-excerpt">
+                                            <%= article.content.substring(0, 100) %>...
+                                        </div>
+                                    </div>
+                                </a>
+                                <% }); %>
+                                    <% } else { %>
+                                        <p class="no-articles">記事はまだありません。</p>
+                                        <% } %>
+                    </div>
+            </div>
+        </main>
+
+        <footer class="site-footer">
+            <div class="container">
+                <p>&copy; 2025 Stock with株式会社. All Rights Reserved.</p>
+            </div>
+        </footer>
+
+        <style>
+            .page-title {
+                font-size: 2rem;
+                margin-bottom: 2rem;
+                color: #1e40af;
+                border-bottom: 2px solid #e2e8f0;
+                padding-bottom: 1rem;
+            }
+
+            .articles-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 2rem;
+            }
+
+            .article-card {
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+                padding: 1.5rem;
+                text-decoration: none;
+                color: inherit;
+                transition: transform 0.2s, box-shadow 0.2s;
+                border: 1px solid #e2e8f0;
+                display: block;
+            }
+
+            .article-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .article-title {
+                font-size: 1.25rem;
+                margin: 0 0 0.5rem 0;
+                color: #1e293b;
+            }
+
+            .article-date {
+                font-size: 0.875rem;
+                color: #64748b;
+                margin-bottom: 1rem;
+            }
+
+            .article-excerpt {
+                color: #475569;
+                line-height: 1.5;
+            }
+
+            .no-articles {
+                text-align: center;
+                color: #64748b;
+                font-size: 1.1rem;
+                grid-column: 1 / -1;
+                padding: 3rem;
+            }
+        </style>
+
+        <script>
+            // Clerkの初期化と認証UIの更新
+            window.addEventListener('load', async () => {
+                if (window.Clerk && typeof window.Clerk.load === 'function') {
+                    await window.Clerk.load();
+                    updateAuthUI();
+                }
+            });
+
+            function handleUserProfile() {
+                if (window.Clerk && window.Clerk.user) {
+                    window.Clerk.openUserProfile();
+                } else {
+                    window.Clerk.openSignIn();
+                }
+            }
+
+            function updateAuthUI() {
+                const user = window.Clerk.user;
+                const userGreeting = document.getElementById('user-greeting');
+                const loginBtn = document.getElementById('login-btn');
+
+                if (user) {
+                    if (userGreeting) userGreeting.style.display = 'none';
+                    if (loginBtn) {
+                        loginBtn.innerHTML = '<i class="fas fa-user"></i>';
+                        loginBtn.onclick = handleUserProfile;
+                    }
+                } else {
+                    if (userGreeting) userGreeting.style.display = 'none';
+                    if (loginBtn) {
+                        loginBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i> ログイン';
+                        loginBtn.onclick = () => window.Clerk.openSignIn();
+                    }
+                }
+            }
+        </script>
+</body>
+
+</html>
