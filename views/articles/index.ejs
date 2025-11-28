@@ -26,25 +26,49 @@
         <main class="site-main">
             <div class="container">
                 <%- include('../partials/navigation', { path: '/articles' }) %>
-
                     <h1 class="page-title">記事一覧</h1>
 
-                    <div class="articles-grid">
+                    <div class="article-list">
                         <% if (articles && articles.length> 0) { %>
                             <% articles.forEach(article=> { %>
-                                <a href="/articles/<%= article.slug %>" class="article-card">
-                                    <div class="article-content">
-                                        <h2 class="article-title">
-                                            <%= article.title %>
-                                        </h2>
-                                        <p class="article-date">
-                                            <%= new Date(article.publishedAt).toLocaleDateString('ja-JP') %>
-                                        </p>
-                                        <div class="article-excerpt">
-                                            <%= article.content.substring(0, 100) %>...
-                                        </div>
-                                    </div>
-                                </a>
+                                <article class="article-card">
+                                    <a href="/articles/<%= article.id %>" class="article-link">
+                                        <% if (article.thumbnail) { %>
+                                            <div class="article-thumbnail-wrapper">
+                                                <img src="<%= article.thumbnail.url %>" alt="<%= article.title %>"
+                                                    class="article-thumbnail">
+                                            </div>
+                                            <% } %>
+                                                <div class="article-content">
+                                                    <h2 class="article-title">
+                                                        <%= article.title %>
+                                                    </h2>
+
+                                                    <div class="article-meta">
+                                                        <time class="article-date"
+                                                            datetime="<%= article.publishedAt %>">
+                                                            <i class="far fa-calendar-alt"></i>
+                                                            <%= new
+                                                                Date(article.publishedAt).toLocaleDateString('ja-JP') %>
+                                                        </time>
+                                                        <% if (article.isPaid) { %>
+                                                            <span class="badge badge-paid">有料会員限定</span>
+                                                            <% } else { %>
+                                                                <span class="badge badge-free">無料</span>
+                                                                <% } %>
+                                                    </div>
+
+                                                    <div class="article-introduction">
+                                                        <%- article.introduction %>
+                                                    </div>
+
+                                                    <div class="article-footer">
+                                                        <span class="read-more">続きを読む <i
+                                                                class="fas fa-chevron-right"></i></span>
+                                                    </div>
+                                                </div>
+                                    </a>
+                                </article>
                                 <% }); %>
                                     <% } else { %>
                                         <p class="no-articles">記事はまだありません。</p>
@@ -58,64 +82,6 @@
                 <p>&copy; 2025 Stock with株式会社. All Rights Reserved.</p>
             </div>
         </footer>
-
-        <style>
-            .page-title {
-                font-size: 2rem;
-                margin-bottom: 2rem;
-                color: #1e40af;
-                border-bottom: 2px solid #e2e8f0;
-                padding-bottom: 1rem;
-            }
-
-            .articles-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-                gap: 2rem;
-            }
-
-            .article-card {
-                background: white;
-                border-radius: 12px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-                padding: 1.5rem;
-                text-decoration: none;
-                color: inherit;
-                transition: transform 0.2s, box-shadow 0.2s;
-                border: 1px solid #e2e8f0;
-                display: block;
-            }
-
-            .article-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-            }
-
-            .article-title {
-                font-size: 1.25rem;
-                margin: 0 0 0.5rem 0;
-                color: #1e293b;
-            }
-
-            .article-date {
-                font-size: 0.875rem;
-                color: #64748b;
-                margin-bottom: 1rem;
-            }
-
-            .article-excerpt {
-                color: #475569;
-                line-height: 1.5;
-            }
-
-            .no-articles {
-                text-align: center;
-                color: #64748b;
-                font-size: 1.1rem;
-                grid-column: 1 / -1;
-                padding: 3rem;
-            }
-        </style>
 
         <script>
             // Clerkの初期化と認証UIの更新

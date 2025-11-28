@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
-import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
+import { clerkMiddleware, clerkClient, requireAuth } from '@clerk/express';
+import { client, Article } from './lib/microcms';
+import { getAuth } from '@clerk/express';
 import session from 'express-session';
 // import Stripe from 'stripe';
 // Phase別テーブル管理ライブラリをインポート
@@ -131,7 +133,7 @@ const CACHE_DURATION = 5000; // 5秒に短縮（開発・テスト用）
 
 // キャッシュされたクイズ回答履歴を取得する関数
 async function getCachedQuizAttempts(userId?: string, sessionId?: string) {
-  const cacheKey = userId ? `user_${userId}` : `session_${sessionId}`;
+  const cacheKey = userId ? `user_${ userId } ` : `session_${ sessionId } `;
   const cached = quizAttemptsCache.get(cacheKey);
 
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
@@ -227,7 +229,7 @@ async function getCachedQuizAttempts(userId?: string, sessionId?: string) {
 //         },
 //       ],
 //       mode: 'subscription',
-//       success_url: `${req.protocol}://${req.get('host')}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+//       success_url: `${ req.protocol }://${req.get('host')}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
 //       cancel_url: `${req.protocol}://${req.get('host')}/subscription`,
 //       metadata: {
 //         userId: user.id.toString(),
@@ -755,7 +757,10 @@ app.get('/learning', async (req, res) => {
 // 記事一覧ページ
 app.get('/articles', async (req, res) => {
   try {
-    const articles = await getArticles();
+    // MicroCMSから記事リストを取得
+    const { contents: articles } = await client.getList<Article>({
+      endpoint: "articles",
+    });
     const { userId } = getUserIdentifier(req);
 
     // ユーザー情報を取得（ログイン済みの場合のみ）
@@ -784,10 +789,21 @@ app.get('/articles', async (req, res) => {
 });
 
 // 記事詳細ページ
-app.get('/articles/:slug', async (req, res) => {
+app.get('/articles/:id', async (req, res) => {
   try {
-    const { slug } = req.params;
-    const article = await getArticleBySlug(slug);
+    const { id } = req.params;
+
+    // MicroCMSから記事詳細を取得
+    let article: Article | null = null;
+    try {
+      article = await client.getListDetail<Article>({
+        endpoint: "articles",
+        contentId: id,
+      });
+    } catch (e) {
+      console.error('MicroCMS fetch error:', e);
+      // 404 handling will happen below if article is null
+    }
 
     if (!article) {
       return res.status(404).render('error', {
@@ -1224,17 +1240,17 @@ app.get('/lessons/stage0-intro', async (req, res) => {
                         実践が<br />最大の学び
                     </h2>
                     <p class="card-text">
-                        とりあえずやってみることが<br />一番の近道です
+                        とりあえずやってみることが<br />一番のおすすめ！
                     </p>
                 </div>
 
                 <div class="impact-card">
                     <div class="card-number">02</div>
                     <h2 class="card-title">
-                        学習は<br />すぐに終わる
+                        最短ルートで<br />実践へ
                     </h2>
                     <p class="card-text">
-                        30分もあれば<br />投資家デビューできます
+                        Phase1で必要最低限の<br />知識を身に着けましょう！
                     </p>
                 </div>
             </main>

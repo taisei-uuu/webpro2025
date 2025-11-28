@@ -43,7 +43,21 @@
                         </header>
 
                         <div class="article-content">
-                            <%- article.content.replace(/\n/g, '<br>' ) %>
+                            <% if (article.thumbnail) { %>
+                                <div class="article-main-image">
+                                    <img src="<%= article.thumbnail.url %>" alt="<%= article.title %>">
+                                </div>
+                                <% } %>
+
+                                    <div class="article-introduction">
+                                        <%- article.introduction %>
+                                    </div>
+
+                                    <% if (article.body) { %>
+                                        <div class="article-body">
+                                            <%- article.body %>
+                                        </div>
+                                        <% } %>
                         </div>
 
                         <div class="article-footer">
