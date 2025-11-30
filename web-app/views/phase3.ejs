@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,16 +8,18 @@
     <link rel="icon" type="image/png" href="/logo.png">
     <link rel="stylesheet" href="/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
+
     <!-- Clerk認証スクリプト -->
     <script>
         window.Clerk = window.Clerk || {};
         window.Clerk.publishableKey = '<%= publishableKey || "" %>';
     </script>
     <% if (publishableKey) { %>
-    <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>" src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
-    <% } %>
+        <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>"
+            src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+        <% } %>
 </head>
+
 <body>
 
     <style>
@@ -28,116 +31,13 @@
 
         .container {
             width: 100%;
-            max-width: 1200px; /* Or your desired max width */
+            max-width: 1200px;
+            /* Or your desired max width */
             margin: 0 auto;
-            box-sizing: border-box; /* Ensures padding doesn't add to width */
+            box-sizing: border-box;
+            /* Ensures padding doesn't add to width */
         }
 
-        /* --- ここからがヘッダーのスタイルです --- */
-
-        .site-header {
-            padding: 10px 0;
-            min-height: auto;
-            background-color: white; /* 白い背景を追加 */
-            border-bottom: 1px solid #f0f0f0; /* Optional: adds a nice separator */
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between; /* 左右に配置 */
-            align-items: center;
-            flex-wrap: nowrap; 
-            padding: 0 15px;
-            position: relative; /* 相対位置指定で左右の要素を絶対配置 */
-        }
-
-        /* 左側のロゴと商号 */
-        .header-logo {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: #000000;
-            font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-            font-weight: 600;
-            font-size: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            line-height: 1;
-        }
-
-        .header-logo img {
-            height: 40px;
-            margin-right: 8px;
-        }
-
-        .header-logo .brand-with {
-            font-weight: 400;
-            color: #1e40af;
-        }
-        
-        /* 右側のアクションボタンのコンテナ */
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-
-        #login-btn {
-            border: none;
-            background: none;
-            padding: 8px 16px;
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: #000000;
-            text-decoration: none;
-        }
-
-        #login-btn:hover {
-            color: #1e40af;
-        }
-        
-        .user-greeting {
-            margin-right: 10px;
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        /* --- レスポンシブ対応 --- */
-        
-        /* 768px以下の画面サイズ */
-        @media (max-width: 768px) {
-            .header-logo {
-                font-size: 1.2rem;
-            }
-            .header-logo img {
-                height: 35px;
-            }
-            #login-btn {
-                padding: 6px 12px;
-                font-size: 0.9rem;
-            }
-        }
-
-        /* 480px以下の画面サイズ */
-        @media (max-width: 480px) {
-            .header-content {
-                padding: 0 10px; /* さらに狭い画面ではパディングを少し減らす */
-            }
-            .header-logo {
-                font-size: 1.1rem;
-            }
-            .header-logo img {
-                height: 30px;
-            }
-            #login-btn {
-                padding: 6px 8px;
-                font-size: 0.8rem;
-            }
-        }
 
         /* Phase別進捗表示のスタイル */
         .phase-progress-container {
@@ -377,7 +277,6 @@
                 gap: 0.5rem;
             }
         }
-
     </style>
 
     <header class="site-header">
@@ -389,7 +288,7 @@
                     <img src="/logo.png" alt="Stock with" height="40">
                     STOCK&nbsp;<span class="brand-with">WITH</span>
                 </a>
-                
+
                 <!-- 右側のアクションボタン -->
                 <div class="header-actions">
                     <% if (user) { %>
@@ -397,17 +296,18 @@
                         <button id="login-btn" class="btn btn-outline" onclick="handleUserProfile()">
                             <i class="fas fa-user"></i>
                         </button>
-                    <% } else { %>
-                        <!-- 未ログインの場合 -->
-                        <span id="user-greeting" style="display: none;"></span>
-                        <button id="logout-btn" class="btn btn-outline" onclick="window.Clerk.signOut()" style="display: none;">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </button>
-                        <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openSignIn()">
-                            <i class="fas fa-right-to-bracket"></i>
-                            ログイン
-                        </button>
-                    <% } %>
+                        <% } else { %>
+                            <!-- 未ログインの場合 -->
+                            <span id="user-greeting" style="display: none;"></span>
+                            <button id="logout-btn" class="btn btn-outline" onclick="window.Clerk.signOut()"
+                                style="display: none;">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                            <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openSignIn()">
+                                <i class="fas fa-right-to-bracket"></i>
+                                ログイン
+                            </button>
+                            <% } %>
                 </div>
             </div>
         </div>
@@ -416,133 +316,150 @@
     <main class="site-main">
         <div class="container">
             <% if (isGuest) { %>
-            <!-- ゲストモード通知 -->
-            <div class="guest-notice">
-                <i class="fas fa-info-circle"></i>
-                <div>
-                    <strong>ゲストモードで学習中</strong><br>
-                    学習進捗は保存されません。進捗を保存するには<a href="#" onclick="window.Clerk.openSignIn()">ログイン</a>または<a href="#" onclick="window.Clerk.openSignUp()">新規登録</a>してください。
+                <!-- ゲストモード通知 -->
+                <div class="guest-notice">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>ゲストモードで学習中</strong><br>
+                        学習進捗は保存されません。進捗を保存するには<a href="#" onclick="window.Clerk.openSignIn()">ログイン</a>または<a href="#"
+                            onclick="window.Clerk.openSignUp()">新規登録</a>してください。
+                    </div>
                 </div>
-            </div>
-            <% } %>
+                <% } %>
 
-            <!-- プロトタイプ注意書き -->
-            <div class="prototype-notice">
-                <i class="fas fa-exclamation-triangle"></i>
-                <div>
-                    <strong>現在はまだプロトタイプ（試作段階）です！</strong><br>
-                    そのため、ログインしたとしても、進捗機能が保存されない場合や、突然リセットされる場合があります！その他さまざまな不具合が見られる可能性があるのでご理解ください！！
-                </div>
-            </div>
-
-
-            <!-- Phase別進捗表示 -->
-            <div class="phase-progress-container">
-                <h3 class="phase-progress-title">
-                    <i class="fas fa-graduation-cap"></i>学習フェーズ進捗
-                </h3>
-                <div class="phase-stepper">
-                    <a href="/learning" class="phase-item locked" data-phase="1">
-                        <div class="phase-indicator">
-                            <div class="phase-icon">
-                                <i class="fa-solid fa-seedling"></i>
-                            </div>
-                            <div class="phase-progress-fill" style="height: <%= phase1Progress %>%"></div>
+                    <!-- プロトタイプ注意書き -->
+                    <div class="prototype-notice">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>現在はまだプロトタイプ（試作段階）です！</strong><br>
+                            そのため、ログインしたとしても、進捗機能が保存されない場合や、突然リセットされる場合があります！その他さまざまな不具合が見られる可能性があるのでご理解ください！！
                         </div>
-                        <div class="phase-name">Phase 1</div>
-                    </a>
-                    
-                    <a href="/phase2" class="phase-item locked" data-phase="2">
-                        <div class="phase-indicator">
-                            <div class="phase-icon">
-                                <i class="fa-solid fa-leaf"></i>
-                            </div>
-                            <div class="phase-progress-fill" style="height: 0%"></div>
-                        </div>
-                        <div class="phase-name">Phase 2</div>
-                    </a>
-                    
-                    <a href="/phase3" class="phase-item active" data-phase="3">
-                        <div class="phase-indicator">
-                            <div class="phase-icon">
-                                <i class="fa-solid fa-tree"></i>
-                            </div>
-                            <div class="phase-progress-fill" style="height: 0%"></div>
-                        </div>
-                        <div class="phase-name">Phase 3</div>
-                    </a>
-                </div>
-            </div>
-            
-            <!-- Phase3の学習コンテンツ -->
-            <section class="chapter" data-chapter="0">
-                <div class="chapter-header">
-                    <div class="chapter-title-container">
-                        <button class="chapter-toggle" data-chapter="0" aria-expanded="false">
-                            <h2>Stage 11: 信用取引で戦略の幅を広げよう【レバレッジと空売り】</h2>
-                        </button>
                     </div>
-                    <div class="progress-container">
-                        <div class="progress-bar" data-width="100"></div>
-                        <span class="progress-text">2 / 2 問クリア</span>
-                    </div>
-                </div>
-                <div class="chapter-content" id="chapter-0" data-visible="false">
-                    <ul class="lesson-list">
-                        <li><a href="/under-development" class="lesson-link" data-original-title="Stage 11-1: 「レバレッジ」の光と影">Stage 11-1: 「レバレッジ」の光と影</a></li>
-                        <li><a href="/under-development" class="lesson-link" data-original-title="Stage 11-2: 下落相場で利益を出す「空売り」">Stage 11-2: 下落相場で利益を出す「空売り」</a></li>
-                    </ul>
-                </div>
-            </section>
 
-            <section class="chapter" data-chapter="1">
-                <div class="chapter-header">
-                    <div class="chapter-title-container">
-                        <button class="chapter-toggle" data-chapter="1" aria-expanded="false">
-                            <h2>Stage 12: FXで世界の為替市場に挑戦しよう【外国為替証拠金取引】</h2>
-                        </button>
-                    </div>
-                    <div class="progress-container">
-                        <div class="progress-bar" data-width="0"></div>
-                        <span class="progress-text">0 / 2 問クリア</span>
-                    </div>
-                </div>
-                <div class="chapter-content" id="chapter-1" data-visible="false">
-                    <ul class="lesson-list">
-                        <li><a href="/under-development" class="lesson-link" data-original-title="Stage 12-1: FX（外国為替証拠金取引）の基本">Stage 12-1: FX（外国為替証拠金取引）の基本</a></li>
-                        <li><a href="/under-development" class="lesson-link" data-original-title="Stage 12-2: FX最大の特徴「レバレッジ」と「スワップポイント」">Stage 12-2: FX最大の特徴「レバレッジ」と「スワップポイント」</a></li>
-                    </ul>
-                </div>
-            </section>
+                    <%- include('partials/navigation', { path: '/phase3' }) %>
+        </div>
 
-            <section class="chapter" data-chapter="2">
-                <div class="chapter-header">
-                    <div class="chapter-title-container">
-                        <button class="chapter-toggle" data-chapter="2" aria-expanded="false">
-                            <h2>Stage 13: 先物・オプション取引の世界【デリバティブ取引】</h2>
-                        </button>
+
+        <!-- Phase別進捗表示 -->
+        <div class="phase-progress-container">
+            <h3 class="phase-progress-title">
+                <i class="fas fa-graduation-cap"></i>学習フェーズ進捗
+            </h3>
+            <div class="phase-stepper">
+                <a href="/learning" class="phase-item locked" data-phase="1">
+                    <div class="phase-indicator">
+                        <div class="phase-icon">
+                            <i class="fa-solid fa-seedling"></i>
+                        </div>
+                        <div class="phase-progress-fill" style="height: <%= phase1Progress %>%"></div>
                     </div>
-                    <div class="progress-container">
-                        <div class="progress-bar" data-width="0"></div>
-                        <span class="progress-text">0 / 3 問クリア</span>
+                    <div class="phase-name">Phase 1</div>
+                </a>
+
+                <a href="/phase2" class="phase-item locked" data-phase="2">
+                    <div class="phase-indicator">
+                        <div class="phase-icon">
+                            <i class="fa-solid fa-leaf"></i>
+                        </div>
+                        <div class="phase-progress-fill" style="height: 0%"></div>
                     </div>
-                </div>
-                <div class="chapter-content" id="chapter-2" data-visible="false">
-                    <ul class="lesson-list">
-                        <li><a href="/under-development" class="lesson-link" data-original-title="Stage 13-1: 「未来の価格」を取引する先物取引">Stage 13-1: 「未来の価格」を取引する先物取引</a></li>
-                        <li><a href="/under-development" class="lesson-link" data-original-title="Stage 13-2: 「権利」を売買するオプション取引">Stage 13-2: 「権利」を売買するオプション取引</a></li>
-                        <li><a href="/under-development" class="lesson-link" data-original-title="Stage 13-3: なぜデリバティブは危険と言われるのか">Stage 13-3: なぜデリバティブは危険と言われるのか</a></li>
-                    </ul>
-                </div>
-            </section>
-            
-            <!-- Phase2へ戻るボタン -->
-            <div class="phase2-back-button-container">
-                <a href="/phase2" class="phase2-back-button">
-                    <i class="fas fa-arrow-left"></i>
-                    Phase2へ戻る
+                    <div class="phase-name">Phase 2</div>
+                </a>
+
+                <a href="/phase3" class="phase-item active" data-phase="3">
+                    <div class="phase-indicator">
+                        <div class="phase-icon">
+                            <i class="fa-solid fa-tree"></i>
+                        </div>
+                        <div class="phase-progress-fill" style="height: 0%"></div>
+                    </div>
+                    <div class="phase-name">Phase 3</div>
                 </a>
             </div>
+        </div>
+
+        <!-- Phase3の学習コンテンツ -->
+        <section class="chapter" data-chapter="0">
+            <div class="chapter-header">
+                <div class="chapter-title-container">
+                    <button class="chapter-toggle" data-chapter="0" aria-expanded="false">
+                        <h2>Stage 11: 信用取引で戦略の幅を広げよう【レバレッジと空売り】</h2>
+                    </button>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" data-width="100"></div>
+                    <span class="progress-text">2 / 2 問クリア</span>
+                </div>
+            </div>
+            <div class="chapter-content" id="chapter-0" data-visible="false">
+                <ul class="lesson-list">
+                    <li><a href="/under-development" class="lesson-link"
+                            data-original-title="Stage 11-1: 「レバレッジ」の光と影">Stage 11-1: 「レバレッジ」の光と影</a></li>
+                    <li><a href="/under-development" class="lesson-link"
+                            data-original-title="Stage 11-2: 下落相場で利益を出す「空売り」">Stage 11-2:
+                            下落相場で利益を出す「空売り」</a></li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="chapter" data-chapter="1">
+            <div class="chapter-header">
+                <div class="chapter-title-container">
+                    <button class="chapter-toggle" data-chapter="1" aria-expanded="false">
+                        <h2>Stage 12: FXで世界の為替市場に挑戦しよう【外国為替証拠金取引】</h2>
+                    </button>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" data-width="0"></div>
+                    <span class="progress-text">0 / 2 問クリア</span>
+                </div>
+            </div>
+            <div class="chapter-content" id="chapter-1" data-visible="false">
+                <ul class="lesson-list">
+                    <li><a href="/under-development" class="lesson-link"
+                            data-original-title="Stage 12-1: FX（外国為替証拠金取引）の基本">Stage 12-1:
+                            FX（外国為替証拠金取引）の基本</a></li>
+                    <li><a href="/under-development" class="lesson-link"
+                            data-original-title="Stage 12-2: FX最大の特徴「レバレッジ」と「スワップポイント」">Stage 12-2:
+                            FX最大の特徴「レバレッジ」と「スワップポイント」</a></li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="chapter" data-chapter="2">
+            <div class="chapter-header">
+                <div class="chapter-title-container">
+                    <button class="chapter-toggle" data-chapter="2" aria-expanded="false">
+                        <h2>Stage 13: 先物・オプション取引の世界【デリバティブ取引】</h2>
+                    </button>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" data-width="0"></div>
+                    <span class="progress-text">0 / 3 問クリア</span>
+                </div>
+            </div>
+            <div class="chapter-content" id="chapter-2" data-visible="false">
+                <ul class="lesson-list">
+                    <li><a href="/under-development" class="lesson-link"
+                            data-original-title="Stage 13-1: 「未来の価格」を取引する先物取引">Stage 13-1:
+                            「未来の価格」を取引する先物取引</a></li>
+                    <li><a href="/under-development" class="lesson-link"
+                            data-original-title="Stage 13-2: 「権利」を売買するオプション取引">Stage 13-2:
+                            「権利」を売買するオプション取引</a></li>
+                    <li><a href="/under-development" class="lesson-link"
+                            data-original-title="Stage 13-3: なぜデリバティブは危険と言われるのか">Stage 13-3:
+                            なぜデリバティブは危険と言われるのか</a></li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Phase2へ戻るボタン -->
+        <div class="phase2-back-button-container">
+            <a href="/phase2" class="phase2-back-button">
+                <i class="fas fa-arrow-left"></i>
+                Phase2へ戻る
+            </a>
+        </div>
         </div>
     </main>
 
@@ -558,7 +475,7 @@
             try {
                 console.log('Clerk初期化を開始します...');
                 console.log('Publishable key:', window.Clerk.publishableKey);
-                
+
                 // Clerkが利用可能かチェック
                 if (window.Clerk && typeof window.Clerk.load === 'function') {
                     await window.Clerk.load();
@@ -566,15 +483,15 @@
                 } else {
                     console.log('Clerkは既に初期化済みまたは利用できません');
                 }
-                
+
                 console.log('Clerk object:', window.Clerk);
                 console.log('Current user:', window.Clerk.user);
-                
+
                 updateAuthUI();
-                
+
                 // レッスンタイトルを変換（Stageを削除）
                 formatLessonTitles();
-                
+
             } catch (error) {
                 console.error('Error loading Clerk:', error);
                 // エラーが発生してもページは継続
@@ -596,11 +513,11 @@
                 }
             });
         }
-        
+
         // ユーザープロフィール処理関数
         function handleUserProfile() {
             console.log('ユーザープロフィールボタンがクリックされました');
-            
+
             // サーバーサイドでユーザーがログインしているかチェック
             <% if (user) { %>
                 console.log('サーバーサイドでユーザーがログイン済みです');
@@ -628,7 +545,7 @@
             const user = window.Clerk.user;
             const userGreeting = document.getElementById('user-greeting');
             const loginBtn = document.getElementById('login-btn');
-            
+
             if (user) {
                 // ログイン済みの場合
                 if (userGreeting) userGreeting.style.display = 'none';
@@ -645,9 +562,9 @@
                 }
             }
         }
-        
+
         // ドロップダウン機能と検索機能のJavaScript
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // プログレスバーの幅を設定
             document.querySelectorAll('.progress-bar').forEach(bar => {
                 const width = bar.getAttribute('data-width');
@@ -655,7 +572,7 @@
                     bar.style.width = width + '%';
                 }
             });
-            
+
             // チャプターコンテンツの表示状態を設定
             document.querySelectorAll('.chapter-content').forEach(content => {
                 const visible = content.getAttribute('data-visible');
@@ -665,21 +582,21 @@
                     content.style.display = 'none';
                 }
             });
-            
+
             // ドロップダウン機能
             const chapterToggles = document.querySelectorAll('.chapter-toggle');
-            
+
             chapterToggles.forEach(toggle => {
-                toggle.addEventListener('click', function() {
+                toggle.addEventListener('click', function () {
                     console.log('Chapter toggle clicked!');
                     const chapterIndex = this.getAttribute('data-chapter');
                     const chapterContent = document.getElementById(`chapter-${chapterIndex}`);
                     const isExpanded = this.getAttribute('aria-expanded') === 'true';
-                    
+
                     console.log('Chapter index:', chapterIndex);
                     console.log('Chapter content element:', chapterContent);
                     console.log('Is expanded:', isExpanded);
-                    
+
                     if (isExpanded) {
                         // 閉じる
                         chapterContent.style.display = 'none';
@@ -696,4 +613,5 @@
         });
     </script>
 </body>
+
 </html>

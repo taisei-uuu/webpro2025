@@ -13,7 +13,7 @@ dotenv.config();
  * 
  * レッスンデータの変更:
  * 1. lessonsWithQuestions配列を編集
- * 2. npm run db:reset を実行
+ * 2. npm run db:seed を実行 (既存データは保持され、新しいレッスンが追加されます)
  * 
  * 注意: 強制リセット時は全ユーザーの進捗データも削除されます
  */
@@ -23,54 +23,81 @@ const prisma = new PrismaClient();
 async function main() {
   // どのデータベースに接続しようとしているか確認
   console.log(
-    `Seeding database at: ${
-      process.env.DATABASE_URL
-        ? process.env.DATABASE_URL.split("@")[1]
-        : "DATABASE_URL not found"
+    `Seeding database at: ${process.env.DATABASE_URL
+      ? process.env.DATABASE_URL.split("@")[1]
+      : "DATABASE_URL not found"
     }`
   );
   console.log(`Start seeding ...`);
 
-  // Phase1の既存レッスンデータをチェック
+  // 既存レッスンデータをチェック
   const existingPhase1Lessons = await prisma.phase1Lesson.count();
-  
+  const existingPhase2Lessons = await prisma.phase2Lesson.count();
+
   // FORCE_RESET環境変数で強制リセットを制御
   const forceReset = process.env.FORCE_RESET === 'true';
-  
-  if (existingPhase1Lessons > 0 && !forceReset) {
-    console.log(`Found ${existingPhase1Lessons} existing Phase1 lessons. Skipping seed to preserve user progress.`);
+
+  if ((existingPhase1Lessons > 0 || existingPhase2Lessons > 0) && !forceReset) {
+    console.log(`Found existing lessons (Phase1: ${existingPhase1Lessons}, Phase2: ${existingPhase2Lessons}).`);
+    console.log("Running in SAFE MODE. Existing data will be preserved.");
+    console.log("New lessons will be added. Existing lessons will be updated (content only).");
     console.log('To force reset, set FORCE_RESET=true environment variable');
-    return;
   }
 
   if (forceReset) {
     console.log("FORCE_RESET=true detected. Proceeding with full reset...");
-  } else {
-    console.log("No existing Phase1 lessons found. Proceeding with seed...");
+
+    // Phase 2の既存データをクリア
+    await prisma.phase2QuizAttempt.deleteMany();
+    await prisma.phase2ClearedQuestion.deleteMany();
+    await prisma.phase2Progress.deleteMany();
+    await prisma.phase2Option.deleteMany();
+    await prisma.phase2Question.deleteMany();
+    await prisma.phase2Lesson.deleteMany();
+
+    // Phase 1の既存データをクリア
+    await prisma.phase1QuizAttempt.deleteMany();
+    await prisma.phase1ClearedQuestion.deleteMany();
+    await prisma.phase1Progress.deleteMany();
+    await prisma.phase1Option.deleteMany();
+    await prisma.phase1Question.deleteMany();
+    await prisma.phase1Lesson.deleteMany();
+
+    await prisma.subscription.deleteMany();
+    await prisma.user.deleteMany();
+    console.log("Deleted old data.");
+
+    // テストユーザーを作成（Clerkを使用するため、パスワードは不要）
+    const user = await prisma.user.create({
+      data: {
+        email: "test@example.com",
+        password: "", // Clerkを使用するため空文字
+        name: "Test User",
+        clerkId: "test_clerk_id", // テスト用のClerk ID
+      },
+    });
+    console.log(`Created user with id: ${user.id}`);
+  } else if (existingPhase1Lessons === 0 && existingPhase2Lessons === 0) {
+    console.log("No existing lessons found. Proceeding with initial seed...");
+    // テストユーザーを作成（Clerkを使用するため、パスワードは不要）
+    // 既存ユーザーがいない場合のみ作成
+    const existingUser = await prisma.user.findUnique({ where: { email: "test@example.com" } });
+    if (!existingUser) {
+      const user = await prisma.user.create({
+        data: {
+          email: "test@example.com",
+          password: "", // Clerkを使用するため空文字
+          name: "Test User",
+          clerkId: "test_clerk_id", // テスト用のClerk ID
+        },
+      });
+      console.log(`Created user with id: ${user.id}`);
+    }
   }
 
-  // Phase1の既存データをクリア (依存関係の深いものから削除)
-  await prisma.phase1QuizAttempt.deleteMany();
-  await prisma.phase1ClearedQuestion.deleteMany();
-  await prisma.phase1Progress.deleteMany();
-  await prisma.phase1Option.deleteMany();
-  await prisma.phase1Question.deleteMany();
-  await prisma.phase1Lesson.deleteMany();
-  await prisma.subscription.deleteMany();
-  await prisma.user.deleteMany();
-  console.log("Deleted old Phase1 data.");
-
-  // テストユーザーを作成（Clerkを使用するため、パスワードは不要）
-  const user = await prisma.user.create({
-    data: {
-      email: "test@example.com",
-      password: "", // Clerkを使用するため空文字
-      name: "Test User",
-      clerkId: "test_clerk_id", // テスト用のClerk ID
-    },
-  });
-  console.log(`Created user with id: ${user.id}`);
-
+  // ==========================================
+  // Phase 1 Lessons
+  // ==========================================
   const lessonsWithQuestions = [
     // Stage 1: 証券口座を開設しよう
     {
@@ -174,7 +201,7 @@ async function main() {
       chapter: 3,
       title: "Stage3-2. NISAについて深く学ぼう",
       slug: "stage3-2",
-      content: "NISA（少額投資非課税制度）は、投資で得た利益が非課税になる日本独自の制度です。NISAの仕組みを詳しく理解し、効果的に活用することで、税負担を軽減しながら資産形成ができます。\n\n## NISAの詳細解説\n\n下のカードをクリックして、NISAについて詳しく学びましょう。\n\n<div id=\"retro-cards-container\"></div>\n\n### NISAの基本情報\n• **年間投資枠**：120万円（2024年から）\n• **非課税期間**：20年間\n• **投資対象**：株式、投資信託、ETFなど\n• **対象外**：REIT、債券、FXなど\n\n### 新NISAの特徴（2024年〜）\n• **投資枠の拡大**：年間120万円（従来の40万円から拡大）\n• **非課税期間の延長**：20年間（従来の5年間から延長）\n• **より柔軟な運用**：投資商品の選択肢が拡大",
+      content: "NISA（少額投資非課税制度）は、投資で得た利益が非課税になる日本独自の制度です。NISAの仕組みを詳しく理解し、効果的に活用することで、税負担を軽減し、より効率的な資産形成が可能になります。\n\n## NISAの詳細解説\n\n下のカードをクリックして、NISAについて詳しく学びましょう。\n\n<div id=\"retro-cards-container\"></div>\n\n### NISAの基本情報\n• **年間投資枠**：120万円（2024年から）\n• **非課税期間**：20年間\n• **投資対象**：株式、投資信託、ETFなど\n• **対象外**：REIT、債券、FXなど\n\n### 新NISAの特徴（2024年〜）\n• **投資枠の拡大**：年間120万円（従来の40万円から拡大）\n• **非課税期間の延長**：20年間（従来の5年間から延長）\n• **より柔軟な運用**：投資商品の選択肢が拡大",
       videoId: "1122376704",
       videoTitle: "NISA",
       questions: [
@@ -309,22 +336,105 @@ async function main() {
 
   for (const data of lessonsWithQuestions) {
     const { questions, ...lessonData } = data;
-    const lesson = await prisma.phase1Lesson.create({
-      data: {
-        ...lessonData,
-        questions: {
-          create: questions.map((q) => ({
-            text: q.text,
-            options: {
-              create: q.options,
-            },
-          })),
-        },
-      },
+
+    // 既存のレッスンがあるか確認
+    const existingLesson = await prisma.phase1Lesson.findUnique({
+      where: { slug: lessonData.slug },
     });
-    console.log(`Created Phase1 lesson with id: ${lesson.id}`);
+
+    if (existingLesson) {
+      // 既存のレッスンがある場合は、内容のみ更新（問題は更新しない）
+      console.log(`Updating existing Phase1 lesson: ${lessonData.slug}`);
+      await prisma.phase1Lesson.update({
+        where: { slug: lessonData.slug },
+        data: {
+          ...lessonData,
+          // questionsは更新しないことで、既存のIDと進捗を保持
+        },
+      });
+    } else {
+      // 新規レッスンの場合は、問題も含めて作成
+      console.log(`Creating new Phase1 lesson: ${lessonData.slug}`);
+      const lesson = await prisma.phase1Lesson.create({
+        data: {
+          ...lessonData,
+          questions: {
+            create: questions.map((q) => ({
+              text: q.text,
+              options: {
+                create: q.options,
+              },
+            })),
+          },
+        },
+      });
+      console.log(`Created Phase1 lesson with id: ${lesson.id}`);
+    }
   }
 
+  // ==========================================
+  // Phase 2 Lessons
+  // ==========================================
+  const phase2LessonsWithQuestions = [
+    // Stage 6: テクニカル分析について学ぼう
+    {
+      chapter: 6,
+      title: "Stage6-1. 移動平均線について学ぼう",
+      slug: "stage6-1",
+      content: "移動平均線は、テクニカル分析の基本となる指標の一つです。過去の一定期間の価格の平均値を線で結んだもので、トレンドの方向性を把握するのに役立ちます。\n\n## 移動平均線の詳細解説\n\n下のカードをクリックして、移動平均線について詳しく学びましょう。\n\n<div id=\"retro-cards-container\"></div>\n\n### 移動平均線の基本\n\n1. **短期線と長期線**\n   • 短期線：5日、25日移動平均線など\n   • 長期線：75日、200日移動平均線など\n   • 短期線が長期線より上にあると上昇トレンド\n   • 短期線が長期線より下にあると下落トレンド\n\n2. **ゴールデンクロスとデッドクロス**\n   • ゴールデンクロス：短期線が長期線を下から上に突き抜ける\n   • デッドクロス：短期線が長期線を上から下に突き抜ける\n   • これらはトレンド転換のシグナルとして注目される\n\n3. **移動平均線の活用方法**\n   • トレンドの方向性を確認\n   • サポート・レジスタンスラインとして機能\n   • 買い時・売り時の判断材料",
+      videoId: null, // 動画IDは後で設定
+      videoTitle: "移動平均線について",
+      questions: [
+        {
+          text: "移動平均線の短期線が長期線を下から上に突き抜けることは一般的に何を示すと考えられる？",
+          options: [
+            { text: "下落トレンドへの転換", isCorrect: false },
+            { text: "上昇トレンドへの転換", isCorrect: true },
+            { text: "トレンドの継続", isCorrect: false },
+            { text: "この世の終わり", isCorrect: false },
+          ],
+        },
+      ],
+    },
+  ];
+
+  for (const data of phase2LessonsWithQuestions) {
+    const { questions, ...lessonData } = data;
+
+    // 既存のレッスンがあるか確認
+    const existingLesson = await prisma.phase2Lesson.findUnique({
+      where: { slug: lessonData.slug },
+    });
+
+    if (existingLesson) {
+      // 既存のレッスンがある場合は、内容のみ更新（問題は更新しない）
+      console.log(`Updating existing Phase2 lesson: ${lessonData.slug}`);
+      await prisma.phase2Lesson.update({
+        where: { slug: lessonData.slug },
+        data: {
+          ...lessonData,
+          // questionsは更新しないことで、既存のIDと進捗を保持
+        },
+      });
+    } else {
+      // 新規レッスンの場合は、問題も含めて作成
+      console.log(`Creating new Phase2 lesson: ${lessonData.slug}`);
+      const lesson = await prisma.phase2Lesson.create({
+        data: {
+          ...lessonData,
+          questions: {
+            create: questions.map((q) => ({
+              text: q.text,
+              options: {
+                create: q.options,
+              },
+            })),
+          },
+        },
+      });
+      console.log(`Created Phase2 lesson with id: ${lesson.id}`);
+    }
+  }
 
   console.log(`Seeding finished.`);
 }

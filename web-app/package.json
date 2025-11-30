@@ -30,6 +30,7 @@
     "express-session": "^1.18.2",
     "framer-motion": "^12.23.13",
     "lucide-react": "^0.544.0",
+    "microcms-js-sdk": "^3.2.0",
     "mime": "^4.0.7",
     "prisma": "^6.10.1",
     "tsx": "^4.20.3",
