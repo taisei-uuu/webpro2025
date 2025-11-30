@@ -142,6 +142,12 @@ def main():
 
         selected_ticker = st.selectbox("銘柄を選択してください", ticker_options, format_func=format_func)
 
+        # データをキャッシュする関数を定義
+        @st.cache_data(ttl=3600) # 1時間キャッシュ
+        def fetch_stock_data(ticker, start, end):
+            ticker_obj = yf.Ticker(ticker)
+            return ticker_obj.history(start=start, end=end)
+
         if selected_ticker:
             # 選択された銘柄のデータを抽出
             ticker_df = df[df["銘柄コード"] == selected_ticker].copy()
@@ -163,9 +169,8 @@ def main():
                     end_date = datetime.today()
 
                 with st.spinner(f"{selected_ticker} の株価データを取得中..."):
-                    # yf.downloadはMultiIndexを返す場合があるため、yf.Ticker().history()を使用
-                    ticker_obj = yf.Ticker(selected_ticker)
-                    stock_data = ticker_obj.history(start=fetch_start_date, end=end_date)
+                    # キャッシュされた関数を使用
+                    stock_data = fetch_stock_data(selected_ticker, fetch_start_date, end_date)
                 
                 if stock_data.empty:
                     st.error(f"{selected_ticker} の株価データが見つかりませんでした。")
