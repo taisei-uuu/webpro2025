@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: Main Site
+    env: node
+    root: web-app
+    buildCommand: cd web-app && npm ci && npx prisma generate && npx prisma db push && npm run build
+    startCommand: cd web-app && npm start
+    plan: free
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.0
+
+  - type: web
+    name: Analysis Tool
+    env: python
+    root: stock-tool
+    buildCommand: cd stock-tool && pip install -r requirements.txt
+    startCommand: cd stock-tool && streamlit run app.py
+    plan: free
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
