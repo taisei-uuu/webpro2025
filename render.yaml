@@ -21,7 +21,7 @@ services:
     plan: free
     # コマンド内で強制的にフォルダ移動させる
     buildCommand: cd stock-tool && pip install -r requirements.txt
-    startCommand: cd stock-tool && streamlit run app.py
+    startCommand: cd stock-tool && streamlit run app.py --server.port $PORT --server.address 0.0.0.0
     envVars:
       # ★ここでPythonバージョンを固定！
       - key: PYTHON_VERSION
