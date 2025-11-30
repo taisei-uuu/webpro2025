@@ -3,7 +3,7 @@ services:
   - type: web
     name: main-site
     env: node
-    plan: free
+    plan: starter
     # コマンド内で強制的にフォルダ移動させる & Prismaコマンドを追加
     buildCommand: cd web-app && npm ci && npx prisma generate && npx prisma db push && npm run build
     startCommand: cd web-app && npm start
