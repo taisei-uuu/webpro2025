@@ -6,7 +6,84 @@ from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 
 # ページ設定
-st.set_page_config(page_title="Stock Trade Visualizer", layout="wide")
+st.set_page_config(
+    page_title="Stock Trade Visualizer", 
+    layout="wide",
+    page_icon="📈",
+    initial_sidebar_state="expanded"
+)
+
+# --- Custom CSS Injection ---
+def local_css():
+    st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        /* 全体のフォントと背景 */
+        html, body, [class*="css"] {
+            font-family: 'Inter', sans-serif;
+            color: #e0e0e0;
+        }
+        
+        /* メイン背景 (Streamlitのデフォルト背景を上書き) */
+        .stApp {
+            background-color: #0e1117;
+            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0e1117 70%);
+        }
+
+        /* サイドバー */
+        section[data-testid="stSidebar"] {
+            background-color: #111827;
+            border-right: 1px solid #1f2937;
+        }
+
+        /* カード風コンテナ */
+        .metric-card {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            text-align: center;
+        }
+        .metric-label {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            margin-bottom: 0.5rem;
+        }
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f3f4f6;
+        }
+
+        /* ボタン */
+        .stButton > button {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .stButton > button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        /* ヘッダー */
+        h1, h2, h3 {
+            color: #f3f4f6;
+            font-weight: 700;
+        }
+        
+        /* Plotlyチャートの背景調整 */
+        .js-plotly-plot .plotly .main-svg {
+            background: transparent !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
 def load_and_process_data(file):
     """
@@ -14,7 +91,6 @@ def load_and_process_data(file):
     """
     try:
         # 1. ヘッダー行の動的特定
-        # ファイルを一度読み込んで、ヘッダー行を探す
         content = file.getvalue().decode("shift-jis", errors="ignore") # 日本語CSVを想定
         lines = content.splitlines()
         
@@ -28,21 +104,18 @@ def load_and_process_data(file):
             return None, "CSV内に「約定日」または「銘柄コード」が見つかりませんでした。"
 
         # 2. CSV読み込み
-        # fileポインタを先頭に戻す必要があるが、pd.read_csvに直接渡すために再度アップロードされたファイルを使うか、
-        # StringIOを使う。ここではlinesからDataFrameを作成する方が確実。
         from io import StringIO
         csv_data = StringIO("\n".join(lines[header_row_index:]))
         df = pd.read_csv(csv_data)
 
         # 3. 不要データの除外
-        # 銘柄コードが空欄の行を除外
         df = df.dropna(subset=["銘柄コード"])
 
         # 4. 銘柄コードの整形
         def format_ticker(x):
             if pd.isna(x):
                 return ""
-            s = str(x).replace(".0", "") # 整数がfloatで読まれた場合などの対策
+            s = str(x).replace(".0", "")
             if not s.endswith(".T"):
                 return s + ".T"
             return s
@@ -61,10 +134,6 @@ def load_and_process_data(file):
 
         df["Side"] = df["取引"].apply(get_side)
         
-        # Sideが判定できない行（入出金など）は除外するか、プロット時に無視する。
-        # ここではプロット時にSideでフィルタリングするため、そのままで良いが、
-        # 明示的にBuy/Sellのみ残す要件はないため、Sideカラムを作るにとどめる。
-
         # 6. 日付の処理
         df["約定日"] = pd.to_datetime(df["約定日"])
 
@@ -74,33 +143,42 @@ def load_and_process_data(file):
         return None, f"データ読み込み中にエラーが発生しました: {str(e)}"
 
 def main():
-    st.title("📈 株式取引履歴 可視化アプリ")
-    st.markdown("証券会社の取引履歴CSVをアップロードして、チャート上に売買ポイントをプロットします。")
+    local_css()
+    
+    st.title("📈 Stock Trade Visualizer")
+    st.markdown("""
+    <div style='margin-bottom: 2rem; color: #9ca3af;'>
+        証券会社の取引履歴CSVをアップロードして、あなたのトレードを美しく可視化します。
+    </div>
+    """, unsafe_allow_html=True)
 
     # 1. サイドバー: CSVアップロード
-    st.sidebar.header("データアップロード")
-    uploaded_file = st.sidebar.file_uploader("取引履歴CSVをアップロード", type=["csv"])
+    with st.sidebar:
+        st.header("Data Upload")
+        uploaded_file = st.file_uploader("取引履歴CSV (Shift-JIS)", type=["csv"])
+        
+        st.markdown("---")
+        st.markdown("""
+        <div style='font-size: 0.8rem; color: #6b7280;'>
+            Supported Formats: SBI証券, 楽天証券, etc.<br>
+            Ensure '約定日' and '銘柄コード' columns exist.
+        </div>
+        """, unsafe_allow_html=True)
 
     if uploaded_file is not None:
-        with st.spinner("データを読み込んでいます..."):
+        with st.spinner("Processing data..."):
             df, error = load_and_process_data(uploaded_file)
 
         if error:
             st.error(error)
             return
 
-        st.sidebar.success("読み込み完了！")
+        st.sidebar.success("Data Loaded Successfully!")
         
-        # データプレビュー（デバッグ用・ユーザー確認用）
-        with st.expander("読み込んだデータを確認"):
-            st.dataframe(df)
-
         # 2. 銘柄選択
-        # ユニークな銘柄リストを作成
         ticker_options = sorted(df["銘柄コード"].unique())
         ticker_map = {}
 
-        # CSVに銘柄名があるか確認
         name_col = None
         if "銘柄名" in df.columns:
             name_col = "銘柄名"
@@ -108,31 +186,24 @@ def main():
             name_col = "銘柄"
 
         if name_col:
-            # CSVから取得
             ticker_map = df[["銘柄コード", name_col]].drop_duplicates().set_index("銘柄コード")[name_col].to_dict()
         
-        # マップにない銘柄（またはCSVに名前がない場合）はyfinanceから取得
-        # st.cache_dataを使ってAPIコールを削減
+        # マップにない銘柄はyfinanceから取得
         @st.cache_data
         def fetch_ticker_names(tickers):
             names = {}
             for t in tickers:
                 try:
                     ticker_info = yf.Ticker(t)
-                    # infoは重い場合があるので、まずはhistoryのmetaなどを確認したいが、
-                    # 確実なのはinfo。ただし遅い可能性あり。
-                    # 多くの銘柄がある場合は時間がかかるため、プログレスバーなどが望ましいが、
-                    # ここではシンプルに実装。
                     info = ticker_info.info
                     names[t] = info.get('shortName') or info.get('longName') or t
                 except:
                     names[t] = t
             return names
 
-        # 名前が取得できていない銘柄のみAPIで取得
         missing_tickers = [t for t in ticker_options if t not in ticker_map]
         if missing_tickers:
-            with st.spinner("銘柄情報を取得中..."):
+            with st.spinner("Fetching ticker names..."):
                 fetched_names = fetch_ticker_names(missing_tickers)
                 ticker_map.update(fetched_names)
 
@@ -140,114 +211,121 @@ def main():
             name = ticker_map.get(ticker, ticker)
             return f"{ticker} {name}"
 
-        selected_ticker = st.selectbox("銘柄を選択してください", ticker_options, format_func=format_func)
+        # サイドバーで銘柄選択
+        selected_ticker = st.sidebar.selectbox("Select Ticker", ticker_options, format_func=format_func)
 
-        # データをキャッシュする関数を定義
-        @st.cache_data(ttl=3600) # 1時間キャッシュ
+        # データをキャッシュする関数
+        @st.cache_data(ttl=3600)
         def fetch_stock_data(ticker, start, end):
             ticker_obj = yf.Ticker(ticker)
             return ticker_obj.history(start=start, end=end)
 
         if selected_ticker:
-            # 選択された銘柄のデータを抽出
             ticker_df = df[df["銘柄コード"] == selected_ticker].copy()
             
+            # --- Dashboard Metrics ---
+            # 簡単な統計情報を表示
+            total_trades = len(ticker_df)
+            buy_count = len(ticker_df[ticker_df["Side"] == "Buy"])
+            sell_count = len(ticker_df[ticker_df["Side"] == "Sell"])
+            last_trade = ticker_df["約定日"].max().strftime('%Y-%m-%d')
+
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.markdown(f"""<div class="metric-card"><div class="metric-label">Total Trades</div><div class="metric-value">{total_trades}</div></div>""", unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"""<div class="metric-card"><div class="metric-label">Buy Orders</div><div class="metric-value" style="color: #f43f5e;">{buy_count}</div></div>""", unsafe_allow_html=True)
+            with col3:
+                st.markdown(f"""<div class="metric-card"><div class="metric-label">Sell Orders</div><div class="metric-value" style="color: #3b82f6;">{sell_count}</div></div>""", unsafe_allow_html=True)
+            with col4:
+                st.markdown(f"""<div class="metric-card"><div class="metric-label">Last Trade</div><div class="metric-value" style="font-size: 1.2rem;">{last_trade}</div></div>""", unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
             # 3. チャート描画
             try:
-                # 期間設定: 取引データの最初と最後から前後半月分
                 min_trade_date = ticker_df["約定日"].min()
                 max_trade_date = ticker_df["約定日"].max()
                 
                 display_start_date = min_trade_date - timedelta(days=15)
                 end_date = max_trade_date + timedelta(days=15)
-                
-                # 移動平均線計算のために、表示開始日より少し前からデータを取得する（25日線のために約40日前から）
                 fetch_start_date = display_start_date - timedelta(days=40)
 
-                # 未来の日付は今日までにする
                 if end_date > datetime.today():
                     end_date = datetime.today()
 
-                with st.spinner(f"{selected_ticker} の株価データを取得中..."):
-                    # キャッシュされた関数を使用
+                with st.spinner(f"Loading chart for {selected_ticker}..."):
                     stock_data = fetch_stock_data(selected_ticker, fetch_start_date, end_date)
                 
                 if stock_data.empty:
-                    st.error(f"{selected_ticker} の株価データが見つかりませんでした。")
+                    st.error(f"No stock data found for {selected_ticker}.")
                 else:
-                    # 移動平均線の計算
                     stock_data['SMA5'] = stock_data['Close'].rolling(window=5).mean()
                     stock_data['SMA25'] = stock_data['Close'].rolling(window=25).mean()
-                    
-                    # 表示期間のみにフィルタリング
-                    # indexはtimezone awareな場合があるので、tz_localize(None)して比較するか、文字列で比較
-                    # ここでは単純に日付比較を行うために、indexをdatetime型として扱う
                     stock_data = stock_data[stock_data.index >= pd.Timestamp(display_start_date).tz_localize(stock_data.index.tz)]
 
-
-
-                    # Plotlyでチャート作成（サブプロット: 上段=株価, 下段=出来高）
+                    # Plotly Chart
                     fig = make_subplots(
                         rows=2, cols=1, 
                         shared_xaxes=True, 
                         vertical_spacing=0.05, 
-                        row_heights=[0.7, 0.3],
-                        subplot_titles=(f"{selected_ticker} 取引ポイント", "出来高")
+                        row_heights=[0.75, 0.25],
+                        subplot_titles=("Price Action", "Volume")
                     )
 
-                    # 休日除外のため、日付を文字列（カテゴリー）として扱う
                     stock_data['DateStr'] = stock_data.index.strftime('%Y-%m-%d')
                     
-                    # ローソク足 (Row 1)
+                    # Candlestick (Modern Colors)
                     fig.add_trace(go.Candlestick(
                         x=stock_data['DateStr'],
                         open=stock_data['Open'],
                         high=stock_data['High'],
                         low=stock_data['Low'],
                         close=stock_data['Close'],
-                        name='株価'
+                        name='Price',
+                        increasing_line_color='#10b981', # Emerald Green
+                        decreasing_line_color='#f43f5e'  # Rose Red
                     ), row=1, col=1)
                     
-                    # 移動平均線 (Row 1)
+                    # SMAs
                     fig.add_trace(go.Scatter(
                         x=stock_data['DateStr'],
                         y=stock_data['SMA5'],
                         mode='lines',
-                        name='5日移動平均',
-                        line=dict(color='orange', width=1)
+                        name='SMA 5',
+                        line=dict(color='#f59e0b', width=1.5) # Amber
                     ), row=1, col=1)
                     
                     fig.add_trace(go.Scatter(
                         x=stock_data['DateStr'],
                         y=stock_data['SMA25'],
                         mode='lines',
-                        name='25日移動平均',
-                        line=dict(color='green', width=1)
+                        name='SMA 25',
+                        line=dict(color='#3b82f6', width=1.5) # Blue
                     ), row=1, col=1)
 
-                    # 売買ポイントのプロット (Row 1)
-                    # 数量カラムの特定
+                    # Trade Markers
                     qty_col = None
                     for col in ['約定数量', '数量', '株数']:
                         if col in ticker_df.columns:
                             qty_col = col
                             break
                     
-                    # Buy
+                    # Buy Markers
                     buy_df = ticker_df[ticker_df["Side"] == "Buy"].copy()
                     if not buy_df.empty:
                         buy_df['DateStr'] = buy_df["約定日"].dt.strftime('%Y-%m-%d')
                         fig.add_trace(go.Scatter(
                             x=buy_df['DateStr'],
-                            y=buy_df["約定単価"], # 約定単価の位置にプロット
+                            y=buy_df["約定単価"],
                             mode='markers',
-                            marker=dict(symbol='triangle-up', size=12, color='red'),
-                            name='買',
-                            text=buy_df.apply(lambda row: f"{row['約定日'].date()}<br>{row['取引']}<br>{row['約定単価']}円<br>{row[qty_col] if qty_col else '-'}株", axis=1),
+                            marker=dict(symbol='triangle-up', size=14, color='#ef4444', line=dict(width=1, color='white')), # Red with white border
+                            name='Buy',
+                            text=buy_df.apply(lambda row: f"BUY<br>{row['約定日'].date()}<br>{row['約定単価']}円<br>{row[qty_col] if qty_col else '-'}株", axis=1),
                             hoverinfo='text'
                         ), row=1, col=1)
 
-                    # Sell
+                    # Sell Markers
                     sell_df = ticker_df[ticker_df["Side"] == "Sell"].copy()
                     if not sell_df.empty:
                         sell_df['DateStr'] = sell_df["約定日"].dt.strftime('%Y-%m-%d')
@@ -255,54 +333,64 @@ def main():
                             x=sell_df['DateStr'],
                             y=sell_df["約定単価"],
                             mode='markers',
-                            marker=dict(symbol='triangle-down', size=12, color='blue'),
-                            name='売',
-                            text=sell_df.apply(lambda row: f"{row['約定日'].date()}<br>{row['取引']}<br>{row['約定単価']}円<br>{row[qty_col] if qty_col else '-'}株", axis=1),
+                            marker=dict(symbol='triangle-down', size=14, color='#3b82f6', line=dict(width=1, color='white')), # Blue with white border
+                            name='Sell',
+                            text=sell_df.apply(lambda row: f"SELL<br>{row['約定日'].date()}<br>{row['約定単価']}円<br>{row[qty_col] if qty_col else '-'}株", axis=1),
                             hoverinfo='text'
                         ), row=1, col=1)
 
-                    # 出来高 (Row 2)
+                    # Volume
                     fig.add_trace(go.Bar(
                         x=stock_data['DateStr'],
                         y=stock_data['Volume'],
-                        name='出来高',
-                        marker_color='gray',
-                        opacity=0.5
+                        name='Volume',
+                        marker_color='#4b5563', # Gray
+                        opacity=0.4
                     ), row=2, col=1)
 
-                    # X軸のラベル作成（MM/DD形式）
+                    # Layout Styling
                     all_dates = stock_data['DateStr'].tolist()
-                    formatted_dates = [d[5:].replace('-', '/') for d in all_dates] # YYYY-MM-DD -> MM/DD
+                    formatted_dates = [d[5:].replace('-', '/') for d in all_dates]
                     
                     fig.update_layout(
-                        height=800, # 高さを増やす
+                        height=800,
                         template="plotly_dark",
-                        xaxis2=dict( # 下段のX軸設定
+                        paper_bgcolor='rgba(0,0,0,0)', # Transparent background
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        font=dict(family="Inter, sans-serif", color="#e0e0e0"),
+                        xaxis2=dict(
                             type='category',
                             tickmode='array',
                             tickvals=all_dates,
                             ticktext=formatted_dates,
-                            title="日付"
+                            title=None,
+                            gridcolor='#374151'
                         ),
-                        xaxis=dict( # 上段のX軸設定（ラベル非表示）
+                        xaxis=dict(
                             type='category',
-                            showticklabels=False
+                            showticklabels=False,
+                            gridcolor='#374151'
                         ),
-                        yaxis=dict(title="価格"),
-                        yaxis2=dict(title="出来高"),
-                        showlegend=True
+                        yaxis=dict(title="Price (JPY)", gridcolor='#374151'),
+                        yaxis2=dict(title="Volume", gridcolor='#374151'),
+                        showlegend=True,
+                        legend=dict(
+                            orientation="h",
+                            yanchor="bottom",
+                            y=1.02,
+                            xanchor="right",
+                            x=1
+                        ),
+                        margin=dict(l=20, r=20, t=60, b=20)
                     )
                     
-                    # X軸のラベルが見やすくなるように調整
                     fig.update_xaxes(tickangle=-45, nticks=20, row=2, col=1)
-                    
-                    # レンジスライダーを無効化（サブプロットだと崩れやすいため）
                     fig.update_layout(xaxis_rangeslider_visible=False)
 
                     st.plotly_chart(fig, use_container_width=True)
 
             except Exception as e:
-                st.error(f"チャート描画中にエラーが発生しました: {str(e)}")
+                st.error(f"Error plotting chart: {str(e)}")
 
 if __name__ == "__main__":
     main()
