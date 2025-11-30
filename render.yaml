@@ -3,7 +3,7 @@ services:
     name: Main Site
     env: node
     root: web-app
-    buildCommand: npm install
+    buildCommand: npm ci && npx prisma generate && npx prisma db push && npm run build
     startCommand: npm start
     plan: free
     envVars:
