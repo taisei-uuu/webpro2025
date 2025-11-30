@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 st.set_page_config(
     page_title="Stock Trade Visualizer", 
     layout="wide",
-    page_icon="📈",
+    page_icon="logo.png",
     initial_sidebar_state="expanded"
 )
 
@@ -22,65 +22,79 @@ def local_css():
         /* 全体のフォントと背景 */
         html, body, [class*="css"] {
             font-family: 'Inter', sans-serif;
-            color: #e0e0e0;
+            color: #1f2937; /* Dark Gray Text */
+            background-color: #ffffff;
         }
         
-        /* メイン背景 (Streamlitのデフォルト背景を上書き) */
+        /* メイン背景 */
         .stApp {
-            background-color: #0e1117;
-            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0e1117 70%);
+            background-color: #f9fafb; /* Very Light Gray */
         }
 
         /* サイドバー */
         section[data-testid="stSidebar"] {
-            background-color: #111827;
-            border-right: 1px solid #1f2937;
+            background-color: #ffffff;
+            border-right: 1px solid #e5e7eb;
         }
 
         /* カード風コンテナ */
         .metric-card {
-            background-color: #1f2937;
-            border: 1px solid #374151;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             text-align: center;
+            transition: transform 0.2s;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .metric-label {
             font-size: 0.875rem;
-            color: #9ca3af;
+            color: #6b7280;
             margin-bottom: 0.5rem;
+            font-weight: 600;
         }
         .metric-value {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #f3f4f6;
+            color: #111827;
         }
 
         /* ボタン */
         .stButton > button {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); /* Blue Gradient */
             color: white;
             border: none;
             border-radius: 8px;
             padding: 0.5rem 1rem;
             font-weight: 600;
             transition: all 0.2s;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
         .stButton > button:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
         }
 
         /* ヘッダー */
         h1, h2, h3 {
-            color: #f3f4f6;
+            color: #1e3a8a; /* Dark Blue */
             font-weight: 700;
         }
         
         /* Plotlyチャートの背景調整 */
         .js-plotly-plot .plotly .main-svg {
             background: transparent !important;
+        }
+        
+        /* Selectbox Styling */
+        div[data-baseweb="select"] > div {
+            background-color: #ffffff;
+            border-color: #d1d5db;
+            color: #1f2937;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -145,25 +159,31 @@ def load_and_process_data(file):
 def main():
     local_css()
     
-    st.title("📈 Stock Trade Visualizer")
-    st.markdown("""
-    <div style='margin-bottom: 2rem; color: #9ca3af;'>
-        証券会社の取引履歴CSVをアップロードして、あなたのトレードを美しく可視化します。
-    </div>
-    """, unsafe_allow_html=True)
-
-    # 1. サイドバー: CSVアップロード
+    # サイドバーにロゴを表示
     with st.sidebar:
+        try:
+            st.image("logo.png", width=50)
+        except:
+            pass # ロゴがない場合はスキップ
+        st.title("Stock Visualizer")
+        
+        st.markdown("---")
         st.header("Data Upload")
         uploaded_file = st.file_uploader("取引履歴CSV (Shift-JIS)", type=["csv"])
         
-        st.markdown("---")
         st.markdown("""
-        <div style='font-size: 0.8rem; color: #6b7280;'>
-            Supported Formats: SBI証券, 楽天証券, etc.<br>
-            Ensure '約定日' and '銘柄コード' columns exist.
+        <div style='font-size: 0.8rem; color: #6b7280; margin-top: 1rem;'>
+            Supported: SBI証券, 楽天証券, etc.<br>
+            Required: '約定日', '銘柄コード'
         </div>
         """, unsafe_allow_html=True)
+
+    st.title("📈 Stock Trade Visualizer")
+    st.markdown("""
+    <div style='margin-bottom: 2rem; color: #4b5563;'>
+        証券会社の取引履歴CSVをアップロードして、あなたのトレードを美しく可視化します。
+    </div>
+    """, unsafe_allow_html=True)
 
     if uploaded_file is not None:
         with st.spinner("Processing data..."):
@@ -173,7 +193,7 @@ def main():
             st.error(error)
             return
 
-        st.sidebar.success("Data Loaded Successfully!")
+        st.sidebar.success("Data Loaded!")
         
         # 2. 銘柄選択
         ticker_options = sorted(df["銘柄コード"].unique())
@@ -224,7 +244,6 @@ def main():
             ticker_df = df[df["銘柄コード"] == selected_ticker].copy()
             
             # --- Dashboard Metrics ---
-            # 簡単な統計情報を表示
             total_trades = len(ticker_df)
             buy_count = len(ticker_df[ticker_df["Side"] == "Buy"])
             sell_count = len(ticker_df[ticker_df["Side"] == "Sell"])
@@ -234,9 +253,9 @@ def main():
             with col1:
                 st.markdown(f"""<div class="metric-card"><div class="metric-label">Total Trades</div><div class="metric-value">{total_trades}</div></div>""", unsafe_allow_html=True)
             with col2:
-                st.markdown(f"""<div class="metric-card"><div class="metric-label">Buy Orders</div><div class="metric-value" style="color: #f43f5e;">{buy_count}</div></div>""", unsafe_allow_html=True)
+                st.markdown(f"""<div class="metric-card"><div class="metric-label">Buy Orders</div><div class="metric-value" style="color: #ef4444;">{buy_count}</div></div>""", unsafe_allow_html=True)
             with col3:
-                st.markdown(f"""<div class="metric-card"><div class="metric-label">Sell Orders</div><div class="metric-value" style="color: #3b82f6;">{sell_count}</div></div>""", unsafe_allow_html=True)
+                st.markdown(f"""<div class="metric-card"><div class="metric-label">Sell Orders</div><div class="metric-value" style="color: #2563eb;">{sell_count}</div></div>""", unsafe_allow_html=True)
             with col4:
                 st.markdown(f"""<div class="metric-card"><div class="metric-label">Last Trade</div><div class="metric-value" style="font-size: 1.2rem;">{last_trade}</div></div>""", unsafe_allow_html=True)
 
@@ -284,7 +303,7 @@ def main():
                         close=stock_data['Close'],
                         name='Price',
                         increasing_line_color='#10b981', # Emerald Green
-                        decreasing_line_color='#f43f5e'  # Rose Red
+                        decreasing_line_color='#ef4444'  # Red
                     ), row=1, col=1)
                     
                     # SMAs
@@ -301,7 +320,7 @@ def main():
                         y=stock_data['SMA25'],
                         mode='lines',
                         name='SMA 25',
-                        line=dict(color='#3b82f6', width=1.5) # Blue
+                        line=dict(color='#2563eb', width=1.5) # Blue
                     ), row=1, col=1)
 
                     # Trade Markers
@@ -319,7 +338,7 @@ def main():
                             x=buy_df['DateStr'],
                             y=buy_df["約定単価"],
                             mode='markers',
-                            marker=dict(symbol='triangle-up', size=14, color='#ef4444', line=dict(width=1, color='white')), # Red with white border
+                            marker=dict(symbol='triangle-up', size=14, color='#ef4444', line=dict(width=1, color='white')),
                             name='Buy',
                             text=buy_df.apply(lambda row: f"BUY<br>{row['約定日'].date()}<br>{row['約定単価']}円<br>{row[qty_col] if qty_col else '-'}株", axis=1),
                             hoverinfo='text'
@@ -333,7 +352,7 @@ def main():
                             x=sell_df['DateStr'],
                             y=sell_df["約定単価"],
                             mode='markers',
-                            marker=dict(symbol='triangle-down', size=14, color='#3b82f6', line=dict(width=1, color='white')), # Blue with white border
+                            marker=dict(symbol='triangle-down', size=14, color='#2563eb', line=dict(width=1, color='white')),
                             name='Sell',
                             text=sell_df.apply(lambda row: f"SELL<br>{row['約定日'].date()}<br>{row['約定単価']}円<br>{row[qty_col] if qty_col else '-'}株", axis=1),
                             hoverinfo='text'
@@ -344,7 +363,7 @@ def main():
                         x=stock_data['DateStr'],
                         y=stock_data['Volume'],
                         name='Volume',
-                        marker_color='#4b5563', # Gray
+                        marker_color='#9ca3af', # Gray
                         opacity=0.4
                     ), row=2, col=1)
 
@@ -354,25 +373,25 @@ def main():
                     
                     fig.update_layout(
                         height=800,
-                        template="plotly_dark",
-                        paper_bgcolor='rgba(0,0,0,0)', # Transparent background
+                        template="plotly_white", # Light Theme
+                        paper_bgcolor='rgba(0,0,0,0)',
                         plot_bgcolor='rgba(0,0,0,0)',
-                        font=dict(family="Inter, sans-serif", color="#e0e0e0"),
+                        font=dict(family="Inter, sans-serif", color="#1f2937"),
                         xaxis2=dict(
                             type='category',
                             tickmode='array',
                             tickvals=all_dates,
                             ticktext=formatted_dates,
                             title=None,
-                            gridcolor='#374151'
+                            gridcolor='#e5e7eb'
                         ),
                         xaxis=dict(
                             type='category',
                             showticklabels=False,
-                            gridcolor='#374151'
+                            gridcolor='#e5e7eb'
                         ),
-                        yaxis=dict(title="Price (JPY)", gridcolor='#374151'),
-                        yaxis2=dict(title="Volume", gridcolor='#374151'),
+                        yaxis=dict(title="Price (JPY)", gridcolor='#e5e7eb'),
+                        yaxis2=dict(title="Volume", gridcolor='#e5e7eb'),
                         showlegend=True,
                         legend=dict(
                             orientation="h",
