@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>記事作成 - Stock with</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="page-title">新規記事作成</h1>
+
+        <form action="/admin/articles" method="POST" class="article-form">
+            <div class="form-group">
+                <label for="title">タイトル</label>
+                <input type="text" id="title" name="title" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="slug">スラッグ (URLの一部になります)</label>
+                <input type="text" id="slug" name="slug" required class="form-control"
+                    placeholder="例: how-to-start-investing">
+            </div>
+
+            <div class="form-group">
+                <label for="content">本文</label>
+                <textarea id="content" name="content" required class="form-control" rows="15"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <a href="/articles" class="btn btn-outline">キャンセル</a>
+                <button type="submit" class="btn btn-primary">作成する</button>
+            </div>
+        </form>
+    </div>
+
+    <style>
+        .page-title {
+            margin: 2rem 0;
+            color: #1e40af;
+        }
+
+        .article-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-primary {
+            background-color: #1e40af;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #1e3a8a;
+        }
+    </style>
+</body>
+
+</html>

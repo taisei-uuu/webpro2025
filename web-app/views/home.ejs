@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock with - 初心者向け株式投資学習プラットフォーム | 無料で学べる投資の基礎知識</title>
+    <meta name="description" content="Stock withは初心者向けの株式投資学習プラットフォームです。段階的なレッスンとAIアシスタントで、投資の基礎から応用まで安心して学べます。無料でアカウント作成して投資知識を身につけましょう。">
+    <meta name="keywords" content="株式投資, 投資学習, 初心者, 投資教育, 金融教育, 投資基礎, NISA, 投資信託, 株価, 投資知識">
+    <meta name="author" content="Stock with株式会社">
+    <meta property="og:title" content="Stock with - 初心者向け株式投資学習プラットフォーム">
+    <meta property="og:description" content="初心者でも安心して学べる株式投資学習プラットフォーム。段階的なレッスンとAIアシスタントで投資知識を身につけましょう。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-domain.com">
+    <meta property="og:image" content="https://your-domain.com/logo.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Stock with - 初心者向け株式投資学習プラットフォーム">
+    <meta name="twitter:description" content="初心者でも安心して学べる株式投資学習プラットフォーム。段階的なレッスンとAIアシスタントで投資知識を身につけましょう。">
+    <!-- リソースの最適化読み込み -->
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/display-cards.css">
+    <style>
+        .hero-section {
+            background: #1e40af;
+            color: white;
+            padding: 120px 0 100px 0;
+            position: relative;
+            margin-top: 76px;
+            overflow: hidden;
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="%23ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="200" r="300" fill="url(%23a)"/><circle cx="800" cy="300" r="200" fill="url(%23a)"/><circle cx="400" cy="700" r="250" fill="url(%23a)"/></svg>') no-repeat center center;
+            background-size: cover;
+            opacity: 0.3;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        .hero-section h1 {
+            color: white;
+            font-weight: 700;
+        }
+        .hero-section .lead {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+        .feature-card {
+            transition: transform 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .cta-button {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            font-weight: 600;
+            color: #1e40af !important;
+        }
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            color: #1e40af !important;
+        }
+        .btn-outline-light {
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            color: white;
+            font-weight: 500;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: white;
+            color: white;
+        }
+        /* ヘッダーナビゲーションのホバー効果 */
+        .navbar-nav .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            padding: 8px 16px; /* ログインボタンと同じパディング */
+            height: 40px; /* 固定の高さを設定 */
+            color: #000000 !important; /* 通常時の色を黒に設定 */
+            border-left: 1px solid rgba(0, 0, 0, 0.1); /* 左側の境界線 */
+            border-right: 1px solid rgba(0, 0, 0, 0.1); /* 右側の境界線 */
+        }
+        
+        /* 最初のナビゲーションアイテムの左境界線を削除 */
+        .navbar-nav .nav-item:first-child .nav-link {
+            border-left: none;
+        }
+        
+        /* 最後のナビゲーションアイテムの右境界線を削除 */
+        .navbar-nav .nav-item:last-child .nav-link {
+            border-right: none;
+        }
+        
+        .navbar-nav .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 4px; /* ボトム位置を調整 */
+            left: 50%;
+            background-color: #1e40af; /* 青色のアンダーライン */
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        
+        .navbar-nav .nav-link:hover::after {
+            width: calc(100% - 32px); /* パディング分を引いた幅 */
+        }
+        
+        .navbar-nav .nav-link:hover {
+            color: #1e40af !important; /* ホバー時に青色に変更 */
+        }
+        
+        /* インスタグラムアイコンのサイズ調整 */
+        .navbar-nav .nav-link i {
+            font-size: 1.2rem; /* アイコンサイズを調整 */
+        }
+        
+        /* インスタグラムアイコンの色設定 */
+        .navbar-nav .nav-link .fa-instagram {
+            color: #e1306c; /* インスタグラムのブランドカラー */
+        }
+        
+        .navbar-nav .nav-link:hover .fa-instagram {
+            color: #1e40af !important; /* ホバー時に青色に変更 */
+        }
+        
+        /* インスタグラムアイコンのアンダーラインを確実に表示 */
+        .navbar-nav .nav-item:has(.fa-instagram) .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 4px;
+            left: 50%;
+            background-color: #1e40af;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        
+        .navbar-nav .nav-item:has(.fa-instagram) .nav-link:hover::after {
+            width: 20px; /* アイコンの横幅と同じ長さに設定 */
+        }
+        
+        .navbar-brand {
+            font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #000000 !important;
+            display: flex;
+            align-items: center;
+            line-height: 1;
+        }
+        
+        .navbar-brand .brand-with {
+            font-weight: 400;
+            color: #1e40af;
+        }
+        .section-title {
+            color: #1e40af;
+            font-weight: 700;
+        }
+        .section-subtitle {
+            color: #64748b;
+        }
+        .cta-section .section-title {
+            color: white;
+        }
+
+        /* 代表者挨拶セクションの背景画像スタイル */
+        .ceo-section {
+            background-image: url('/taisei.JPG');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        .ceo-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.85);
+            z-index: 1;
+        }
+
+        .ceo-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 代表者挨拶の文章を中央揃え */
+        .ceo-content p {
+            text-align: center;
+        }
+
+        /* 流れイラスト */
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+        .scroll-container {
+            overflow: hidden;
+            width: 100%;
+            background:white;
+            padding: 40px 0;
+            margin: 20px 0;
+        }
+        .scroll-track {
+            display: flex;
+            width: 200%;
+            animation: scroll 30s linear infinite;
+        }
+        .scroll-track img {
+            width: auto;
+            height: 400px;
+            margin-right: 30px;
+            flex-shrink: 0;
+            /* カード感を出すためのスタイル */
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            background: white;
+            padding: 8px;
+        }
+        
+        /* ホバー効果でカード感を強調 */
+        .scroll-track img:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+        }
+        /* モバイル対応 */
+        @media (max-width: 768px) {
+            .ceo-section::before {
+                background-color: rgba(255, 255, 255, 0.9);
+            }
+            
+            /* モバイルでの流れイラストカード調整 */
+            .scroll-container {
+                padding: 20px 0;
+                margin: 10px 0;
+            }
+            
+            .scroll-track img {
+                height: 300px;
+                margin-right: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                padding: 6px;
+            }
+        }
+    </style>
+</head>
+<script src="/in-app-browser-detector.js"></script>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+        <div class="container">
+            <a class="navbar-brand text-primary" href="/">
+                <img src="/logo.png" alt="Stock with" height="40" class="me-2">
+                STOCK&nbsp;<span class="brand-with">WITH</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">
+                            <i class="fas fa-info-circle me-1"></i>
+                            ABOUT US
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn btn-link" onclick="window.Clerk.openSignIn()" style="border: none; background: none; padding: 8px 16px;">
+                            <i class="fas fa-right-to-bracket me-1"></i>
+                            ログイン
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://www.instagram.com/utsubo_zmoney?igsh=NTJsa3pkZnZzNXd1&utm_source=qr" target="_blank" rel="noopener noreferrer" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-3" href="/learning">学習を始める</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ヒーローセクション -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <!-- 左側：キャプションとボタン（約70%） -->
+                <div class="col-lg-8 hero-content text-center">
+                    <h1 class="display-3 fw-bold mb-4" style="line-height: 1.2; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                        <span style="font-size: 1.2em;">投資</span><span style="font-size: 0.8em;">を始めるなら、</span><br>
+                        <span style="font-size: 0.8em;">もう</span><span class="text-warning" style="font-size: 1.2em;">これだけ</span><span style="font-size: 0.8em;">でいい。</span>
+                    </h1>
+                    <p class="lead mb-5 fs-4" style="color: rgba(255,255,255,0.9); font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+                        コスパ×タイパ×わかりやすさを追求した<br>
+                        <span class="text-warning fw-bold">最高の投資家ガイド</span>
+                    </p>
+                    <a href="/learning" class="btn cta-button text-white me-3">
+                        <i class="fas fa-play me-2"></i>今すぐ始める
+                    </a>
+                    <a href="#features" class="btn btn-outline-light">
+                        <i class="fas fa-info-circle me-2"></i>詳しく見る
+                    </a>
+                </div>
+                <!-- 右側：画像（約30%） -->
+                <div class="col-lg-4 text-center">
+                    <img src="/dog_cat.png" alt="投資学習" class="img-fluid" style="max-height: 500px; width: auto;">
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- 流れイラスト -->
+    <div class="scroll-container">
+        <div class="scroll-track">        
+        <img src="/Stage1/1-1/1.png" alt="流れイラスト">
+        <img src="/Stage2/2-1/1.png" alt="流れイラスト">
+        <img src="/Stage2/2-2/1.png" alt="流れイラスト">
+        <img src="/Stage3/3-2/1.png" alt="流れイラスト">
+        <img src="/Stage1/1-1/1.png" alt="流れイラスト">
+        <img src="/Stage2/2-1/1.png" alt="流れイラスト">
+        <img src="/Stage2/2-2/1.png" alt="流れイラスト">
+        <img src="/Stage3/3-2/1.png" alt="流れイラスト">
+    </div>
+</div>
+
+    <!-- 価格セクション -->
+    <section class="py-5 bg-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 text-center">
+                    <img src="/Cat_nomoney.png" alt="お金が無い猫" class="img-fluid" style="max-width: 300px;">
+                </div>
+                <div class="col-lg-6 text-center">
+                    <h2 class="display-4 fw-bold mb-4" style="color: #3b82f6;">お金が無い？</h2>
+                    <p class="lead fs-3 mb-0" style="line-height: 1.6;">
+                        大丈夫。Stock withは<br>
+                        初級編 <span class="fw-bold" style="font-size: 1.5em; color: #fbbf24;">無料</span><br>
+                        以降月額 <span class="fw-bold" style="font-size: 1.5em; color: #fbbf24;">300円</span> で学べる
+                    </p>
+                    <div class="mt-3">
+                        <span class="badge bg-success fs-6 px-3 py-2">
+                            <i class="fas fa-gift me-1"></i>現時点ではずっと無料です！
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 学習方法セクション -->
+    <section class="py-5 bg-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 text-center">
+                    <h2 class="display-4 fw-bold mb-4" style="color: #3b82f6;">何から学べばいいかわからない？</h2>
+                    <p class="lead fs-3 mb-0" style="line-height: 1.6;">
+                        大丈夫。<span class="fw-bold" style="font-size: 1.5em; color: #fbbf24;">「体系的」</span>かつ<span class="fw-bold" style="font-size: 1.5em; color: #fbbf24;">「レベル」</span>ごとに整理された内容で学べる。
+                    </p>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <img src="/dog_cat_next.png" alt="学習方法" class="img-fluid" style="max-width: 300px;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 不安解消セクション -->
+    <section class="py-5 bg-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 text-center">
+                    <img src="/cat_athome.png" alt="家にいる猫" class="img-fluid" style="max-width: 300px;">
+                </div>
+                <div class="col-lg-6 text-center">
+                    <h2 class="display-4 fw-bold mb-4" style="color: #3b82f6;">損をするのが怖い？</h2>
+                    <p class="lead fs-3 mb-0" style="line-height: 1.6;">
+                        大丈夫。株式投資の<span class="fw-bold" style="font-size: 1.5em; color: #fbbf24;">「リアル」</span>をvlog形式でSNSで発信中！
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTAセクション -->
+    <section class="py-5 text-white cta-section" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);">
+        <div class="container text-center">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <h2 class="display-5 fw-bold mb-4 section-title">今すぐ学習を始めませんか？</h2>
+                    <p class="lead mb-4">
+                        無料でアカウントを作成して、株式投資の学習を始めましょう。
+                    </p>
+                    <button onclick="window.Clerk.openSignUp()" class="btn btn-light btn-lg me-3">
+                        <i class="fas fa-user-plus me-2"></i>無料で始める
+                    </button>
+                    <a href="/learning" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-play me-2"></i>学習プラットフォームへ
+                    </a>
+                    <!-- Stripe関連（コメントアウト）
+                    <a href="/subscription" class="btn btn-warning btn-lg">
+                        <i class="fas fa-crown me-2"></i>プレミアムプラン
+                    </a>
+                    -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT USセクション -->
+    <section id="about" class="py-5 bg-light">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <h2 class="display-5 fw-bold mb-5 section-title">ABOUT US</h2>
+                    
+                    <!-- MISSION -->
+                    <div class="mb-5">
+                        <h3 class="h4 fw-bold mb-3" style="color: #1e40af;">
+                            <i class="fas fa-bullseye me-2"></i>MISSION
+                        </h3>
+                        <p class="lead mb-0" style="line-height: 1.6;">
+                            すべての人が持つ株式投資への「心理的、物理的ハードル」を破壊し、最初の一歩を最もシンプルに、そして最も心強く後押しする。
+                        </p>
+                    </div>
+                    
+                    <!-- VISION -->
+                    <div class="mb-4">
+                        <h3 class="h4 fw-bold mb-3" style="color: #1e40af;">
+                            <i class="fas fa-eye me-2"></i>VISION
+                        </h3>
+                        <p class="lead mb-0" style="line-height: 1.6;">
+                            生まれた環境や地域に関わらず、すべての人が株式投資を資産形成における当たり前の選択肢として持ち、自らの未来を切り拓いていける社会を創る。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 代表者挨拶セクション -->
+    <section class="py-5 bg-white ceo-section">
+        <div class="container ceo-content">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="text-center mb-5">
+                        <h2 class="display-5 fw-bold mb-4 section-title">代表者挨拶</h2>
+                        <div class="mb-4">
+                            <h4 class="fw-bold mb-2" style="color: #1e40af;">Stock with株式会社代表取締役/CEO</h4>
+                            <h3 class="fw-bold mb-2">宇坪 大成</h3>
+                            <p class="text-muted mb-0">慶應義塾大学理工学部 在学中</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8">
+                            <div class="message-content" style="line-height: 1.8; font-size: 1.1rem;">
+                                <p class="mb-4">
+                                    Stock with株式会社のウェブサイトへお越しいただき、誠にありがとうございます。<br>
+                                    代表取締役の宇坪大成です。
+                                </p>
+                                
+                                <p class="mb-4">
+                                    私が株式投資の世界に足を踏み入れたのは、大学時代の留学経験がきっかけでした。海外の同世代の多くが、ごく当たり前に株式投資を学び、実践している事実に衝撃を受けたのです。
+                                </p>
+                                
+                                <p class="mb-4">
+                                    帰国後、私自身も投資を始めてみると、それは想像以上にエキサイティングな体験でした。単にお金が増えるだけでなく、世の中の動きを深く知る「経験」、そして時間や労力に対する「タイパ・コスパ」という、素晴らしい副産物が得られたのです。
+                                </p>
+                                
+                                <p class="mb-4">
+                                    しかし、同時に強い疑問が湧き上がりました。<br>
+                                    <strong>「これほど素晴らしい世界なのに、なぜ日本の同世代は、誰もがやろうとしないのだろうか？」</strong>
+                                </p>
+                                
+                                <p class="mb-4">
+                                    周囲の友人に話を聞くと、答えは明らかでした。彼らの多くが株式投資に「興味はある」のです。ただ、その興味を行動に移すための一歩が、あまりにも分かりにくい。世の中はまだ、株を始めたいと願う人々に、十分親切ではないのだと気づかされました。
+                                </p>
+                                
+                                <p class="mb-4">
+                                    <strong>「ならば、私がその"最初の一歩"を後押ししよう」。</strong>
+                                </p>
+                                
+                                <p class="mb-4">
+                                    Stock with株式会社は、その決意から生まれました。私たちは、複雑な金融の世界への入り口に立ち、あなたの背中をそっと押す、最も身近なパートナーでありたいと願っています。
+                                </p>
+                                
+                                <p class="mb-0">
+                                    株式投資が、すべての人にとって当たり前の選択肢となる社会を目指し、皆様と共に歩んで参ります。
+                                </p>
+                            </div>
+                            
+                            <div class="text-center mt-5 pt-4" style="border-top: 2px solid #e5e7eb;">
+                                <p class="mb-1 fw-bold">Stock with株式会社</p>
+                                <p class="mb-0 text-muted">代表取締役 宇坪 大成</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- フッター -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-2">
+                        <img src="/logo.png" alt="Stock with" height="30" class="me-2">
+                        <h5 class="mb-0">Stock with</h5>
+                    </div>
+                    <p class="text-muted">株式投資学習プラットフォーム</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="mb-2">
+                        <a href="/privacy" class="text-muted text-decoration-none me-3">
+                            <i class="fas fa-shield-alt me-1"></i>プライバシーポリシー
+                        </a>
+                        <a href="/terms" class="text-muted text-decoration-none me-3">
+                            <i class="fas fa-file-contract me-1"></i>利用規約
+                        </a>
+                        <a href="/notice" class="text-muted text-decoration-none">
+                            <i class="fas fa-bullhorn me-1"></i>電子公告
+                        </a>
+                    </div>
+                    <p class="text-muted mb-0">&copy; 2025 Stock with株式会社. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScriptの最適化読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="/display-cards.js" defer></script>
+    
+    <!-- Clerk認証スクリプト（最適化版） -->
+    <script>
+        window.Clerk = window.Clerk || {};
+        window.Clerk.publishableKey = '<%= publishableKey || "" %>';
+    </script>
+    <% if (publishableKey) { %>
+    <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>" src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    <% } %>
+    <script>
+        // Clerkの初期化とユーザー状態管理（index.ejsと同じ方式）
+        window.addEventListener('load', async () => {
+            try {
+                await window.Clerk.load();
+                console.log('Clerk loaded successfully');
+                updateUI();
+                
+                // Clerkの初期化完了後にリスナーを設定
+                window.Clerk.addListener(({ user }) => {
+                    updateUI();
+                });
+            } catch (error) {
+                console.error('Error loading Clerk:', error);
+            }
+        });
+        
+        // ユーザープロフィール処理関数
+        function handleUserProfile() {
+            console.log('ユーザープロフィールボタンがクリックされました');
+            
+            // Clerkが利用可能かチェック
+            if (window.Clerk && typeof window.Clerk.openUserProfile === 'function') {
+                try {
+                    window.Clerk.openUserProfile();
+                    console.log('プロフィール画面を開きました');
+                } catch (error) {
+                    console.error('プロフィール画面を開く際にエラーが発生しました:', error);
+                    alert('プロフィール画面を開けませんでした。');
+                }
+            } else {
+                console.error('Clerkが利用できません');
+                alert('プロフィール機能が利用できません。');
+            }
+        }
+
+        // UIの更新関数
+        function updateUI() {
+            const user = window.Clerk.user;
+            const loginButton = document.querySelector('button[onclick="window.Clerk.openSignIn()"]');
+            const signupButton = document.querySelector('button[onclick="window.Clerk.openSignUp()"]');
+            
+            if (user) {
+                // ログイン済みの場合
+                if (loginButton) {
+                    loginButton.innerHTML = '<i class="fas fa-user me-1"></i>';
+                    loginButton.onclick = handleUserProfile;
+                }
+                if (signupButton) {
+                    signupButton.style.display = 'none';
+                }
+            } else {
+                // 未ログインの場合
+                if (loginButton) {
+                    loginButton.innerHTML = '<i class="fas fa-right-to-bracket me-1"></i>ログイン';
+                    loginButton.onclick = () => window.Clerk.openSignIn();
+                }
+                if (signupButton) {
+                    signupButton.style.display = 'inline-block';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

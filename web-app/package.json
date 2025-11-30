@@ -1,0 +1,46 @@
+{
+  "name": "webpro2025",
+  "version": "1.0.0",
+  "description": "Webpro 2025",
+  "main": "index.js",
+  "scripts": {
+    "build": "prisma generate && prisma db push",
+    "build:with-seed": "prisma generate && prisma db push && prisma db seed",
+    "start": "tsx index.ts",
+    "dev": "tsx index.ts",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "db:reset": "FORCE_RESET=true prisma db seed",
+    "db:reset:local": "FORCE_RESET=true npx prisma db seed",
+    "seed:phase2": "tsx scripts/seed-phase2.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@clerk/express": "^1.7.30",
+    "@google/genai": "^1.12.0",
+    "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^6.10.1",
+    "@types/express-session": "^1.18.2",
+    "@types/uuid": "^10.0.0",
+    "dotenv": "^17.1.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "framer-motion": "^12.23.13",
+    "lucide-react": "^0.544.0",
+    "microcms-js-sdk": "^3.2.0",
+    "mime": "^4.0.7",
+    "prisma": "^6.10.1",
+    "tsx": "^4.20.3",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "typescript": "^5.8.3"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

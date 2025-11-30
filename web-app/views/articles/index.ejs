@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>記事一覧 - Stock with</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Clerk認証スクリプト -->
+    <script>
+        window.Clerk = window.Clerk || {};
+        window.Clerk.publishableKey = '<%= publishableKey || "" %>';
+    </script>
+    <% if (publishableKey) { %>
+        <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>"
+            src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+        <% } %>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+        <main class="site-main">
+            <div class="container">
+                <%- include('../partials/navigation', { path: '/articles' }) %>
+                    <h1 class="page-title">記事一覧</h1>
+
+                    <div class="article-list">
+                        <% if (articles && articles.length> 0) { %>
+                            <% articles.forEach(article=> { %>
+                                <article class="article-card">
+                                    <a href="/articles/<%= article.id %>" class="article-link">
+                                        <% if (article.thumbnail) { %>
+                                            <div class="article-thumbnail-wrapper">
+                                                <img src="<%= article.thumbnail.url %>" alt="<%= article.title %>"
+                                                    class="article-thumbnail">
+                                            </div>
+                                            <% } %>
+                                                <div class="article-content">
+                                                    <h2 class="article-title">
+                                                        <%= article.title %>
+                                                    </h2>
+
+                                                    <div class="article-meta">
+                                                        <time class="article-date"
+                                                            datetime="<%= article.publishedAt %>">
+                                                            <i class="far fa-calendar-alt"></i>
+                                                            <%= new
+                                                                Date(article.publishedAt).toLocaleDateString('ja-JP') %>
+                                                        </time>
+                                                        <% if (article.isPaid) { %>
+                                                            <span class="badge badge-paid">有料会員限定</span>
+                                                            <% } else { %>
+                                                                <span class="badge badge-free">無料</span>
+                                                                <% } %>
+                                                    </div>
+
+                                                    <div class="article-introduction">
+                                                        <%- article.introduction %>
+                                                    </div>
+
+                                                    <div class="article-footer">
+                                                        <span class="read-more">続きを読む <i
+                                                                class="fas fa-chevron-right"></i></span>
+                                                    </div>
+                                                </div>
+                                    </a>
+                                </article>
+                                <% }); %>
+                                    <% } else { %>
+                                        <p class="no-articles">記事はまだありません。</p>
+                                        <% } %>
+                    </div>
+            </div>
+        </main>
+
+        <footer class="site-footer">
+            <div class="container">
+                <p>&copy; 2025 Stock with株式会社. All Rights Reserved.</p>
+            </div>
+        </footer>
+
+        <script>
+            // Clerkの初期化と認証UIの更新
+            window.addEventListener('load', async () => {
+                if (window.Clerk && typeof window.Clerk.load === 'function') {
+                    await window.Clerk.load();
+                    updateAuthUI();
+                }
+            });
+
+            function handleUserProfile() {
+                if (window.Clerk && window.Clerk.user) {
+                    window.Clerk.openUserProfile();
+                } else {
+                    window.Clerk.openSignIn();
+                }
+            }
+
+            function updateAuthUI() {
+                const user = window.Clerk.user;
+                const userGreeting = document.getElementById('user-greeting');
+                const loginBtn = document.getElementById('login-btn');
+
+                if (user) {
+                    if (userGreeting) userGreeting.style.display = 'none';
+                    if (loginBtn) {
+                        loginBtn.innerHTML = '<i class="fas fa-user"></i>';
+                        loginBtn.onclick = handleUserProfile;
+                    }
+                } else {
+                    if (userGreeting) userGreeting.style.display = 'none';
+                    if (loginBtn) {
+                        loginBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i> ログイン';
+                        loginBtn.onclick = () => window.Clerk.openSignIn();
+                    }
+                }
+            }
+        </script>
+</body>
+
+</html>
