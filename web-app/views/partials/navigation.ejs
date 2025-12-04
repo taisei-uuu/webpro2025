@@ -4,8 +4,14 @@
             class="segment-item <%= path === '/learning' || path === '/' || path === '/phase2' || path === '/phase3' ? 'active' : '' %>">
             Learning
         </a>
+
         <a href="/articles" class="segment-item <%= path && path.startsWith('/articles') ? 'active' : '' %>">
             Article
+        </a>
+
+        <a href="https://stock-tool-nq6o.onrender.com" target="_blank" class="segment-item analyze-link">
+            Analyze
+            <i class="fas fa-external-link-alt" style="margin-left: 5px; font-size: 0.85em;"></i>
         </a>
     </div>
 </nav>
