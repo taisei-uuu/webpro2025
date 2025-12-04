@@ -169,7 +169,7 @@ def main():
         
         st.markdown("---")
         st.header("Data Upload")
-        uploaded_file = st.file_uploader("取引履歴CSV (Shift-JIS)", type=["csv"])
+        uploaded_file = st.file_uploader("↑ CSV Data Upload", type=["csv"])
         
         st.markdown("""
         <div style='font-size: 0.8rem; color: #6b7280; margin-top: 1rem;'>
