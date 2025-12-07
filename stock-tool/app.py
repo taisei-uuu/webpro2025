@@ -321,6 +321,22 @@ def analyze_trade_performance(df):
 def main():
     local_css()
     
+    # Navigation Link
+    st.markdown("""
+        <a href="http://localhost:3000/learning" target="_self" style="
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            color: #6b7280;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            transition: color 0.2s;
+        ">
+            <span style="margin-right: 5px;">←</span> Back to Learning
+        </a>
+    """, unsafe_allow_html=True)
+    
     # Header Section with Logo
     col1, col2 = st.columns([1, 10])
     with col1:
