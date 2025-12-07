@@ -3,3 +3,5 @@ node_modules/
 /generated/prisma
 prisma/*.db
 prisma/*.db-journal
+venv/
+stock-tool/venv/

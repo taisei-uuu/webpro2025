@@ -96,6 +96,65 @@ def local_css():
             border-color: #d1d5db;
             color: #1f2937;
         }
+        /* Custom File Uploader Styling */
+        [data-testid='stFileUploader'] {
+            width: 100%;
+        }
+        
+        /* Dropzone container - approximates the target */
+        [data-testid='stFileUploader'] section {
+            background-color: #f3f4f6;
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            transition: 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: row; /* Align icon and text horizontally */
+            gap: 10px;
+        }
+        
+        [data-testid='stFileUploader'] section:hover {
+            background-color: #e5e7eb;
+            border-color: #2563eb;
+        }
+
+        /* Hide default elements inside the uploader */
+        [data-testid='stFileUploader'] button,
+        [data-testid='stFileUploader'] span, 
+        [data-testid='stFileUploader'] small {
+            display: none !important;
+        }
+        
+        /* The Plus Icon */
+        [data-testid='stFileUploader'] section::before {
+            content: "＋";
+            font-size: 2rem; /* Larger icon */
+            font-weight: 900;
+            color: #4b5563;
+            margin-bottom: 5px; /* Slight adjustment for alignment */
+        }
+
+        /* The Text Label */
+        [data-testid='stFileUploader'] section::after {
+            content: "CSVファイルをアップロード";
+            display: block;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #4b5563;
+        }
+
+        /* Crush the inner container so it doesn't take up space in Flexbox */
+        [data-testid='stFileUploader'] section > div {
+            flex: 0 0 0 !important;
+            min-width: 0 !important;
+            width: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -156,6 +215,109 @@ def load_and_process_data(file):
     except Exception as e:
         return None, f"データ読み込み中にエラーが発生しました: {str(e)}"
 
+def analyze_trade_performance(df):
+    """
+    データフレーム全体から売買ペアを特定し、損益レシオと勝率を計算する
+    FIFO (先入れ先出し) 法でBuyとSellを突合
+    """
+    # 数量カラムの特定
+    qty_col = None
+    for col in ['約定数量', '数量', '株数']:
+        if col in df.columns:
+            qty_col = col
+            break
+            
+    # 銘柄名カラムの特定
+    name_col = None
+    for col in ['銘柄名', '銘柄']:
+        if col in df.columns:
+            name_col = col
+            break
+
+    if not qty_col:
+        return None, "数量データの列が見つかりません"
+
+    trades = [] # 利益/損失のリスト
+    trade_history = [] # 詳細履歴のリスト
+
+    # 銘柄ごとに計算
+    for ticker in df['銘柄コード'].unique():
+        ticker_df = df[df['銘柄コード'] == ticker].sort_values('約定日')
+        
+        # 銘柄名の取得 (最初の行から)
+        stock_name = ticker
+        if name_col and not ticker_df.empty:
+            stock_name = ticker_df.iloc[0][name_col]
+
+        buy_queue = [] # [{'price': price, 'qty': qty, 'date': date}, ...]
+
+        for _, row in ticker_df.iterrows():
+            side = row['Side']
+            price = row['約定単価']
+            qty = row[qty_col]
+            date = row['約定日']
+
+            if side == 'Buy':
+                buy_queue.append({'price': price, 'qty': qty, 'date': date})
+            elif side == 'Sell':
+                # 売り注文に対応する買い注文を古い順に消化
+                while qty > 0 and buy_queue:
+                    buy_pos = buy_queue[0]
+                    
+                    match_qty = min(buy_pos['qty'], qty)
+                    
+                    # 損益計算: (売値 - 買値) * 数量
+                    pnl = (price - buy_pos['price']) * match_qty
+                    trades.append(pnl)
+                    
+                    # 履歴記録
+                    trade_history.append({
+                        'ticker': ticker,
+                        'name': stock_name,
+                        'buy_date': buy_pos['date'],
+                        'buy_price': buy_pos['price'],
+                        'sell_date': date,
+                        'sell_price': price,
+                        'qty': match_qty,
+                        'pnl': pnl
+                    })
+
+                    # 数量更新
+                    buy_pos['qty'] -= match_qty
+                    qty -= match_qty
+
+                    # 買いポジションを使い切ったらキューから削除
+                    if buy_pos['qty'] == 0:
+                        buy_queue.pop(0)
+
+    # 集計
+    if not trades:
+        return None, "完了したトレード（売り買いのセット）が見つかりませんでした。"
+
+    winning_trades = [t for t in trades if t > 0]
+    losing_trades = [t for t in trades if t <= 0]
+
+    win_count = len(winning_trades)
+    loss_count = len(losing_trades)
+    total_completed = len(trades)
+
+    win_rate = (win_count / total_completed) * 100 if total_completed > 0 else 0
+
+    avg_profit = sum(winning_trades) / win_count if win_count > 0 else 0
+    avg_loss = abs(sum(losing_trades) / loss_count) if loss_count > 0 else 0
+
+    # 損益レシオ (平均損失が0の場合は便宜上0または無限大とするが、ここでは表示用に調整)
+    risk_reward = avg_profit / avg_loss if avg_loss > 0 else float('inf')
+    
+    return {
+        "win_rate": win_rate,
+        "risk_reward": risk_reward,
+        "total_trades": total_completed,
+        "avg_profit": avg_profit,
+        "avg_loss": avg_loss,
+        "history": trade_history
+    }, None
+
 def main():
     local_css()
     
@@ -168,17 +330,16 @@ def main():
 
     st.markdown("""
     <div style='margin-bottom: 1.5rem; color: #4b5563;'>
-        証券会社の取引履歴CSVをアップロードして、あなたのトレードを美しく可視化します。
+        証券会社の取引履歴CSVをアップロードして、自分のトレードを振り返りましょう！
     </div>
     """, unsafe_allow_html=True)
 
     # Data Upload Section
-    st.markdown("##### Upload Trade Data")
-    uploaded_file = st.file_uploader("+ CSV Data File", type=["csv"], help="SBI証券, 楽天証券などの取引履歴CSV")
+    uploaded_file = st.file_uploader("CSV upload", type=["csv"], label_visibility="collapsed")
     
     st.markdown("""
     <div style='font-size: 0.8rem; color: #6b7280; margin-bottom: 2rem;'>
-        Supported: SBI証券, 楽天証券, etc. / Required: '約定日', '銘柄コード'
+        Supported: SBI証券. / Required: '約定日', '銘柄コード'
     </div>
     """, unsafe_allow_html=True)
 
@@ -240,31 +401,14 @@ def main():
         if selected_ticker:
             ticker_df = df[df["銘柄コード"] == selected_ticker].copy()
             
-            # --- Dashboard Metrics ---
-            total_trades = len(ticker_df)
-            buy_count = len(ticker_df[ticker_df["Side"] == "Buy"])
-            sell_count = len(ticker_df[ticker_df["Side"] == "Sell"])
-            last_trade = ticker_df["約定日"].max().strftime('%Y-%m-%d')
-
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.markdown(f"""<div class="metric-card"><div class="metric-label">Total Trades</div><div class="metric-value">{total_trades}</div></div>""", unsafe_allow_html=True)
-            with col2:
-                st.markdown(f"""<div class="metric-card"><div class="metric-label">Buy Orders</div><div class="metric-value" style="color: #ef4444;">{buy_count}</div></div>""", unsafe_allow_html=True)
-            with col3:
-                st.markdown(f"""<div class="metric-card"><div class="metric-label">Sell Orders</div><div class="metric-value" style="color: #2563eb;">{sell_count}</div></div>""", unsafe_allow_html=True)
-            with col4:
-                st.markdown(f"""<div class="metric-card"><div class="metric-label">Last Trade</div><div class="metric-value" style="font-size: 1.2rem;">{last_trade}</div></div>""", unsafe_allow_html=True)
-
-            st.markdown("<br>", unsafe_allow_html=True)
 
             # 3. チャート描画
             try:
                 min_trade_date = ticker_df["約定日"].min()
                 max_trade_date = ticker_df["約定日"].max()
                 
-                display_start_date = min_trade_date - timedelta(days=15)
-                end_date = max_trade_date + timedelta(days=15)
+                display_start_date = min_trade_date - timedelta(days=30)
+                end_date = max_trade_date + timedelta(days=30)
                 fetch_start_date = display_start_date - timedelta(days=40)
 
                 if end_date > datetime.today():
@@ -320,40 +464,55 @@ def main():
                         line=dict(color='#2563eb', width=1.5) # Blue
                     ), row=1, col=1)
 
-                    # Trade Markers
+                    
+                    # Trade Markers & Annotations
                     qty_col = None
                     for col in ['約定数量', '数量', '株数']:
                         if col in ticker_df.columns:
                             qty_col = col
                             break
                     
-                    # Buy Markers
-                    buy_df = ticker_df[ticker_df["Side"] == "Buy"].copy()
-                    if not buy_df.empty:
-                        buy_df['DateStr'] = buy_df["約定日"].dt.strftime('%Y-%m-%d')
-                        fig.add_trace(go.Scatter(
-                            x=buy_df['DateStr'],
-                            y=buy_df["約定単価"],
-                            mode='markers',
-                            marker=dict(symbol='triangle-up', size=14, color='#ef4444', line=dict(width=1, color='white')),
-                            name='Buy',
-                            text=buy_df.apply(lambda row: f"BUY<br>{row['約定日'].date()}<br>{row['約定単価']}円<br>{row[qty_col] if qty_col else '-'}株", axis=1),
-                            hoverinfo='text'
-                        ), row=1, col=1)
 
-                    # Sell Markers
-                    sell_df = ticker_df[ticker_df["Side"] == "Sell"].copy()
-                    if not sell_df.empty:
-                        sell_df['DateStr'] = sell_df["約定日"].dt.strftime('%Y-%m-%d')
-                        fig.add_trace(go.Scatter(
-                            x=sell_df['DateStr'],
-                            y=sell_df["約定単価"],
-                            mode='markers',
-                            marker=dict(symbol='triangle-down', size=14, color='#2563eb', line=dict(width=1, color='white')),
-                            name='Sell',
-                            text=sell_df.apply(lambda row: f"SELL<br>{row['約定日'].date()}<br>{row['約定単価']}円<br>{row[qty_col] if qty_col else '-'}株", axis=1),
-                            hoverinfo='text'
-                        ), row=1, col=1)
+                    # Iterate over all trades to add annotations
+                    for index, row in ticker_df.iterrows():
+                        if row["Side"] not in ["Buy", "Sell"]:
+                            continue
+                        
+                        date_str = row["約定日"].strftime('%Y-%m-%d')
+                        if date_str not in stock_data['DateStr'].values:
+                            continue # Skip if date is not in chart range (though range is extended now)
+
+                        price = row["約定単価"]
+                        qty = row[qty_col] if qty_col else '-'
+                        side_label = "買" if row["Side"] == "Buy" else "売"
+                        color = '#ef4444' if row["Side"] == "Buy" else '#2563eb'
+
+                        # Annotation (Speech Bubble)
+                        # Format: 12/5 買 1055円 100株
+                        short_date = row["約定日"].strftime('%m/%d')
+                        annotation_text = f"<b>{short_date} {side_label}<br>{int(price)}円 {qty}株</b>"
+
+                        # Increase distance for visibility
+                        ay_distance = -60 if row["Side"] == "Buy" else 60
+
+                        fig.add_annotation(
+                            x=date_str,
+                            y=price,
+                            text=annotation_text,
+                            showarrow=True,
+                            arrowhead=2,
+                            arrowsize=1,
+                            arrowwidth=2,
+                            arrowcolor=color,
+                            ax=0,
+                            ay=ay_distance,
+                            bgcolor="white",
+                            bordercolor=color,
+                            borderwidth=2,
+                            borderpad=4,
+                            font=dict(color=color, size=12),
+                            opacity=1.0
+                        )
 
                     # Volume
                     fig.add_trace(go.Bar(
@@ -407,6 +566,78 @@ def main():
 
             except Exception as e:
                 st.error(f"Error plotting chart: {str(e)}")
+
+        # --- Whole Portfolio Analysis (Display at the bottom) ---
+        st.markdown("---")
+        st.subheader("📊 全体トレード分析 (ポートフォリオ全体)")
+        
+        analysis_result, analysis_error = analyze_trade_performance(df)
+        
+        if analysis_error:
+            st.warning(analysis_error)
+        elif analysis_result:
+            # Metrics
+            win_rate = analysis_result["win_rate"]
+            risk_reward = analysis_result["risk_reward"]
+            
+            # Formatting
+            rr_display = f"{risk_reward:.2f}" if risk_reward != float('inf') else "∞"
+            
+            # Layout
+            col1, col2 = st.columns(2)
+            
+            # Win Rate Card
+            with col1:
+                st.markdown(f"""
+                <div style="background-color: #ffffff; padding: 20px; border-radius: 10px; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="color: #6b7280; font-size: 0.9rem; font-weight: 600; margin-bottom: 5px;">勝率 (Win Rate)</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: #111827;">{win_rate:.1f}%</div>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #4b5563; line-height: 1.4;">
+                        <strong>意味:</strong> 利益が出たトレードの割合です。<br>
+                        <strong>目安:</strong> 40%〜60% (損益レシオとのバランスが重要)
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # Risk Reward Card
+            with col2:
+                st.markdown(f"""
+                <div style="background-color: #ffffff; padding: 20px; border-radius: 10px; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="color: #6b7280; font-size: 0.9rem; font-weight: 600; margin-bottom: 5px;">損益レシオ (Risk Reward)</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: #111827;">{rr_display}</div>
+                    <div style="margin-top: 10px; font-size: 0.8rem; color: #4b5563; line-height: 1.4;">
+                        <strong>意味:</strong> 平均利益 ÷ 平均損失。<br>
+                        <strong>目安:</strong> 1.0以上 (1.5以上だと優秀)
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.caption(f"※ 計算対象: 完了したトレードセット (合計 {analysis_result['total_trades']} 回)")
+            
+            # Detailed Trade History
+            with st.expander("✅ 分析対象のトレード詳細 (完了したセット)"):
+                history = analysis_result.get("history", [])
+                if history:
+                    for h in history:
+                        b_date = h['buy_date'].strftime('%Y/%m/%d')
+                        s_date = h['sell_date'].strftime('%Y/%m/%d')
+                        name = h.get('name', h['ticker'])
+                        pnl = int(h['pnl'])
+                        pnl_str = f"+{pnl}" if pnl > 0 else f"{pnl}"
+                        
+                        st.markdown(f"""
+                        <div style='font-family: monospace; font-size: 0.9rem; border-bottom: 1px solid #f3f4f6; padding: 4px 0;'>
+                            <strong style='color: #1f2937; margin-right: 8px;'>{name}</strong> 
+                            {b_date} 買 {int(h['buy_price'])}円 ({int(h['qty'])}株) 
+                            <span style='color: #9ca3af;'>→</span> 
+                            {s_date} 売 {int(h['sell_price'])}円 ({int(h['qty'])}株)
+                            <span style='float: right; font-weight: bold; color: {'#10b981' if pnl > 0 else '#ef4444'};'>
+                                {pnl_str}円
+                            </span>
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.write("詳細データはありません。")
 
 if __name__ == "__main__":
     main()
