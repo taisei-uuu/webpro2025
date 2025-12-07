@@ -10,7 +10,7 @@ st.set_page_config(
     page_title="Stock Trade Visualizer", 
     layout="wide",
     page_icon="logo.png",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # --- Custom CSS Injection ---
@@ -159,29 +159,26 @@ def load_and_process_data(file):
 def main():
     local_css()
     
-    # サイドバーにロゴを表示
-    with st.sidebar:
-        try:
-            st.image("logo.png", width=50)
-        except:
-            pass # ロゴがない場合はスキップ
-        st.title("Stock Visualizer")
-        
-        st.markdown("---")
-        st.header("Data Upload")
-        uploaded_file = st.file_uploader("↑ CSV Data Upload", type=["csv"])
-        
-        st.markdown("""
-        <div style='font-size: 0.8rem; color: #6b7280; margin-top: 1rem;'>
-            Supported: SBI証券, 楽天証券, etc.<br>
-            Required: '約定日', '銘柄コード'
-        </div>
-        """, unsafe_allow_html=True)
+    # Header Section with Logo
+    col1, col2 = st.columns([1, 10])
+    with col1:
+        st.image("logo.png", width=60)
+    with col2:
+        st.title("Stock Trade Visualizer")
 
-    st.title("📈 Stock Trade Visualizer")
     st.markdown("""
-    <div style='margin-bottom: 2rem; color: #4b5563;'>
+    <div style='margin-bottom: 1.5rem; color: #4b5563;'>
         証券会社の取引履歴CSVをアップロードして、あなたのトレードを美しく可視化します。
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Data Upload Section
+    st.markdown("##### Upload Trade Data")
+    uploaded_file = st.file_uploader("+ CSV Data File", type=["csv"], help="SBI証券, 楽天証券などの取引履歴CSV")
+    
+    st.markdown("""
+    <div style='font-size: 0.8rem; color: #6b7280; margin-bottom: 2rem;'>
+        Supported: SBI証券, 楽天証券, etc. / Required: '約定日', '銘柄コード'
     </div>
     """, unsafe_allow_html=True)
 
@@ -193,7 +190,7 @@ def main():
             st.error(error)
             return
 
-        st.sidebar.success("Data Loaded!")
+        st.success("Data Loaded!")
         
         # 2. 銘柄選択
         ticker_options = sorted(df["銘柄コード"].unique())
@@ -231,8 +228,8 @@ def main():
             name = ticker_map.get(ticker, ticker)
             return f"{ticker} {name}"
 
-        # サイドバーで銘柄選択
-        selected_ticker = st.sidebar.selectbox("Select Ticker", ticker_options, format_func=format_func)
+        # メインエリアで銘柄選択
+        selected_ticker = st.selectbox("Select Ticker", ticker_options, format_func=format_func)
 
         # データをキャッシュする関数
         @st.cache_data(ttl=3600)
