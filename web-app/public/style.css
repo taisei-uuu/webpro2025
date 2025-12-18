@@ -2452,6 +2452,8 @@ body {
     -webkit-box-orient: vertical;
     overflow: hidden;
     flex-grow: 1;
+    padding-bottom: 0;
+    border-bottom: none;
 }
 
 .article-footer {

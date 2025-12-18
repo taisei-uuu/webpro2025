@@ -59,7 +59,7 @@
                                                     </div>
 
                                                     <div class="article-introduction">
-                                                        <%- article.introduction %>
+                                                        <%= (article.introduction || '' ).replace(/<[^>]+>/g, '') %>
                                                     </div>
 
                                                     <div class="article-footer">
