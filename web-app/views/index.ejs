@@ -2,22 +2,24 @@
 <html lang="ja">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock with - 株式投資学習ロードマップ</title>
-    <link rel="icon" type="image/png" href="/logo.png">
-    <link rel="stylesheet" href="/style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <%- include('partials/analytics') %>
 
-    <!-- Clerk認証スクリプト -->
-    <script>
-        window.Clerk = window.Clerk || {};
-        window.Clerk.publishableKey = '<%= publishableKey || "" %>';
-    </script>
-    <% if (publishableKey) { %>
-        <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>"
-            src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
-        <% } %>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Stock with - 株式投資学習ロードマップ</title>
+        <link rel="icon" type="image/png" href="/logo.png">
+        <link rel="stylesheet" href="/style.css">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+        <!-- Clerk認証スクリプト -->
+        <script>
+            window.Clerk = window.Clerk || {};
+            window.Clerk.publishableKey = '<%= publishableKey || "" %>';
+        </script>
+        <% if (publishableKey) { %>
+            <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>"
+                src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+            <% } %>
 </head>
 
 <body>
@@ -425,7 +427,8 @@
 
                                     <!-- 株価分析ツールへのリンク -->
                                     <div class="tools-container" style="text-align: center; margin-bottom: 3rem;">
-                                        <a href="https://stock-tool-nq6o.onrender.com" target="_blank" class="phase2-button"
+                                        <a href="https://stock-tool-nq6o.onrender.com" target="_blank"
+                                            class="phase2-button"
                                             style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                                             <i class="fas fa-chart-line"></i>
                                             株価分析ツールを開く

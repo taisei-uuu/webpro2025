@@ -2,22 +2,24 @@
 <html lang="ja">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>記事一覧 - Stock with</title>
-    <link rel="icon" type="image/png" href="/logo.png">
-    <link rel="stylesheet" href="/style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <%- include('../partials/analytics') %>
 
-    <!-- Clerk認証スクリプト -->
-    <script>
-        window.Clerk = window.Clerk || {};
-        window.Clerk.publishableKey = '<%= publishableKey || "" %>';
-    </script>
-    <% if (publishableKey) { %>
-        <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>"
-            src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
-        <% } %>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>記事一覧 - Stock with</title>
+        <link rel="icon" type="image/png" href="/logo.png">
+        <link rel="stylesheet" href="/style.css">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+        <!-- Clerk認証スクリプト -->
+        <script>
+            window.Clerk = window.Clerk || {};
+            window.Clerk.publishableKey = '<%= publishableKey || "" %>';
+        </script>
+        <% if (publishableKey) { %>
+            <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>"
+                src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+            <% } %>
 </head>
 
 <body>
