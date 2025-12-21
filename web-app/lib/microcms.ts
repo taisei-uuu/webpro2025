@@ -21,4 +21,23 @@ export type Article = {
     height: number;
     width: number;
   };
+  category?: string[]; // セレクトリスト（複数選択可の場合もあるため配列として定義）
+};
+
+// 記事一覧を取得
+export const getArticles = async () => {
+  const data = await client.getList<Article>({
+    endpoint: "articles",
+    queries: { orders: "-publishedAt" },
+  });
+  return data.contents;
+};
+
+// 記事詳細を取得
+export const getArticleById = async (id: string) => {
+  const data = await client.getListDetail<Article>({
+    endpoint: "articles",
+    contentId: id,
+  });
+  return data;
 };

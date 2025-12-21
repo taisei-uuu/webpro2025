@@ -1,8 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
-import { clerkMiddleware, clerkClient, requireAuth } from '@clerk/express';
-import { client, Article } from './lib/microcms';
-import { getAuth } from '@clerk/express';
+import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
+import { client, Article, getArticles } from './lib/microcms';
+// import { getAuth } from '@clerk/express'; // Duplicate import
 import session from 'express-session';
 // import Stripe from 'stripe';
 // Phase別テーブル管理ライブラリをインポート
@@ -21,7 +21,7 @@ import {
   prisma
 } from './lib/phase-database';
 import {
-  getArticles,
+  // getArticles, // MicroCMSのものを使用するためコメントアウト
   getArticleBySlug,
   createArticle
 } from './lib/article-database';
@@ -189,12 +189,78 @@ async function getArticleLikes(articleId: string, userId?: string, sessionId?: s
   return { count: likesCount, hasLiked };
 }
 
+// 記事一覧ページ
+app.get('/articles', async (req, res) => {
+  const { userId, sessionId } = getUserIdentifier(req);
+  let user = null;
+
+  if (userId) {
+    try {
+      user = await clerkClient.users.getUser(userId);
+    } catch (error) {
+      console.error('Error fetching Clerk user:', error);
+    }
+  }
+
+  const articles = await getArticles();
+
+  // いいね情報を付加
+  const articlesWithLikes = await Promise.all(articles.map(async (article) => {
+    let hasLiked = false;
+    if (userId) {
+      const like = await prisma.articleLike.findFirst({
+        where: { articleId: article.id, clerkUserId: userId }
+      });
+      hasLiked = !!like;
+    } else if (sessionId) {
+      const like = await prisma.articleLike.findFirst({
+        where: { articleId: article.id, sessionId: sessionId }
+      });
+      hasLiked = !!like;
+    }
+
+    // いいね数を取得
+    const count = await prisma.articleLike.count({
+      where: { articleId: article.id }
+    });
+
+    return {
+      ...article,
+      likes: {
+        count,
+        hasLiked
+      },
+      // HTMLタグを除去して抜粋を作成（フロントエンドでの正規表現エラーを回避）
+      excerpt: (article.introduction || '').replace(/<[^>]+>/g, '')
+    };
+  }));
+
+  // カテゴリごとに分類
+  // 注目記事: categoryに 'featured' が含まれる、またはカテゴリ未設定（古い記事など）
+  const featuredArticles = articlesWithLikes.filter(article =>
+    !article.category || article.category.length === 0 || article.category.includes('featured')
+  );
+
+  // SNS: categoryに 'sns' が含まれる
+  const snsArticles = articlesWithLikes.filter(article =>
+    article.category && article.category.includes('sns')
+  );
+
+  res.render('articles/index', {
+    articles: articlesWithLikes, // 後方互換性のため残す
+    featuredArticles,
+    snsArticles,
+    user,
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
+  });
+});
+
 // Stripe関連のコード（コメントアウト）
 // サブスクリプションページ
 // app.get('/subscription', (req, res) => {
-//   res.render('subscription', { 
+//   res.render('subscription', {
 //     publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
-//     STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY 
+//     STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY
 //   });
 // });
 
