@@ -133,7 +133,7 @@ const CACHE_DURATION = 5000; // 5秒に短縮（開発・テスト用）
 
 // キャッシュされたクイズ回答履歴を取得する関数
 async function getCachedQuizAttempts(userId?: string, sessionId?: string) {
-  const cacheKey = userId ? `user_${ userId } ` : `session_${ sessionId } `;
+  const cacheKey = userId ? `user_${userId} ` : `session_${sessionId} `;
   const cached = quizAttemptsCache.get(cacheKey);
 
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
@@ -159,6 +159,29 @@ async function getCachedQuizAttempts(userId?: string, sessionId?: string) {
   });
 
   return attempts;
+}
+
+// 記事のいいね情報を取得する関数
+async function getArticleLikes(articleId: string, userId?: string, sessionId?: string) {
+  const likesCount = await prisma.articleLike.count({
+    where: { articleId }
+  });
+
+  let hasLiked = false;
+  if (userId || sessionId) {
+    const like = await prisma.articleLike.findFirst({
+      where: {
+        articleId,
+        OR: [
+          userId ? { clerkUserId: userId } : {},
+          sessionId ? { sessionId } : {}
+        ]
+      }
+    });
+    hasLiked = !!like;
+  }
+
+  return { count: likesCount, hasLiked };
 }
 
 // Stripe関連のコード（コメントアウト）
@@ -773,8 +796,15 @@ app.get('/articles', async (req, res) => {
       }
     }
 
+
+    // 各記事のいいね情報を取得
+    const articlesWithLikes = await Promise.all(articles.map(async (article) => {
+      const likes = await getArticleLikes(article.id, userId, getUserIdentifier(req).sessionId);
+      return { ...article, likes };
+    }));
+
     res.render('articles/index', {
-      articles,
+      articles: articlesWithLikes,
       user,
       isGuest: !userId,
       publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
@@ -824,10 +854,14 @@ app.get('/articles/:id', async (req, res) => {
       }
     }
 
+    const { sessionId } = getUserIdentifier(req);
+    const likes = await getArticleLikes(id, userId, sessionId);
+
     res.render('articles/show', {
       article,
       user,
       isGuest: !userId,
+      likes,
       publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
     });
   } catch (error) {
@@ -1653,7 +1687,54 @@ app.delete('/admin/notice/:id', requireAuth(), async (req, res) => {
   }
 });
 
-// 指定したポートでサーバーを起動し、リクエストを待ち始める
+// 記事のいいねAPI
+app.post('/api/articles/:id/like', async (req, res) => {
+  try {
+    const { id: articleId } = req.params;
+    const { userId, sessionId } = getUserIdentifier(req);
+
+    if (!userId && !sessionId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // 既存のいいねを確認
+    const existingLike = await prisma.articleLike.findFirst({
+      where: {
+        articleId,
+        OR: [
+          userId ? { clerkUserId: userId } : {},
+          sessionId ? { sessionId } : {}
+        ]
+      }
+    });
+
+    if (existingLike) {
+      // 既にある場合は削除（いいね解除）
+      await prisma.articleLike.delete({
+        where: { id: existingLike.id }
+      });
+    } else {
+      // ない場合は作成
+      await prisma.articleLike.create({
+        data: {
+          articleId,
+          clerkUserId: userId,
+          sessionId: !userId ? sessionId : null
+        }
+      });
+    }
+
+    // 最新の件数を取得
+    const likes = await getArticleLikes(articleId, userId, sessionId);
+    res.json(likes);
+
+  } catch (error) {
+    console.error('Error toggling like:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// サーバーの起動
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

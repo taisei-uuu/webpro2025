@@ -36,11 +36,18 @@
                             <h1 class="article-title">
                                 <%= article.title %>
                             </h1>
-                            <div class="article-meta">
-                                <span class="article-date">
-                                    <i class="far fa-calendar-alt"></i>
+                            <div class="article-meta-row">
+                                <div class="article-date">
+                                    <i class="fas fa-calendar-alt"></i>
                                     <%= new Date(article.publishedAt).toLocaleDateString('ja-JP') %>
-                                </span>
+                                </div>
+                                <button id="likeButton" class="like-button <%= likes.hasLiked ? 'active' : '' %>"
+                                    onclick="toggleLike('<%= article.id %>')">
+                                    <i class="<%= likes.hasLiked ? 'fas' : 'far' %> fa-heart"></i>
+                                    <span id="likeCount">
+                                        <%= likes.count %>
+                                    </span>
+                                </button>
                             </div>
                         </header>
 
@@ -205,6 +212,48 @@
                         loginBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i> ログイン';
                         loginBtn.onclick = () => window.Clerk.openSignIn();
                     }
+                }
+            }
+        </script>
+        <script>
+            async function toggleLike(articleId) {
+                const button = document.getElementById('likeButton');
+                const icon = button.querySelector('i');
+                const countSpan = document.getElementById('likeCount');
+
+                try {
+                    const response = await fetch(`/api/articles/${articleId}/like`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.status === 401) {
+                        alert('いいねするにはログインが必要です。');
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const data = await response.json();
+
+                    // UI更新
+                    countSpan.textContent = data.count;
+                    if (data.hasLiked) {
+                        button.classList.add('active');
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                    } else {
+                        button.classList.remove('active');
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('エラーが発生しました。');
                 }
             }
         </script>

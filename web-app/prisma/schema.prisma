@@ -322,3 +322,17 @@ model Article {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+// 記事のいいね
+model ArticleLike {
+  id          Int      @id @default(autoincrement())
+  articleId   String   // MicroCMS ID
+  clerkUserId String?
+  sessionId   String?
+  createdAt   DateTime @default(now())
+
+  // Ensure one like per user/session per article
+  @@unique([articleId, clerkUserId])
+  @@unique([articleId, sessionId])
+}
+
