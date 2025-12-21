@@ -168,14 +168,19 @@ async function getArticleLikes(articleId: string, userId?: string, sessionId?: s
   });
 
   let hasLiked = false;
-  if (userId || sessionId) {
+  if (userId) {
     const like = await prisma.articleLike.findFirst({
       where: {
         articleId,
-        OR: [
-          userId ? { clerkUserId: userId } : {},
-          sessionId ? { sessionId } : {}
-        ]
+        clerkUserId: userId
+      }
+    });
+    hasLiked = !!like;
+  } else if (sessionId) {
+    const like = await prisma.articleLike.findFirst({
+      where: {
+        articleId,
+        sessionId
       }
     });
     hasLiked = !!like;
@@ -1698,15 +1703,23 @@ app.post('/api/articles/:id/like', async (req, res) => {
     }
 
     // 既存のいいねを確認
-    const existingLike = await prisma.articleLike.findFirst({
-      where: {
-        articleId,
-        OR: [
-          userId ? { clerkUserId: userId } : {},
-          sessionId ? { sessionId } : {}
-        ]
-      }
-    });
+    let existingLike;
+
+    if (userId) {
+      existingLike = await prisma.articleLike.findFirst({
+        where: {
+          articleId,
+          clerkUserId: userId
+        }
+      });
+    } else {
+      existingLike = await prisma.articleLike.findFirst({
+        where: {
+          articleId,
+          sessionId
+        }
+      });
+    }
 
     if (existingLike) {
       // 既にある場合は削除（いいね解除）

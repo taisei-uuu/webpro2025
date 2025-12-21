@@ -41,10 +41,10 @@
                                     <i class="fas fa-calendar-alt"></i>
                                     <%= new Date(article.publishedAt).toLocaleDateString('ja-JP') %>
                                 </div>
-                                <button id="likeButton" class="like-button <%= likes.hasLiked ? 'active' : '' %>"
+                                <button class="like-button <%= likes.hasLiked ? 'active' : '' %>"
                                     onclick="toggleLike('<%= article.id %>')">
                                     <i class="<%= likes.hasLiked ? 'fas' : 'far' %> fa-heart"></i>
-                                    <span id="likeCount">
+                                    <span class="like-count">
                                         <%= likes.count %>
                                     </span>
                                 </button>
@@ -70,6 +70,14 @@
                         </div>
 
                         <div class="article-footer">
+                            <button class="like-button <%= likes.hasLiked ? 'active' : '' %>"
+                                onclick="toggleLike('<%= article.id %>')">
+                                <i class="<%= likes.hasLiked ? 'fas' : 'far' %> fa-heart"></i>
+                                <span>応援する</span>
+                                <span class="like-count">
+                                    <%= likes.count %>
+                                </span>
+                            </button>
                             <a href="/articles" class="btn btn-outline">
                                 <i class="fas fa-arrow-left"></i> 記事一覧に戻る
                             </a>
@@ -217,9 +225,9 @@
         </script>
         <script>
             async function toggleLike(articleId) {
-                const button = document.getElementById('likeButton');
-                const icon = button.querySelector('i');
-                const countSpan = document.getElementById('likeCount');
+                // すべてのいいねボタンを取得
+                const buttons = document.querySelectorAll('.like-button');
+                const countSpans = document.querySelectorAll('.like-count');
 
                 try {
                     const response = await fetch(`/api/articles/${articleId}/like`, {
@@ -240,17 +248,28 @@
 
                     const data = await response.json();
 
-                    // UI更新
-                    countSpan.textContent = data.count;
-                    if (data.hasLiked) {
-                        button.classList.add('active');
-                        icon.classList.remove('far');
-                        icon.classList.add('fas');
-                    } else {
-                        button.classList.remove('active');
-                        icon.classList.remove('fas');
-                        icon.classList.add('far');
-                    }
+                    // UI更新 (すべてのボタンとカウントを更新)
+                    countSpans.forEach(span => {
+                        span.textContent = data.count;
+                    });
+
+                    buttons.forEach(button => {
+                        const icon = button.querySelector('i');
+                        if (data.hasLiked) {
+                            button.classList.add('active');
+                            if (icon) {
+                                icon.classList.remove('far');
+                                icon.classList.add('fas');
+                            }
+                        } else {
+                            button.classList.remove('active');
+                            if (icon) {
+                                icon.classList.remove('fas');
+                                icon.classList.add('far');
+                            }
+                        }
+                    });
+
                 } catch (error) {
                     console.error('Error:', error);
                     alert('エラーが発生しました。');
