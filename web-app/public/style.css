@@ -1676,16 +1676,35 @@ body {
 
 @media (max-width: 480px) {
     .article-footer {
-        flex-direction: column-reverse;
-        /* スマホでは戻るボタンを下に */
-        gap: 1.5rem;
-        text-align: center;
+        flex-direction: row;
+        /* 横並びにする */
+        gap: 10px;
     }
 
     .article-footer .btn-outline,
     .article-footer .like-button {
-        width: 100%;
+        flex: 1;
+        /* 等幅にする */
         justify-content: center;
+        padding: 10px;
+    }
+
+    /* テキストを隠してアイコンだけにする */
+    .article-footer .btn-outline {
+        font-size: 0;
+    }
+
+    .article-footer .btn-outline i {
+        font-size: 1.4rem;
+        margin: 0;
+    }
+
+    .article-footer .like-button span:not(.like-count) {
+        display: none;
+    }
+
+    .article-footer .like-button i {
+        font-size: 1.4rem;
     }
 }
 }
