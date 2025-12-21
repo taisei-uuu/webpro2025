@@ -236,6 +236,12 @@
         </script>
         <script>
             async function toggleLike(articleId) {
+                // ログインチェック
+                if (!window.Clerk || !window.Clerk.user) {
+                    window.Clerk.openSignIn();
+                    return;
+                }
+
                 // すべてのいいねボタンを取得
                 const buttons = document.querySelectorAll('.like-button');
                 const countSpans = document.querySelectorAll('.like-count');

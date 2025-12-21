@@ -1698,28 +1698,18 @@ app.post('/api/articles/:id/like', async (req, res) => {
     const { id: articleId } = req.params;
     const { userId, sessionId } = getUserIdentifier(req);
 
-    if (!userId && !sessionId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+    // ログイン必須
+    if (!userId) {
+      return res.status(401).json({ error: 'Login required' });
     }
 
     // 既存のいいねを確認
-    let existingLike;
-
-    if (userId) {
-      existingLike = await prisma.articleLike.findFirst({
-        where: {
-          articleId,
-          clerkUserId: userId
-        }
-      });
-    } else {
-      existingLike = await prisma.articleLike.findFirst({
-        where: {
-          articleId,
-          sessionId
-        }
-      });
-    }
+    const existingLike = await prisma.articleLike.findFirst({
+      where: {
+        articleId,
+        clerkUserId: userId
+      }
+    });
 
     if (existingLike) {
       // 既にある場合は削除（いいね解除）
@@ -1731,8 +1721,7 @@ app.post('/api/articles/:id/like', async (req, res) => {
       await prisma.articleLike.create({
         data: {
           articleId,
-          clerkUserId: userId,
-          sessionId: !userId ? sessionId : null
+          clerkUserId: userId
         }
       });
     }
