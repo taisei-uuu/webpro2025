@@ -194,6 +194,35 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
   });
 });
 
+// 管理者権限チェックミドルウェア
+const requireAdmin = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  try {
+    const { userId } = getAuth(req);
+    if (!userId) {
+      return res.status(401).send('Unauthorized');
+    }
+
+    const user = await clerkClient.users.getUser(userId);
+    const email = user.emailAddresses[0]?.emailAddress;
+    const adminEmail = process.env.ADMIN_EMAIL;
+
+    if (!adminEmail) {
+      console.error('ADMIN_EMAIL environment variable is not set');
+      return res.status(500).send('Server Configuration Error');
+    }
+
+    if (email !== adminEmail) {
+      console.warn(`Access denied for user ${email}. Expected admin: ${adminEmail}`);
+      return res.status(403).send('Forbidden: You do not have administrator privileges.');
+    }
+
+    next();
+  } catch (error) {
+    console.error('Error in requireAdmin middleware:', error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
 // クイズ回答履歴をキャッシュするMap
 const quizAttemptsCache = new Map<string, { data: any[], timestamp: number }>();
 const CACHE_DURATION = 5000; // 5秒に短縮（開発・テスト用）
@@ -1080,9 +1109,9 @@ app.get('/learning', async (req, res) => {
 });
 
 // // 新規レッスン作成フォームを表示するルート
-// app.get('/admin/lessons/new', (req, res) => {
-//   res.render('new-lesson');
-// });
+app.get('/admin/lessons/new', requireAdmin, (req, res) => {
+  res.render('new-lesson');
+});
 
 // 記事一覧ページ
 app.get('/articles', async (req, res) => {
@@ -1210,7 +1239,7 @@ app.get('/articles/:id', async (req, res) => {
 });
 
 // 記事作成ページ（管理者用）
-app.get('/admin/articles/new', async (req, res) => {
+app.get('/admin/articles/new', requireAdmin, async (req, res) => {
   try {
     const { userId } = getUserIdentifier(req);
 
@@ -1239,7 +1268,7 @@ app.get('/admin/articles/new', async (req, res) => {
 });
 
 // 記事作成処理（管理者用）
-app.post('/admin/articles', async (req, res) => {
+app.post('/admin/articles', requireAdmin, async (req, res) => {
   try {
     const { title, slug, content } = req.body;
 
@@ -1855,29 +1884,8 @@ app.get('/notice', async (req, res) => {
 });
 
 // 電子公告管理画面（管理者のみアクセス可能）
-app.get('/admin/notice', requireAuth(), async (req, res) => {
+app.get('/admin/notice', requireAdmin, async (req, res) => {
   try {
-    const { userId } = getAuth(req);
-
-    if (!userId) {
-      return res.status(401).render('error', {
-        message: '認証が必要です。',
-        publishableKey: process.env.CLERK_PUBLISHABLE_KEY
-      });
-    }
-
-    // ユーザー情報を取得してメールアドレスを確認
-    const user = await clerkClient.users.getUser(userId);
-    const userEmail = user.emailAddresses[0]?.emailAddress;
-
-    // 管理者メールアドレスかチェック
-    if (userEmail !== 'taisei040428@gmail.com') {
-      return res.status(403).render('error', {
-        message: 'このページにアクセスする権限がありません。',
-        publishableKey: process.env.CLERK_PUBLISHABLE_KEY
-      });
-    }
-
     // 全ての電子公告を取得（非公開も含む）
     const notices = await prisma.electronicNotice.findMany({
       include: {
@@ -1904,23 +1912,8 @@ app.get('/admin/notice', requireAuth(), async (req, res) => {
 // 電子公告のCRUD操作API
 
 // 新しい公告を作成
-app.post('/admin/notice', requireAuth(), async (req, res) => {
+app.post('/admin/notice', requireAdmin, async (req, res) => {
   try {
-    const { userId } = getAuth(req);
-
-    if (!userId) {
-      return res.status(401).json({ error: '認証が必要です。' });
-    }
-
-    // ユーザー情報を取得してメールアドレスを確認
-    const user = await clerkClient.users.getUser(userId);
-    const userEmail = user.emailAddresses[0]?.emailAddress;
-
-    // 管理者メールアドレスかチェック
-    if (userEmail !== 'taisei040428@gmail.com') {
-      return res.status(403).json({ error: 'この操作を実行する権限がありません。' });
-    }
-
     const { title, content, type, publishedAt, isActive } = req.body;
 
     const notice = await prisma.electronicNotice.create({
@@ -1941,23 +1934,8 @@ app.post('/admin/notice', requireAuth(), async (req, res) => {
 });
 
 // 公告を更新
-app.put('/admin/notice/:id', requireAuth(), async (req, res) => {
+app.put('/admin/notice/:id', requireAdmin, async (req, res) => {
   try {
-    const { userId } = getAuth(req);
-
-    if (!userId) {
-      return res.status(401).json({ error: '認証が必要です。' });
-    }
-
-    // ユーザー情報を取得してメールアドレスを確認
-    const user = await clerkClient.users.getUser(userId);
-    const userEmail = user.emailAddresses[0]?.emailAddress;
-
-    // 管理者メールアドレスかチェック
-    if (userEmail !== 'taisei040428@gmail.com') {
-      return res.status(403).json({ error: 'この操作を実行する権限がありません。' });
-    }
-
     const { id } = req.params;
     const { title, content, type, publishedAt, isActive } = req.body;
 
@@ -1980,23 +1958,8 @@ app.put('/admin/notice/:id', requireAuth(), async (req, res) => {
 });
 
 // 公告の公開/非公開を切り替え
-app.post('/admin/notice/:id/toggle', requireAuth(), async (req, res) => {
+app.post('/admin/notice/:id/toggle', requireAdmin, async (req, res) => {
   try {
-    const { userId } = getAuth(req);
-
-    if (!userId) {
-      return res.status(401).json({ error: '認証が必要です。' });
-    }
-
-    // ユーザー情報を取得してメールアドレスを確認
-    const user = await clerkClient.users.getUser(userId);
-    const userEmail = user.emailAddresses[0]?.emailAddress;
-
-    // 管理者メールアドレスかチェック
-    if (userEmail !== 'taisei040428@gmail.com') {
-      return res.status(403).json({ error: 'この操作を実行する権限がありません。' });
-    }
-
     const { id } = req.params;
     const { isActive } = req.body;
 
@@ -2013,23 +1976,8 @@ app.post('/admin/notice/:id/toggle', requireAuth(), async (req, res) => {
 });
 
 // 公告を削除
-app.delete('/admin/notice/:id', requireAuth(), async (req, res) => {
+app.delete('/admin/notice/:id', requireAdmin, async (req, res) => {
   try {
-    const { userId } = getAuth(req);
-
-    if (!userId) {
-      return res.status(401).json({ error: '認証が必要です。' });
-    }
-
-    // ユーザー情報を取得してメールアドレスを確認
-    const user = await clerkClient.users.getUser(userId);
-    const userEmail = user.emailAddresses[0]?.emailAddress;
-
-    // 管理者メールアドレスかチェック
-    if (userEmail !== 'taisei040428@gmail.com') {
-      return res.status(403).json({ error: 'この操作を実行する権限がありません。' });
-    }
-
     const { id } = req.params;
 
     await prisma.electronicNotice.delete({
