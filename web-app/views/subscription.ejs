@@ -133,7 +133,7 @@
                     <div class="card-body text-center p-4">
                         <div class="badge bg-warning text-dark mb-3">おすすめ</div>
                         <h3 class="card-title">プレミアムプラン</h3>
-                        <div class="price mb-3">¥300<span class="fs-6">/月</span></div>
+                        <div class="price mb-3">¥500<span class="fs-6">/月</span></div>
                         <p class="text-white-50 mb-4">すべての学習コンテンツにアクセス</p>
                         <ul class="feature-list text-start">
                             <li><i class="fas fa-check"></i>全レッスン（初級〜上級）</li>
@@ -142,10 +142,21 @@
                             <li><i class="fas fa-check"></i>学習進捗の詳細分析</li>
                             <li><i class="fas fa-check"></i>優先サポート</li>
                         </ul>
-                        <button id="subscribe-btn" class="btn btn-subscribe w-100 mt-4">
-                            <i class="fas fa-credit-card me-2"></i>
-                            今すぐ始める
-                        </button>
+                        <% if (typeof isGuest !=='undefined' && isGuest) { %>
+                            <div class="alert alert-info mt-3 mb-3 text-start font-size-sm">
+                                <small>※サブスクリプションの利用には会員登録が必要です。</small>
+                            </div>
+                            <button onclick="window.Clerk.openSignIn({ redirectUrl: window.location.href })"
+                                class="btn btn-primary w-100 mt-2">
+                                <i class="fas fa-right-to-bracket me-2"></i>
+                                ログインして始める
+                            </button>
+                            <% } else { %>
+                                <button id="subscribe-btn" class="btn btn-subscribe w-100 mt-4">
+                                    <i class="fas fa-credit-card me-2"></i>
+                                    今すぐ始める
+                                </button>
+                                <% } %>
                     </div>
                 </div>
             </div>
@@ -212,26 +223,33 @@
                 this.disabled = true;
 
                 // サブスクリプション作成のAPIを呼び出し
+                // URLからreturn_urlパラメータが取得できるかチェック（記事詳細からの遷移時など）
+                const urlParams = new URLSearchParams(window.location.search);
+                const returnUrl = urlParams.get('return_url') || document.referrer;
+
                 const response = await fetch('/api/create-subscription', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    body: JSON.stringify({
+                        returnUrl: returnUrl && returnUrl.includes('/articles') ? returnUrl : undefined
+                    })
                 });
 
-                const { clientSecret } = await response.json();
+                const data = await response.json();
 
-                // Stripe Checkoutにリダイレクト
-                const { error } = await stripe.redirectToCheckout({
-                    sessionId: clientSecret
-                });
-
-                if (error) {
-                    console.error('Error:', error);
-                    alert('決済処理中にエラーが発生しました。もう一度お試しください。');
+                if (data.error) {
+                    console.error('Error:', data.error);
+                    alert('決済処理中にエラーが発生しました: ' + data.error);
                     this.innerHTML = '<i class="fas fa-credit-card me-2"></i>今すぐ始める';
                     this.disabled = false;
+                    return;
                 }
+
+                // Stripe Checkoutにリダイレクト
+                window.location.href = data.url;
+
             } catch (error) {
                 console.error('Error:', error);
                 alert('決済処理中にエラーが発生しました。もう一度お試しください。');

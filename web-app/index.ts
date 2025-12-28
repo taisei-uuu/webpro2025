@@ -4,7 +4,7 @@ import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/expre
 import { client, Article, getArticles } from './lib/microcms';
 // import { getAuth } from '@clerk/express'; // Duplicate import
 import session from 'express-session';
-// import Stripe from 'stripe';
+import Stripe from 'stripe';
 // Phase別テーブル管理ライブラリをインポート
 import {
   getPhaseTables,
@@ -28,27 +28,94 @@ import {
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-// セッションの型定義
+// ゲストセッションID拡張
 declare module 'express-session' {
   interface SessionData {
     guestSessionId?: string;
   }
 }
 
+// Request型拡張 (rawBody用)
+declare global {
+  namespace Express {
+    interface Request {
+      rawBody?: Buffer;
+    }
+  }
+}
+
 // prismaはphase-database.tsからインポート
 
-// Stripeの初期化（コメントアウト）
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-//   apiVersion: '2024-12-18.acacia',
-// });
+// Stripeの初期化
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-12-15.clover',
+});
 
 const app = express();
 // 環境変数 PORT があればそれを使う。なければ 8888 を使う
 const PORT = process.env.PORT || 8888;
 
-// JSONボディを解析するミドルウェア
-app.use(express.json());
+// JSONボディを解析するミドルウェア (rawBodyを保存)
+app.use(express.json({
+  verify: (req, res, buf) => {
+    (req as any).rawBody = buf;
+  }
+}));
 app.use(express.urlencoded({ extended: true }));
+
+// Stripe Webhook
+app.post('/webhook/stripe', async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+
+  // デバッグログ
+  const secret = process.env.STRIPE_WEBHOOK_SECRET!;
+  console.log('Webhook received');
+  console.log('Signature:', sig);
+  console.log('Secret (first 5 chars):', secret ? secret.substring(0, 5) : 'MISSING');
+  console.log('Has rawBody:', !!req.rawBody);
+
+  if (!req.rawBody) {
+    console.error('No rawBody found');
+    return res.status(400).send('Webhook Error: No rawBody');
+  }
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.rawBody, sig!, secret);
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err);
+    return res.status(400).send(`Webhook Error: ${(err as Error).message}`);
+  }
+
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed':
+        const session = event.data.object;
+        if (session.metadata?.type === 'subscription') {
+          await handleSubscriptionCreated(session);
+        } else if (session.metadata?.type === 'payment') {
+          await handlePaymentCompleted(session);
+        }
+        break;
+      case 'customer.subscription.updated':
+        const subscription = event.data.object;
+        await handleSubscriptionUpdated(subscription);
+        break;
+      case 'customer.subscription.deleted':
+        const deletedSubscription = event.data.object;
+        await handleSubscriptionDeleted(deletedSubscription);
+        break;
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
+    }
+  } catch (error) {
+    console.error('Error handling webhook:', error);
+    return res.status(500).send('Webhook handler error');
+  }
+
+  res.json({ received: true });
+});
 
 // EJS をビューエンジンとして設定する
 app.set('view engine', 'ejs');
@@ -59,7 +126,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // JSONリクエストボディをパースするためのミドルウェア
-app.use(express.json());
+
 
 // セッションミドルウェアを追加（ゲストモード用）
 app.use(session({
@@ -257,195 +324,343 @@ app.get('/articles', async (req, res) => {
 
 // Stripe関連のコード（コメントアウト）
 // サブスクリプションページ
-// app.get('/subscription', (req, res) => {
-//   res.render('subscription', {
-//     publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
-//     STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY
-//   });
-// });
+// サブスクリプションページ
+app.get('/subscription', async (req, res) => {
+  const { userId } = getUserIdentifier(req);
+  let user: any = null;
+
+  if (userId && process.env.CLERK_SECRET_KEY) {
+    try {
+      user = await clerkClient.users.getUser(userId.toString());
+    } catch (error) {
+      console.error('Error fetching user from Clerk:', error);
+    }
+  }
+
+  res.render('subscription', {
+    user,
+    isGuest: !userId,
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+    stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+    error: req.query.error
+  });
+});
 
 // サブスクリプション作成API
-// app.post('/api/create-subscription', requireAuth(), async (req, res) => {
-//   try {
-//     const { userId } = getAuth(req);
-//     
-//     // ユーザー情報を取得または作成
-//     let user = await prisma.user.findUnique({
-//       where: { clerkId: userId }
-//     });
-//     
-//     if (!user) {
-//       // Clerkのユーザー情報を取得
-//       const clerkUser = await clerkClient.users.getUser(userId);
-//       
-//       // データベースにユーザーを作成
-//       user = await prisma.user.create({
-//         data: {
-//           clerkId: userId,
-//           email: clerkUser.emailAddresses[0]?.emailAddress || '',
-//           name: clerkUser.firstName || null,
-//           password: '' // Clerkを使用するため空文字
-//         }
-//       });
-//     }
-//     
-//     // Stripe顧客を作成または取得
-//     let customer;
-//     const existingCustomers = await stripe.customers.list({
-//       email: user.email,
-//       limit: 1
-//     });
-//     
-//     if (existingCustomers.data.length > 0) {
-//       customer = existingCustomers.data[0];
-//     } else {
-//       customer = await stripe.customers.create({
-//         email: user.email,
-//         name: user.name || undefined,
-//         metadata: {
-//           clerkId: userId,
-//           userId: user.id.toString()
-//         }
-//       });
-//     }
-//     
-//     // 価格ID（Stripeダッシュボードで作成した価格のID）
-//     const priceId = process.env.STRIPE_PRICE_ID || 'price_1234567890'; // 実際の価格IDに置き換え
-//     
-//     // チェックアウトセッションを作成
-//     const session = await stripe.checkout.sessions.create({
-//       customer: customer.id,
-//       payment_method_types: ['card'],
-//       line_items: [
-//         {
-//           price: priceId,
-//           quantity: 1,
-//         },
-//       ],
-//       mode: 'subscription',
-//       success_url: `${ req.protocol }://${req.get('host')}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-//       cancel_url: `${req.protocol}://${req.get('host')}/subscription`,
-//       metadata: {
-//         userId: user.id.toString(),
-//         clerkId: userId
-//       }
-//     });
-//     
-//     res.json({ clientSecret: session.id });
-//   } catch (error) {
-//     console.error('Error creating subscription:', error);
-//     res.status(500).json({ error: 'Failed to create subscription' });
-//   }
-// });
+app.post('/api/create-subscription', requireAuth(), async (req, res) => {
+  try {
+    const { userId } = getAuth(req);
+    const { returnUrl } = req.body; // 戻り先URLを取得
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // ユーザー情報を取得または作成
+    let user = await prisma.user.findUnique({
+      where: { clerkId: userId }
+    });
+
+    if (!user) {
+      // Clerkのユーザー情報を取得
+      const clerkUser = await clerkClient.users.getUser(userId);
+
+      // データベースにユーザーを作成
+      user = await prisma.user.create({
+        data: {
+          clerkId: userId,
+          email: clerkUser.emailAddresses[0]?.emailAddress || '',
+          name: clerkUser.firstName || null,
+          password: '' // Clerkを使用するため空文字
+        }
+      });
+    }
+
+    // Stripe顧客を作成または取得
+    let customer;
+    const existingCustomers = await stripe.customers.list({
+      email: user.email,
+      limit: 1
+    });
+
+    if (existingCustomers.data.length > 0) {
+      customer = existingCustomers.data[0];
+    } else {
+      // @ts-ignore
+      customer = await stripe.customers.create({
+        email: user.email,
+        name: user.name || undefined,
+        metadata: {
+          clerkId: userId,
+          userId: user.id.toString()
+        }
+      });
+    }
+
+    // 価格ID（Stripeダッシュボードで作成した価格のID）
+    const priceId = process.env.STRIPE_PRICE_ID_SUBSCRIPTION;
+
+    if (!priceId) {
+      return res.status(500).json({ error: 'Stripe Price ID is not configured' });
+    }
+
+    // 戻り先URLをエンコードしてsuccess_urlに追加
+    const successUrl = returnUrl
+      ? `${req.protocol}://${req.get('host')}/subscription/success?session_id={CHECKOUT_SESSION_ID}&return_url=${encodeURIComponent(returnUrl)}`
+      : `${req.protocol}://${req.get('host')}/subscription/success?session_id={CHECKOUT_SESSION_ID}`;
+
+    // チェックアウトセッションを作成
+    const session = await stripe.checkout.sessions.create({
+      customer: customer.id,
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: successUrl,
+      cancel_url: returnUrl || `${req.protocol}://${req.get('host')}/articles`, // キャンセル時も元のページに戻る
+      metadata: {
+        userId: user.id.toString(),
+        clerkId: userId,
+        type: 'subscription'
+      }
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error('Error creating subscription:', error);
+    res.status(500).json({ error: 'Failed to create subscription' });
+  }
+});
+
+// 単発購入作成API
+app.post('/api/create-payment', requireAuth(), async (req, res) => {
+  try {
+    const { userId } = getAuth(req);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const { articleId, price, title } = req.body;
+
+    if (!articleId || !price) {
+      return res.status(400).json({ error: 'Article ID and price are required' });
+    }
+
+    // ユーザー情報を取得または作成
+    let user = await prisma.user.findUnique({
+      where: { clerkId: userId }
+    });
+
+    if (!user) {
+      const clerkUser = await clerkClient.users.getUser(userId);
+      user = await prisma.user.create({
+        data: {
+          clerkId: userId,
+          email: clerkUser.emailAddresses[0]?.emailAddress || '',
+          name: clerkUser.firstName || null,
+          password: ''
+        }
+      });
+    }
+
+    // Stripe顧客を作成または取得
+    let customer;
+    const existingCustomers = await stripe.customers.list({
+      email: user.email,
+      limit: 1
+    });
+
+    if (existingCustomers.data.length > 0) {
+      customer = existingCustomers.data[0];
+    } else {
+      // @ts-ignore
+      customer = await stripe.customers.create({
+        email: user.email,
+        name: user.name || undefined,
+        metadata: {
+          clerkId: userId,
+          userId: user.id.toString()
+        }
+      });
+    }
+
+    // チェックアウトセッションを作成
+    const session = await stripe.checkout.sessions.create({
+      customer: customer.id,
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'jpy',
+            product_data: {
+              name: title || 'Article Purchase',
+              metadata: {
+                articleId: articleId
+              }
+            },
+            unit_amount: price,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${req.protocol}://${req.get('host')}/articles/${articleId}?purchased=true`,
+      cancel_url: `${req.protocol}://${req.get('host')}/articles/${articleId}`,
+      metadata: {
+        userId: user.id.toString(),
+        clerkId: userId,
+        type: 'payment',
+        articleId: articleId
+      }
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error('Error creating payment:', error);
+    res.status(500).json({ error: 'Failed to create payment session' });
+  }
+});
 
 // サブスクリプション成功ページ
-// app.get('/subscription/success', requireAuth(), async (req, res) => {
-//   const { session_id } = req.query;
-//   
-//   try {
-//     const session = await stripe.checkout.sessions.retrieve(session_id as string);
-//     
-//     if (session.payment_status === 'paid') {
-//       res.render('subscription-success', {
-//         sessionId: session_id,
-//         customerEmail: session.customer_details?.email
-//       });
-//     } else {
-//       res.redirect('/subscription?error=payment_failed');
-//     }
-//   } catch (error) {
-//     console.error('Error retrieving session:', error);
-//     res.redirect('/subscription?error=session_error');
-//   }
-// });
+// サブスクリプション成功ページ
+app.get('/subscription/success', requireAuth(), async (req, res) => {
+  const { session_id, return_url } = req.query; // return_urlを受け取る
 
-// Stripe Webhook
-// app.post('/webhook/stripe', express.raw({type: 'application/json'}), async (req, res) => {
-//   const sig = req.headers['stripe-signature'];
-//   let event;
+  try {
+    const session = await stripe.checkout.sessions.retrieve(session_id as string);
 
-//   try {
-//     event = stripe.webhooks.constructEvent(req.body, sig!, process.env.STRIPE_WEBHOOK_SECRET!);
-//   } catch (err) {
-//     console.error('Webhook signature verification failed:', err);
-//     return res.status(400).send('Webhook Error');
-//   }
+    if (session.payment_status === 'paid') {
+      res.render('subscription-success', {
+        sessionId: session_id,
+        customerEmail: session.customer_details?.email,
+        publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+        returnUrl: return_url // ビューに渡す
+      });
+    } else {
+      // 失敗時のリダイレクト先もreturn_urlがあればそこに戻すか検討できるが、
+      // ここでは記事一覧かreturn_urlのエラー付きパラメータに戻すのが親切
+      res.redirect('/articles?error=payment_failed');
+    }
+  } catch (error) {
+    console.error('Error retrieving session:', error);
+    res.redirect('/articles?error=session_error');
+  }
+});
 
-//   try {
-//     switch (event.type) {
-//       case 'checkout.session.completed':
-//         const session = event.data.object;
-//         await handleSubscriptionCreated(session);
-//         break;
-//       case 'customer.subscription.updated':
-//         const subscription = event.data.object;
-//         await handleSubscriptionUpdated(subscription);
-//         break;
-//       case 'customer.subscription.deleted':
-//         const deletedSubscription = event.data.object;
-//         await handleSubscriptionDeleted(deletedSubscription);
-//         break;
-//       default:
-//         console.log(`Unhandled event type: ${event.type}`);
-//     }
-//   } catch (error) {
-//     console.error('Error handling webhook:', error);
-//     return res.status(500).send('Webhook handler error');
-//   }
 
-//   res.json({received: true});
-// });
 
 // サブスクリプション作成処理
-// async function handleSubscriptionCreated(session: any) {
-//   const { userId, clerkId } = session.metadata;
-//   
-//   if (!userId || !clerkId) {
-//     console.error('Missing user metadata in session');
-//     return;
-//   }
+async function handleSubscriptionCreated(session: any) {
+  const { userId, clerkId } = session.metadata;
 
-//   const subscription = await stripe.subscriptions.retrieve(session.subscription);
-//   
-//   await prisma.subscription.create({
-//     data: {
-//       userId: parseInt(userId),
-//       stripeCustomerId: session.customer,
-//       stripeSubscriptionId: subscription.id,
-//       status: subscription.status,
-//       currentPeriodStart: new Date(subscription.current_period_start * 1000),
-//       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-//     }
-//   });
-//   
-//   console.log(`Subscription created for user ${userId}`);
-// }
+  if (!userId || !clerkId) {
+    console.error('Missing user metadata in session');
+    return;
+  }
+
+  const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+
+  console.log('Retrieved Subscription:', JSON.stringify(subscription, null, 2));
+
+  const currentPeriodStart = subscription.current_period_start
+    ? new Date(subscription.current_period_start * 1000)
+    : new Date();
+
+  const currentPeriodEnd = subscription.current_period_end
+    ? new Date(subscription.current_period_end * 1000)
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Default to 30 days later
+
+  // 既存のサブスクリプションがあるか確認
+  const existingSubscription = await prisma.subscription.findFirst({
+    where: { userId: parseInt(userId) }
+  });
+
+  if (existingSubscription) {
+    await prisma.subscription.update({
+      where: { id: existingSubscription.id },
+      data: {
+        stripeCustomerId: session.customer as string,
+        stripeSubscriptionId: subscription.id,
+        status: subscription.status,
+        // @ts-ignore
+        currentPeriodStart: currentPeriodStart,
+        // @ts-ignore
+        currentPeriodEnd: currentPeriodEnd,
+      }
+    });
+  } else {
+    await prisma.subscription.create({
+      data: {
+        userId: parseInt(userId),
+        stripeCustomerId: session.customer as string,
+        stripeSubscriptionId: subscription.id,
+        status: subscription.status,
+        // @ts-ignore
+        currentPeriodStart: currentPeriodStart,
+        // @ts-ignore
+        currentPeriodEnd: currentPeriodEnd,
+      }
+    });
+  }
+
+  console.log(`Subscription created for user ${userId}`);
+}
 
 // サブスクリプション更新処理
-// async function handleSubscriptionUpdated(subscription: any) {
-//   await prisma.subscription.update({
-//     where: { stripeSubscriptionId: subscription.id },
-//     data: {
-//       status: subscription.status,
-//       currentPeriodStart: new Date(subscription.current_period_start * 1000),
-//       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-//     }
-//   });
-//   
-//   console.log(`Subscription updated: ${subscription.id}`);
-// }
+async function handleSubscriptionUpdated(subscription: any) {
+  await prisma.subscription.update({
+    where: { stripeSubscriptionId: subscription.id },
+    data: {
+      status: subscription.status,
+      // @ts-ignore
+      currentPeriodStart: new Date(subscription.current_period_start * 1000),
+      // @ts-ignore
+      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+    }
+  });
+
+  console.log(`Subscription updated: ${subscription.id}`);
+}
 
 // サブスクリプション削除処理
-// async function handleSubscriptionDeleted(subscription: any) {
-//   await prisma.subscription.update({
-//     where: { stripeSubscriptionId: subscription.id },
-//     data: {
-//       status: 'canceled',
-//     }
-//   });
-//   
-//   console.log(`Subscription canceled: ${subscription.id}`);
-// }
+async function handleSubscriptionDeleted(subscription: any) {
+  await prisma.subscription.update({
+    where: { stripeSubscriptionId: subscription.id },
+    data: {
+      status: 'canceled',
+    }
+  });
+
+  console.log(`Subscription canceled: ${subscription.id}`);
+}
+
+// 単発購入完了処理
+async function handlePaymentCompleted(session: any) {
+  const { userId, articleId } = session.metadata;
+
+  if (!userId || !articleId) {
+    console.error('Missing metadata in payment session');
+    return;
+  }
+
+  try {
+    // @ts-ignore
+    await prisma.purchasedArticle.create({
+      data: {
+        userId: parseInt(userId),
+        articleId: articleId,
+        amount: session.amount_total || 0,
+        stripeSessionId: session.id
+      }
+    });
+    console.log(`Payment completed for user ${userId}, article ${articleId}`);
+  } catch (error) {
+    console.error('Error recording purchased article:', error);
+  }
+}
 
 // Gemini APIの初期化（一時的にコメントアウト）
 // import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -530,46 +745,23 @@ app.get('/phase2', async (req, res) => {
         user = await clerkClient.users.getUser(userId.toString());
       } catch (error) {
         console.error('Error fetching user from Clerk:', error);
-        // ユーザー情報の取得に失敗した場合は、認証状態をリセット
-        console.log('Resetting auth state due to user fetch error');
-
-        // セッションをクリアしてゲストモードに切り替え
-        req.session.destroy((err) => {
-          if (err) console.error('Error destroying session:', err);
-        });
-
-        // ゲストモードで再レンダリング
-        const phase1Progress = await getPhase1Progress(null);
-        const phase2Lessons = await getPhaseLessons(2);
-
-        // Phase2のレッスンをチャプター別にグループ化
-        const phase2Chapters = phase2Lessons.reduce((acc: any[], lesson: any) => {
-          let chapter = acc.find(c => c.chapter === lesson.chapter);
-          if (!chapter) {
-            chapter = {
-              chapter: lesson.chapter,
-              title: `Stage ${lesson.chapter}`,
-              lessons: [],
-              totalQuestions: 0,
-              clearedQuestions: 0,
-              progressPercentage: 0
-            };
-            acc.push(chapter);
-          }
-          chapter.lessons.push(lesson);
-          chapter.totalQuestions += lesson.questions.length;
-          return acc;
-        }, []);
-
-        return res.render('phase2', {
-          user: null,
-          isGuest: true,
-          publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
-          phase1Progress: phase1Progress,
-          phase2Lessons: phase2Lessons,
-          chapters: phase2Chapters
-        });
       }
+    }
+
+    if (!userId) {
+      return res.redirect('/subscription?plan=required');
+    }
+
+    // サブスクリプションチェック
+    const dbUser = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      include: { subscriptions: true }
+    });
+    // @ts-ignore
+    const isSubscribed = dbUser?.subscriptions.some(s => s.status === 'active' || s.status === 'trialing');
+
+    if (!isSubscribed) {
+      return res.redirect('/subscription?plan=required');
     }
 
     const phase1Progress = await getPhase1Progress(userId);
@@ -626,23 +818,23 @@ app.get('/phase3', async (req, res) => {
         user = await clerkClient.users.getUser(userId.toString());
       } catch (error) {
         console.error('Error fetching user from Clerk:', error);
-        // ユーザー情報の取得に失敗した場合は、認証状態をリセット
-        console.log('Resetting auth state due to user fetch error');
-
-        // セッションをクリアしてゲストモードに切り替え
-        req.session.destroy((err) => {
-          if (err) console.error('Error destroying session:', err);
-        });
-
-        // ゲストモードで再レンダリング
-        const phase1Progress = await getPhase1Progress(null);
-        return res.render('phase3', {
-          user: null,
-          isGuest: true,
-          publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
-          phase1Progress: phase1Progress
-        });
       }
+    }
+
+    if (!userId) {
+      return res.redirect('/subscription?plan=required');
+    }
+
+    // サブスクリプションチェック
+    const dbUser = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      include: { subscriptions: true }
+    });
+    // @ts-ignore
+    const isSubscribed = dbUser?.subscriptions.some(s => s.status === 'active' || s.status === 'trialing');
+
+    if (!isSubscribed) {
+      return res.redirect('/subscription?plan=required');
     }
 
     const phase1Progress = await getPhase1Progress(userId);
@@ -928,12 +1120,41 @@ app.get('/articles/:id', async (req, res) => {
     const { sessionId } = getUserIdentifier(req);
     const likes = await getArticleLikes(id, userId, sessionId);
 
+    // アクセス権限のチェック
+    let isSubscribed = false;
+    let isPurchased = false;
+
+    if (userId) {
+      const dbUser = await prisma.user.findUnique({
+        where: { clerkId: userId },
+        include: {
+          subscriptions: true,
+          // @ts-ignore
+          purchasedArticles: { where: { articleId: id } }
+        }
+      });
+      if (dbUser) {
+        // @ts-ignore
+        isSubscribed = dbUser.subscriptions.some(s => s.status === 'active' || s.status === 'trialing');
+        // @ts-ignore
+        isPurchased = dbUser.purchasedArticles.length > 0;
+      }
+    }
+
+    // 有料記事で、サブスクも購入済でもない場合、本文を隠す
+    if (article.isPaid && !isSubscribed && !isPurchased) {
+      article.body = undefined;
+    }
+
     res.render('articles/show', {
       article,
       user,
       isGuest: !userId,
       likes,
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+      isSubscribed,
+      isPurchased,
+      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY
     });
   } catch (error) {
     console.error('Error fetching article:', error);
@@ -1022,6 +1243,7 @@ app.post('/lessons/:slug/quiz/submit', async (req, res) => {
   const tables = getPhaseTables(phase);
 
   // レッスンを取得してIDを取得
+  // @ts-ignore
   const lesson = await tables.lesson.findUnique({
     where: { slug }
   });
@@ -1071,6 +1293,7 @@ app.post('/lessons/:slug/quiz/submit', async (req, res) => {
   }
 
   // 正解の選択肢IDを取得
+  // @ts-ignore
   const correctOption = await tables.option.findFirst({
     where: { questionId: parseInt(questionId, 10), isCorrect: true },
   });
@@ -1433,6 +1656,20 @@ app.get('/lessons/:slug', async (req, res) => {
         },
       });
     } else {
+      // Phase2/3の場合はサブスクリプションチェック
+      if (!userId) {
+        return res.redirect('/subscription?plan=required');
+      }
+      const dbUser = await prisma.user.findUnique({
+        where: { clerkId: userId },
+        include: { subscriptions: true }
+      });
+      const isSubscribed = dbUser?.subscriptions.some(s => s.status === 'active' || s.status === 'trialing');
+
+      if (!isSubscribed) {
+        return res.redirect('/subscription?plan=required');
+      }
+
       // Phase2/3の場合はPhase別テーブルから取得
       lesson = await getPhaseLessonBySlug(phase, slug);
     }
@@ -1457,9 +1694,13 @@ app.get('/lessons/:slug', async (req, res) => {
       } else {
         // Phase2/3の場合はPhase別のテーブルから取得
         const tables = getPhaseTables(phase);
-        nextLesson = await tables.lesson.findUnique({
-          where: { id: nextLessonId }
-        });
+        if (tables.lesson) {
+          // @ts-ignore
+          nextLesson = await tables.lesson.findUnique({
+            where: { id: lesson.nextLessonId },
+            include: { questions: true }
+          });
+        }
       }
     } catch (error) {
       console.error('Error fetching next lesson:', error);

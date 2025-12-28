@@ -190,7 +190,21 @@ model User {
   phase1ClearedQuestions Phase1ClearedQuestion[]
   phase2ClearedQuestions Phase2ClearedQuestion[]
   phase3ClearedQuestions Phase3ClearedQuestion[]
-  
+
+  // Stripe関係
+  purchasedArticles    PurchasedArticle[]
+}
+
+model PurchasedArticle {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId       String   // MicroCMS Content ID
+  amount          Int      // 支払額
+  stripeSessionId String?  // StripeのセッションID
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, articleId])
 }
 
 // Phase1の進捗

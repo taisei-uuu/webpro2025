@@ -66,7 +66,202 @@
                                         <div class="article-body">
                                             <%- article.body %>
                                         </div>
-                                        <% } %>
+                                        <% } else if (article.isPaid) { %>
+                                            <div class="paywall-container">
+                                                <div class="paywall-overlay"></div>
+                                                <div class="paywall-content">
+                                                    <div class="lock-icon">
+                                                        <i class="fas fa-lock"></i>
+                                                    </div>
+                                                    <h3>この続きは有料コンテンツです</h3>
+                                                    <p>記事を購入するか、プレミアムプランに加入してお楽しみください。</p>
+
+                                                    <div class="paywall-actions">
+                                                        <% if (isGuest) { %>
+                                                            <div class="alert alert-info mb-3">
+                                                                <i class="fas fa-info-circle me-2"></i>
+                                                                有料記事の閲覧や購入には、無料の会員登録が必要です。
+                                                            </div>
+                                                            <button
+                                                                onclick="window.Clerk.openSignIn({ redirectUrl: window.location.href })"
+                                                                class="btn btn-primary btn-lg w-100 mb-3">
+                                                                <i class="fas fa-right-to-bracket me-2"></i>
+                                                                ログイン / 新規登録して続きを読む
+                                                            </button>
+                                                            <% } else { %>
+                                                                <% if (article.price) { %>
+                                                                    <button id="purchase-btn" class="btn btn-purchase"
+                                                                        data-article-id="<%= article.id %>"
+                                                                        data-price="<%= article.price %>"
+                                                                        data-title="<%= article.title %>">
+                                                                        <i class="fas fa-shopping-cart"></i>
+                                                                        記事を購入する (¥<%= article.price %>)
+                                                                    </button>
+                                                                    <div class="divider">または</div>
+                                                                    <% } %>
+
+                                                                        <a href="/subscription?return_url=<%= encodeURIComponent('/articles/' + article.id) %>"
+                                                                            class="btn btn-subscribe-link">
+                                                                            <i class="fas fa-crown"></i>
+                                                                            プレミアムプランで読み放題 (¥500/月)
+                                                                        </a>
+                                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <style>
+                                                .paywall-container {
+                                                    background: #f8fafc;
+                                                    border: 1px solid #e2e8f0;
+                                                    border-radius: 12px;
+                                                    padding: 3rem 2rem;
+                                                    text-align: center;
+                                                    margin-top: 2rem;
+                                                    position: relative;
+                                                    overflow: hidden;
+                                                }
+
+                                                .lock-icon {
+                                                    font-size: 3rem;
+                                                    color: #3b82f6;
+                                                    margin-bottom: 1rem;
+                                                }
+
+                                                .paywall-content h3 {
+                                                    font-size: 1.5rem;
+                                                    font-weight: bold;
+                                                    margin-bottom: 0.5rem;
+                                                    color: #1e293b;
+                                                }
+
+                                                .paywall-content p {
+                                                    color: #64748b;
+                                                    margin-bottom: 2rem;
+                                                }
+
+                                                .paywall-actions {
+                                                    display: flex;
+                                                    flex-direction: column;
+                                                    gap: 1rem;
+                                                    align-items: center;
+                                                    max-width: 400px;
+                                                    margin: 0 auto;
+                                                }
+
+                                                .btn-purchase {
+                                                    width: 100%;
+                                                    background: #3b82f6;
+                                                    color: white;
+                                                    padding: 12px;
+                                                    border-radius: 8px;
+                                                    font-weight: bold;
+                                                    border: none;
+                                                    cursor: pointer;
+                                                    transition: all 0.2s;
+                                                }
+
+                                                .btn-purchase:hover {
+                                                    background: #2563eb;
+                                                    transform: translateY(-2px);
+                                                }
+
+                                                .btn-subscribe-link {
+                                                    width: 100%;
+                                                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                                                    color: white;
+                                                    padding: 12px;
+                                                    border-radius: 8px;
+                                                    font-weight: bold;
+                                                    text-decoration: none;
+                                                    display: inline-block;
+                                                    transition: all 0.2s;
+                                                }
+
+                                                .btn-subscribe-link:hover {
+                                                    opacity: 0.9;
+                                                    transform: translateY(-2px);
+                                                    color: white;
+                                                }
+
+                                                .divider {
+                                                    display: flex;
+                                                    align-items: center;
+                                                    color: #94a3b8;
+                                                    font-size: 0.9rem;
+                                                    width: 100%;
+                                                }
+
+                                                .divider::before,
+                                                .divider::after {
+                                                    content: "";
+                                                    flex: 1;
+                                                    border-bottom: 1px solid #cbd5e1;
+                                                }
+
+                                                .divider::before {
+                                                    margin-right: 0.5em;
+                                                }
+
+                                                .divider::after {
+                                                    margin-left: 0.5em;
+                                                }
+                                            </style>
+
+                                            <script src="https://js.stripe.com/v3/"></script>
+                                            <script>
+                                                const stripe = Stripe('<%= stripePublishableKey %>');
+                                                const purchaseBtn = document.getElementById('purchase-btn');
+
+                                                if (purchaseBtn) {
+                                                    purchaseBtn.addEventListener('click', async () => {
+                                                        // ログインチェック
+                                                        if (!window.Clerk || !window.Clerk.user) {
+                                                            window.Clerk.openSignIn();
+                                                            return;
+                                                        }
+
+                                                        const articleId = purchaseBtn.dataset.articleId;
+                                                        const price = purchaseBtn.dataset.price;
+                                                        const title = purchaseBtn.dataset.title;
+
+                                                        purchaseBtn.disabled = true;
+                                                        purchaseBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 処理中...';
+
+                                                        try {
+                                                            const response = await fetch('/api/create-payment', {
+                                                                method: 'POST',
+                                                                headers: {
+                                                                    'Content-Type': 'application/json',
+                                                                },
+                                                                body: JSON.stringify({
+                                                                    articleId,
+                                                                    price: parseInt(price),
+                                                                    title
+                                                                })
+                                                            });
+
+                                                            const data = await response.json();
+
+                                                            if (data.error) {
+                                                                alert('エラーが発生しました: ' + data.error);
+                                                                purchaseBtn.disabled = false;
+                                                                purchaseBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> 記事を購入する (¥' + price + ')';
+                                                                return;
+                                                            }
+
+                                                            window.location.href = data.url;
+
+                                                        } catch (error) {
+                                                            console.error('Error:', error);
+                                                            alert('通信エラーが発生しました');
+                                                            purchaseBtn.disabled = false;
+                                                            purchaseBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> 記事を購入する (¥' + price + ')';
+                                                        }
+                                                    });
+                                                }
+                                            </script>
+                                            <% } %>
                         </div>
 
                         <div class="article-footer">
@@ -113,7 +308,7 @@
                 color: #1e293b;
                 margin-bottom: 0.5rem;
                 text-align: center;
-                font-style: italic;
+                /* font-style: italic; */
             }
 
             .article-meta {

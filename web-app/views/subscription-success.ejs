@@ -65,14 +65,21 @@
                     学習を始めて、投資の知識を身につけましょう！
                 </p>
                 <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                    <a href="/learning" class="btn btn-primary btn-lg me-md-2">
-                        <i class="fas fa-play me-2"></i>
-                        学習を始める
-                    </a>
-                    <a href="/" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-home me-2"></i>
-                        ホームに戻る
-                    </a>
+                    <% if (typeof returnUrl !=='undefined' && returnUrl) { %>
+                        <a href="<%= returnUrl %>" class="btn btn-primary btn-lg me-md-2">
+                            <i class="fas fa-book-open me-2"></i>
+                            続きを読む
+                        </a>
+                        <% } else { %>
+                            <a href="/learning" class="btn btn-primary btn-lg me-md-2">
+                                <i class="fas fa-play me-2"></i>
+                                学習を始める
+                            </a>
+                            <% } %>
+                                <a href="/" class="btn btn-outline-primary btn-lg">
+                                    <i class="fas fa-home me-2"></i>
+                                    ホームに戻る
+                                </a>
                 </div>
             </div>
         </div>

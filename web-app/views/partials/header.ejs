@@ -22,7 +22,8 @@
                             style="display: none;">
                             <i class="fas fa-sign-out-alt"></i>
                         </button>
-                        <button id="login-btn" class="btn btn-outline" onclick="window.Clerk.openSignIn()">
+                        <button id="login-btn" class="btn btn-outline"
+                            onclick="window.Clerk.openSignIn({ redirectUrl: window.location.href })">
                             <i class="fas fa-right-to-bracket"></i>
                             <span>ログイン</span>
                         </button>
