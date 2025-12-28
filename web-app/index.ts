@@ -598,6 +598,59 @@ app.post('/api/create-payment', requireAuth(), async (req, res) => {
 });
 
 // サブスクリプション成功ページ
+
+// Stripeカスタマーポータル作成API
+app.post('/api/create-portal-session', requireAuth(), async (req, res) => {
+  try {
+    const { userId } = req.auth;
+
+    // ユーザー情報を取得
+    let user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      include: { subscriptions: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    let customerId: string | null = null;
+
+    // 1. まずDBからStripe Customer IDを探す
+    if (user.subscriptions.length > 0) {
+      customerId = user.subscriptions[0].stripeCustomerId;
+    }
+
+    // 2. DBになければEmailでStripeから検索
+    if (!customerId) {
+      const existingCustomers = await stripe.customers.list({
+        email: user.email,
+        limit: 1
+      });
+      if (existingCustomers.data.length > 0) {
+        customerId = existingCustomers.data[0].id;
+      }
+    }
+
+    // どちらでも見つからなければエラー (課金履歴なし)
+    if (!customerId) {
+      return res.status(400).json({ error: 'No billing history found.' });
+    }
+
+    // カスタマーポータルセッションを作成
+    // 戻り先はトップページまたはプロフィールページ
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${req.protocol}://${req.get('host')}/`,
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error('Error creating portal session:', error);
+    res.status(500).json({ error: 'Failed to create portal session' });
+  }
+});
+
 // サブスクリプション成功ページ
 app.get('/subscription/success', requireAuth(), async (req, res) => {
   const { session_id, return_url } = req.query; // return_urlを受け取る

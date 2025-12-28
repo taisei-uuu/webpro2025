@@ -4,6 +4,7 @@ import yfinance as yf
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
+import html
 
 # ページ設定
 st.set_page_config(
@@ -344,6 +345,11 @@ def main():
     """, unsafe_allow_html=True)
 
     if uploaded_file is not None:
+        # File Size Limit Check (10MB)
+        if uploaded_file.size > 10 * 1024 * 1024:
+             st.error("File size exceeds the 10MB limit. Please upload a smaller file.")
+             return
+
         with st.spinner("Processing data..."):
             df, error = load_and_process_data(uploaded_file)
 
@@ -625,12 +631,19 @@ def main():
                         pnl = int(h['pnl'])
                         pnl_str = f"+{pnl}" if pnl > 0 else f"{pnl}"
                         
+                        # XSS対策: 表示する変数をエスケープ
+                        safe_name = html.escape(str(name))
+                        safe_ticker = html.escape(str(h['ticker'])) # 念のため
+                        safe_b_price = html.escape(str(int(h['buy_price'])))
+                        safe_qty = html.escape(str(int(h['qty'])))
+                        safe_s_price = html.escape(str(int(h['sell_price'])))
+                        
                         st.markdown(f"""
                         <div style='font-family: monospace; font-size: 0.9rem; border-bottom: 1px solid #f3f4f6; padding: 4px 0;'>
-                            <strong style='color: #1f2937; margin-right: 8px;'>{name}</strong> 
-                            {b_date} 買 {int(h['buy_price'])}円 ({int(h['qty'])}株) 
+                            <strong style='color: #1f2937; margin-right: 8px;'>{safe_name}</strong> 
+                            {b_date} 買 {safe_b_price}円 ({safe_qty}株) 
                             <span style='color: #9ca3af;'>→</span> 
-                            {s_date} 売 {int(h['sell_price'])}円 ({int(h['qty'])}株)
+                            {s_date} 売 {safe_s_price}円 ({safe_qty}株)
                             <span style='float: right; font-weight: bold; color: {'#10b981' if pnl > 0 else '#ef4444'};'>
                                 {pnl_str}円
                             </span>

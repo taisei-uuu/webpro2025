@@ -15,6 +15,36 @@
                     <button id="login-btn" class="btn btn-outline" onclick="handleUserProfile()">
                         <i class="fas fa-user"></i>
                     </button>
+                    <!-- Contract Management Button -->
+                    <button id="billing-btn" class="btn btn-outline" onclick="handlePortalSession()" title="契約管理">
+                        <i class="fas fa-credit-card"></i>
+                    </button>
+
+                    <script>
+                        async function handlePortalSession() {
+                            try {
+                                const response = await fetch('/api/create-portal-session', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
+                                });
+                                const data = await response.json();
+                                if (data.url) {
+                                    window.location.href = data.url;
+                                } else {
+                                    if (data.error === 'No billing history found.') {
+                                        alert('課金履歴が見つかりませんでした。');
+                                    } else {
+                                        alert('管理画面への移動に失敗しました。');
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('Error:', error);
+                                alert('エラーが発生しました。');
+                            }
+                        }
+                    </script>
                     <% } else { %>
                         <!-- 未ログインの場合 -->
                         <span id="user-greeting" style="display: none;"></span>
