@@ -364,16 +364,30 @@ app.post('/api/create-subscription', requireAuth(), async (req, res) => {
     if (!user) {
       // Clerkのユーザー情報を取得
       const clerkUser = await clerkClient.users.getUser(userId);
+      const email = clerkUser.emailAddresses[0]?.emailAddress || '';
 
-      // データベースにユーザーを作成
-      user = await prisma.user.create({
-        data: {
-          clerkId: userId,
-          email: clerkUser.emailAddresses[0]?.emailAddress || '',
-          name: clerkUser.firstName || null,
-          password: '' // Clerkを使用するため空文字
-        }
+      // メールアドレスで既存ユーザーを検索
+      const existingUserByEmail = await prisma.user.findUnique({
+        where: { email: email }
       });
+
+      if (existingUserByEmail) {
+        // 既存ユーザーが見つかった場合、Clerk IDを更新
+        user = await prisma.user.update({
+          where: { id: existingUserByEmail.id },
+          data: { clerkId: userId }
+        });
+      } else {
+        // ユーザーが存在しない場合、新規作成
+        user = await prisma.user.create({
+          data: {
+            clerkId: userId,
+            email: email,
+            name: clerkUser.firstName || null,
+            password: '' // Clerkを使用するため空文字
+          }
+        });
+      }
     }
 
     // Stripe顧客を作成または取得
@@ -456,14 +470,30 @@ app.post('/api/create-payment', requireAuth(), async (req, res) => {
 
     if (!user) {
       const clerkUser = await clerkClient.users.getUser(userId);
-      user = await prisma.user.create({
-        data: {
-          clerkId: userId,
-          email: clerkUser.emailAddresses[0]?.emailAddress || '',
-          name: clerkUser.firstName || null,
-          password: ''
-        }
+      const email = clerkUser.emailAddresses[0]?.emailAddress || '';
+
+      // メールアドレスで既存ユーザーを検索
+      const existingUserByEmail = await prisma.user.findUnique({
+        where: { email: email }
       });
+
+      if (existingUserByEmail) {
+        // 既存ユーザーが見つかった場合、Clerk IDを更新
+        user = await prisma.user.update({
+          where: { id: existingUserByEmail.id },
+          data: { clerkId: userId }
+        });
+      } else {
+        // ユーザーが存在しない場合、新規作成
+        user = await prisma.user.create({
+          data: {
+            clerkId: userId,
+            email: email,
+            name: clerkUser.firstName || null,
+            password: ''
+          }
+        });
+      }
     }
 
     // Stripe顧客を作成または取得
