@@ -372,11 +372,18 @@ app.post('/api/create-subscription', requireAuth(), async (req, res) => {
       });
 
       if (existingUserByEmail) {
-        // 既存ユーザーが見つかった場合、Clerk IDを更新
-        user = await prisma.user.update({
-          where: { id: existingUserByEmail.id },
-          data: { clerkId: userId }
-        });
+        // セキュリティチェック: メールアドレスが検証済みの場合のみリンクする
+        const emailObj = clerkUser.emailAddresses.find(e => e.emailAddress === email);
+        if (emailObj?.verification?.status === 'verified') {
+          // 既存ユーザーが見つかり、メールも検証済みの場合、Clerk IDを更新
+          user = await prisma.user.update({
+            where: { id: existingUserByEmail.id },
+            data: { clerkId: userId }
+          });
+        } else {
+          // メールが未検証の場合はリンクせず、エラーを返すか、別ユーザーとして作成（email unique制約でエラーになるため、エラーを返すのが安全）
+          return res.status(403).json({ error: 'Email address must be verified to link accounts.' });
+        }
       } else {
         // ユーザーが存在しない場合、新規作成
         user = await prisma.user.create({
@@ -478,11 +485,18 @@ app.post('/api/create-payment', requireAuth(), async (req, res) => {
       });
 
       if (existingUserByEmail) {
-        // 既存ユーザーが見つかった場合、Clerk IDを更新
-        user = await prisma.user.update({
-          where: { id: existingUserByEmail.id },
-          data: { clerkId: userId }
-        });
+        // セキュリティチェック: メールアドレスが検証済みの場合のみリンクする
+        const emailObj = clerkUser.emailAddresses.find(e => e.emailAddress === email);
+        if (emailObj?.verification?.status === 'verified') {
+          // 既存ユーザーが見つかり、メールも検証済みの場合、Clerk IDを更新
+          user = await prisma.user.update({
+            where: { id: existingUserByEmail.id },
+            data: { clerkId: userId }
+          });
+        } else {
+          // メールが未検証の場合はリンクせず、エラーを返すか、別ユーザーとして作成（email unique制約でエラーになるため、エラーを返すのが安全）
+          return res.status(403).json({ error: 'Email address must be verified to link accounts.' });
+        }
       } else {
         // ユーザーが存在しない場合、新規作成
         user = await prisma.user.create({
