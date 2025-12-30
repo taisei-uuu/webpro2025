@@ -34,12 +34,14 @@
         <link rel="stylesheet" href="/display-cards.css">
         <style>
             .hero-section {
-                background: #1e40af;
+                background: url('/summer_back.png') no-repeat center center;
+                background-size: cover;
                 color: white;
-                padding: 120px 0 100px 0;
+                padding: 100px 0;
                 position: relative;
                 margin-top: 76px;
-                overflow: hidden;
+                overflow: visible;
+                /* カードがはみ出ても良いように */
             }
 
             .hero-section::before {
@@ -49,65 +51,79 @@
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="%23ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="200" r="300" fill="url(%23a)"/><circle cx="800" cy="300" r="200" fill="url(%23a)"/><circle cx="400" cy="700" r="250" fill="url(%23a)"/></svg>') no-repeat center center;
-                background-size: cover;
-                opacity: 0.3;
+                /* background: rgba(30, 64, 175, 0.3); */
+                /* 青みがかったオーバーレイも一時的に無効化（必要なら戻す） */
+                /* backdrop-filter: blur(2px); */
+                /* ぼかしを削除 */
+                pointer-events: none;
             }
 
-            .hero-content {
-                position: relative;
-                z-index: 2;
+            .hero-card {
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 20px;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+                /* 影を強く、柔らかく */
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                height: 100%;
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                backdrop-filter: blur(10px);
+                display: block;
+                /* アンカータグ用 */
+                text-decoration: none;
+                color: inherit;
+                cursor: pointer;
             }
 
-            .hero-section h1 {
-                color: white;
-                font-weight: 700;
+            .hero-card:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+                color: inherit;
             }
 
-            .hero-section .lead {
-                color: rgba(255, 255, 255, 0.9);
-                font-weight: 500;
+            .icon-wrapper {
+                height: 80px;
+                width: 80px;
+                margin: 0 auto;
+                background: #f8fafc;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             }
 
-            .feature-card {
-                transition: transform 0.3s ease;
-                border: none;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            .learning-card {
+                border-top: 5px solid #1e40af;
             }
 
-            .feature-card:hover {
-                transform: translateY(-5px);
+            .article-card {
+                border-top: 5px solid #1e40af;
+                /* 青に戻す */
             }
 
-            .cta-button {
-                background: linear-gradient(45deg, #fbbf24, #f59e0b);
-                border: none;
-                padding: 15px 30px;
-                font-size: 1.2rem;
-                border-radius: 50px;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            .hero-btn {
                 font-weight: 600;
-                color: #1e40af !important;
+                transition: all 0.3s ease;
             }
 
-            .cta-button:hover {
+            .hero-btn:hover {
                 transform: scale(1.05);
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-                color: #1e40af !important;
             }
 
-            .btn-outline-light {
-                border: 2px solid rgba(255, 255, 255, 0.8);
-                color: white;
-                font-weight: 500;
-                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            /* 蛍光ペン風マーカー */
+            .marker-highlight-blue {
+                background: linear-gradient(transparent 60%, rgba(59, 130, 246, 0.3) 60%);
+                font-weight: 800;
+                color: #1e40af;
+                padding: 0 4px;
             }
 
-            .btn-outline-light:hover {
-                background-color: rgba(255, 255, 255, 0.1);
-                border-color: white;
-                color: white;
+            .marker-highlight-yellow {
+                background: linear-gradient(transparent 60%, rgba(245, 158, 11, 0.3) 60%);
+                font-weight: 800;
+                color: #b45309;
+                /* テキストは少し濃い茶色/オレンジで読みやすく */
+                padding: 0 4px;
             }
 
             /* ヘッダーナビゲーションのホバー効果 */
@@ -368,32 +384,45 @@
     </nav>
 
     <!-- ヒーローセクション -->
+    <!-- ヒーローセクション -->
     <section class="hero-section">
         <div class="container">
-            <div class="row align-items-center">
-                <!-- 左側：キャプションとボタン（約70%） -->
-                <div class="col-lg-8 hero-content text-center">
-                    <h1 class="display-3 fw-bold mb-4"
-                        style="line-height: 1.2; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                        <span style="font-size: 1.2em;">投資</span><span style="font-size: 0.8em;">を始めるなら、</span><br>
-                        <span style="font-size: 0.8em;">もう</span><span class="text-warning"
-                            style="font-size: 1.2em;">これだけ</span><span style="font-size: 0.8em;">でいい。</span>
-                    </h1>
-                    <p class="lead mb-5 fs-4"
-                        style="color: rgba(255,255,255,0.9); font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
-                        コスパ×タイパ×わかりやすさを追求した<br>
-                        <span class="text-warning fw-bold">最高の投資家ガイド</span>
-                    </p>
-                    <a href="/learning" class="btn cta-button text-white me-3">
-                        <i class="fas fa-play me-2"></i>今すぐ始める
-                    </a>
-                    <a href="#features" class="btn btn-outline-light">
-                        <i class="fas fa-info-circle me-2"></i>詳しく見る
+            <div class="row justify-content-center align-items-center" style="min-height: 500px;">
+                <!-- 左カード：学習 -->
+                <div class="col-md-5 mb-4 mb-md-0">
+                    <a href="/learning" class="hero-card learning-card text-center p-5 text-decoration-none d-block">
+                        <div class="icon-wrapper mb-4">
+                            <i class="fas fa-graduation-cap fa-3x text-primary"></i>
+                        </div>
+                        <h2 class="h3 fw-bold mb-3 text-dark">投資の<span
+                                class="marker-highlight-blue">「いろは」</span>、<br>順番に学べます。</h2>
+                        <p class="text-muted mb-4">
+                            0から迷わずデビューできる、<br>最短ルートの学習ガイド。
+                        </p>
+                        <span class="btn btn-primary btn-lg rounded-pill px-5 hero-btn">
+                            学習を始める <i class="fas fa-arrow-right ms-2"></i>
+                        </span>
                     </a>
                 </div>
-                <!-- 右側：画像（約30%） -->
-                <div class="col-lg-4 text-center">
-                    <img src="/dog_cat.png" alt="投資学習" class="img-fluid" style="max-height: 500px; width: auto;">
+
+                <!-- 中央スペーサー（必要に応じて） -->
+                <div class="col-md-1"></div>
+
+                <!-- 右カード：記事 -->
+                <div class="col-md-5">
+                    <a href="/articles" class="hero-card article-card text-center p-5 text-decoration-none d-block">
+                        <div class="icon-wrapper mb-4">
+                            <i class="fas fa-book-open fa-3x text-primary"></i>
+                        </div>
+                        <h2 class="h3 fw-bold mb-3 text-dark"><span
+                                class="marker-highlight-blue">「これどうする？」</span>を、<br>ピンポイントで。</h2>
+                        <p class="text-muted mb-4">
+                            「いくらで始めた？」「失敗談は？」<br>教科書には載っていない本音の話。
+                        </p>
+                        <span class="btn btn-primary btn-lg rounded-pill px-5 hero-btn">
+                            記事を探す <i class="fas fa-search ms-2"></i>
+                        </span>
+                    </a>
                 </div>
             </div>
         </div>
