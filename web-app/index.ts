@@ -1274,6 +1274,7 @@ app.get('/articles/:id', async (req, res) => {
           purchasedArticles: { where: { articleId: id } }
         }
       });
+
       if (dbUser) {
         // @ts-ignore
         isSubscribed = dbUser.subscriptions.some(s => s.status === 'active' || s.status === 'trialing');
