@@ -83,14 +83,14 @@
                             </section>
                             <% } %>
 
-                                <!-- SNSセクション -->
-                                <% if (snsArticles && snsArticles.length> 0) { %>
+                                <!-- 株式投資セクション -->
+                                <% if (stockArticles && stockArticles.length> 0) { %>
                                     <section class="theme-section">
                                         <div class="theme-header">
-                                            <h2 class="theme-title">SNS <i class="fas fa-chevron-right"></i></h2>
+                                            <h2 class="theme-title">株式投資 <i class="fas fa-chevron-right"></i></h2>
                                         </div>
                                         <div class="articles-horizontal-scroller">
-                                            <% snsArticles.forEach(article=> { %>
+                                            <% stockArticles.forEach(article=> { %>
                                                 <article class="article-card compact">
                                                     <a href="/articles/<%= article.id %>" class="article-link">
                                                         <% if (article.thumbnail) { %>

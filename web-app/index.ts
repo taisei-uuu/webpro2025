@@ -337,15 +337,15 @@ app.get('/articles', async (req, res) => {
     !article.category || article.category.length === 0 || article.category.includes('featured')
   );
 
-  // SNS: categoryに 'sns' が含まれる
-  const snsArticles = articlesWithLikes.filter(article =>
-    article.category && article.category.includes('sns')
+  // 株式投資: categoryに 'stock' が含まれる
+  const stockArticles = articlesWithLikes.filter(article =>
+    article.category && article.category.includes('stock')
   );
 
   res.render('articles/index', {
     articles: articlesWithLikes, // 後方互換性のため残す
     featuredArticles,
-    snsArticles,
+    stockArticles,
     user,
     publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
   });
