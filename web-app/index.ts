@@ -995,6 +995,21 @@ app.get('/terms', (req, res) => {
   }
 });
 
+// 特定商取引法に基づく表記ページ
+app.get('/commercial-disclosure', (req, res) => {
+  try {
+    res.render('commercial-disclosure', {
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
+    });
+  } catch (error) {
+    console.error('Error in /commercial-disclosure route:', error);
+    res.status(500).render('error', {
+      message: 'ページの読み込み中にエラーが発生しました。',
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+    });
+  }
+});
+
 // 株学習プラットフォームのメインページ（ゲストモード対応）
 app.get('/learning', async (req, res) => {
   try {
