@@ -1,0 +1,119 @@
+/* 蛍光ペン風マーカー */
+.marker-highlight-blue {
+    background: linear-gradient(transparent 60%, rgba(59, 130, 246, 0.3) 60%);
+    font-weight: 800;
+    color: #1e40af;
+    padding: 0 4px;
+}
+
+.marker-highlight-yellow {
+    background: linear-gradient(transparent 60%, rgba(245, 158, 11, 0.3) 60%);
+    font-weight: 800;
+    color: #b45309;
+    /* テキストは少し濃い茶色/オレンジで読みやすく */
+    padding: 0 4px;
+}
+
+/* ヘッダーナビゲーションのホバー効果 */
+.navbar-nav .nav-link {
+    position: relative;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    /* ログインボタンと同じパディング */
+    height: 40px;
+    /* 固定の高さを設定 */
+    color: #000000 !important;
+    /* 通常時の色を黒に設定 */
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+    /* 左側の境界線 */
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    /* 右側の境界線 */
+}
+
+/* 最初のナビゲーションアイテムの左境界線を削除 */
+.navbar-nav .nav-item:first-child .nav-link {
+    border-left: none;
+}
+
+/* 最後のナビゲーションアイテムの右境界線を削除 */
+.navbar-nav .nav-item:last-child .nav-link {
+    border-right: none;
+}
+
+.navbar-nav .nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 4px;
+    /* ボトム位置を調整 */
+    left: 50%;
+    background-color: #1e40af;
+    /* 青色のアンダーライン */
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.navbar-nav .nav-link:hover::after {
+    width: calc(100% - 32px);
+    /* パディング分を引いた幅 */
+}
+
+.navbar-nav .nav-link:hover {
+    color: #1e40af !important;
+    /* ホバー時に青色に変更 */
+}
+
+/* インスタグラムアイコンのサイズ調整 */
+.navbar-nav .nav-link i {
+    font-size: 1.2rem;
+    /* アイコンサイズを調整 */
+}
+
+/* インスタグラムアイコンの色設定 */
+.navbar-nav .nav-link .fa-instagram {
+    color: #e1306c;
+    /* インスタグラムのブランドカラー */
+}
+
+.navbar-nav .nav-link:hover .fa-instagram {
+    color: #1e40af !important;
+    /* ホバー時に青色に変更 */
+}
+
+/* インスタグラムアイコンのアンダーラインを確実に表示 */
+.navbar-nav .nav-item:has(.fa-instagram) .nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 4px;
+    left: 50%;
+    background-color: #1e40af;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.navbar-nav .nav-item:has(.fa-instagram) .nav-link:hover::after {
+    width: 20px;
+    /* アイコンの横幅と同じ長さに設定 */
+}
+
+.navbar-brand {
+    font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #000000 !important;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+}
+
+.navbar-brand .brand-with {
+    font-weight: 400;
+    color: #1e40af;
+}

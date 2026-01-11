@@ -32,6 +32,7 @@
             media="print" onload="this.media='all'">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="/display-cards.css">
+        <link rel="stylesheet" href="/navbar.css">
         <style>
             .hero-section {
                 background: url('/summer_back.png') no-repeat center center;
@@ -110,125 +111,7 @@
                 transform: scale(1.05);
             }
 
-            /* 蛍光ペン風マーカー */
-            .marker-highlight-blue {
-                background: linear-gradient(transparent 60%, rgba(59, 130, 246, 0.3) 60%);
-                font-weight: 800;
-                color: #1e40af;
-                padding: 0 4px;
-            }
 
-            .marker-highlight-yellow {
-                background: linear-gradient(transparent 60%, rgba(245, 158, 11, 0.3) 60%);
-                font-weight: 800;
-                color: #b45309;
-                /* テキストは少し濃い茶色/オレンジで読みやすく */
-                padding: 0 4px;
-            }
-
-            /* ヘッダーナビゲーションのホバー効果 */
-            .navbar-nav .nav-link {
-                position: relative;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                padding: 8px 16px;
-                /* ログインボタンと同じパディング */
-                height: 40px;
-                /* 固定の高さを設定 */
-                color: #000000 !important;
-                /* 通常時の色を黒に設定 */
-                border-left: 1px solid rgba(0, 0, 0, 0.1);
-                /* 左側の境界線 */
-                border-right: 1px solid rgba(0, 0, 0, 0.1);
-                /* 右側の境界線 */
-            }
-
-            /* 最初のナビゲーションアイテムの左境界線を削除 */
-            .navbar-nav .nav-item:first-child .nav-link {
-                border-left: none;
-            }
-
-            /* 最後のナビゲーションアイテムの右境界線を削除 */
-            .navbar-nav .nav-item:last-child .nav-link {
-                border-right: none;
-            }
-
-            .navbar-nav .nav-link::after {
-                content: '';
-                position: absolute;
-                width: 0;
-                height: 2px;
-                bottom: 4px;
-                /* ボトム位置を調整 */
-                left: 50%;
-                background-color: #1e40af;
-                /* 青色のアンダーライン */
-                transition: all 0.3s ease;
-                transform: translateX(-50%);
-            }
-
-            .navbar-nav .nav-link:hover::after {
-                width: calc(100% - 32px);
-                /* パディング分を引いた幅 */
-            }
-
-            .navbar-nav .nav-link:hover {
-                color: #1e40af !important;
-                /* ホバー時に青色に変更 */
-            }
-
-            /* インスタグラムアイコンのサイズ調整 */
-            .navbar-nav .nav-link i {
-                font-size: 1.2rem;
-                /* アイコンサイズを調整 */
-            }
-
-            /* インスタグラムアイコンの色設定 */
-            .navbar-nav .nav-link .fa-instagram {
-                color: #e1306c;
-                /* インスタグラムのブランドカラー */
-            }
-
-            .navbar-nav .nav-link:hover .fa-instagram {
-                color: #1e40af !important;
-                /* ホバー時に青色に変更 */
-            }
-
-            /* インスタグラムアイコンのアンダーラインを確実に表示 */
-            .navbar-nav .nav-item:has(.fa-instagram) .nav-link::after {
-                content: '';
-                position: absolute;
-                width: 0;
-                height: 2px;
-                bottom: 4px;
-                left: 50%;
-                background-color: #1e40af;
-                transition: all 0.3s ease;
-                transform: translateX(-50%);
-            }
-
-            .navbar-nav .nav-item:has(.fa-instagram) .nav-link:hover::after {
-                width: 20px;
-                /* アイコンの横幅と同じ長さに設定 */
-            }
-
-            .navbar-brand {
-                font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-                font-weight: 600;
-                font-size: 1.5rem;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                color: #000000 !important;
-                display: flex;
-                align-items: center;
-                line-height: 1;
-            }
-
-            .navbar-brand .brand-with {
-                font-weight: 400;
-                color: #1e40af;
-            }
 
             .section-title {
                 color: #1e40af;
@@ -622,113 +505,84 @@
     </section>
 
     <!-- フッター -->
-    <footer class="bg-dark text-white py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center mb-2">
-                        <img src="/logo.png" alt="Stock with" height="30" class="me-2">
-                        <h5 class="mb-0">Stock with</h5>
-                    </div>
-                    <p class="text-muted">株式投資学習プラットフォーム</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <div class="mb-2">
-                        <a href="/privacy" class="text-muted text-decoration-none me-3">
-                            <i class="fas fa-shield-alt me-1"></i>プライバシーポリシー
-                        </a>
-                        <a href="/terms" class="text-muted text-decoration-none me-3">
-                            <i class="fas fa-file-contract me-1"></i>利用規約
-                        </a>
-                        <a href="/commercial-disclosure" class="text-muted text-decoration-none me-3">
-                            <i class="fas fa-balance-scale me-1"></i>特定商取引法に基づく表記
-                        </a>
-                        <a href="/notice" class="text-muted text-decoration-none">
-                            <i class="fas fa-bullhorn me-1"></i>電子公告
-                        </a>
-                    </div>
-                    <p class="text-muted mb-0">&copy; 2025 Stock with株式会社. All rights reserved.</p>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <%- include('partials/global-footer', { isHome: true }) %>
 
-    <!-- JavaScriptの最適化読み込み -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" defer></script>
-    <script src="/display-cards.js" defer></script>
+        <!-- JavaScriptの最適化読み込み -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" defer></script>
+        <script src="/display-cards.js" defer></script>
 
-    <!-- Clerk認証スクリプト（最適化版） -->
-    <script>
-        window.Clerk = window.Clerk || {};
-        window.Clerk.publishableKey = '<%= publishableKey || "" %>';
-    </script>
-    <% if (publishableKey) { %>
-        <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>"
-            src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
-        <% } %>
-            <script>
-                // Clerkの初期化とユーザー状態管理（index.ejsと同じ方式）
-                window.addEventListener('load', async () => {
-                    try {
-                        await window.Clerk.load();
-                        console.log('Clerk loaded successfully');
-                        updateUI();
-
-                        // Clerkの初期化完了後にリスナーを設定
-                        window.Clerk.addListener(({ user }) => {
-                            updateUI();
-                        });
-                    } catch (error) {
-                        console.error('Error loading Clerk:', error);
-                    }
-                });
-
-                // ユーザープロフィール処理関数
-                function handleUserProfile() {
-                    console.log('ユーザープロフィールボタンがクリックされました');
-
-                    // Clerkが利用可能かチェック
-                    if (window.Clerk && typeof window.Clerk.openUserProfile === 'function') {
+        <!-- Clerk認証スクリプト（最適化版） -->
+        <script>
+            window.Clerk = window.Clerk || {};
+            window.Clerk.publishableKey = '<%= publishableKey || "" %>';
+        </script>
+        <% if (publishableKey) { %>
+            <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>"
+                src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+            <% } %>
+                <script>
+                    // Clerkの初期化とユーザー状態管理（index.ejsと同じ方式）
+                    window.addEventListener('load', async () => {
                         try {
-                            window.Clerk.openUserProfile();
-                            console.log('プロフィール画面を開きました');
+                            await window.Clerk.load();
+                            console.log('Clerk loaded successfully');
+                            updateUI();
+
+                            // Clerkの初期化完了後にリスナーを設定
+                            window.Clerk.addListener(({ user }) => {
+                                updateUI();
+                            });
                         } catch (error) {
-                            console.error('プロフィール画面を開く際にエラーが発生しました:', error);
-                            alert('プロフィール画面を開けませんでした。');
+                            console.error('Error loading Clerk:', error);
                         }
-                    } else {
-                        console.error('Clerkが利用できません');
-                        alert('プロフィール機能が利用できません。');
-                    }
-                }
+                    });
 
-                // UIの更新関数
-                function updateUI() {
-                    const user = window.Clerk.user;
-                    const loginButton = document.querySelector('button[onclick="window.Clerk.openSignIn()"]');
-                    const signupButton = document.querySelector('button[onclick="window.Clerk.openSignUp()"]');
+                    // ユーザープロフィール処理関数
+                    function handleUserProfile() {
+                        console.log('ユーザープロフィールボタンがクリックされました');
 
-                    if (user) {
-                        // ログイン済みの場合
-                        if (loginButton) {
-                            loginButton.innerHTML = '<i class="fas fa-user me-1"></i>';
-                            loginButton.onclick = handleUserProfile;
-                        }
-                        if (signupButton) {
-                            signupButton.style.display = 'none';
-                        }
-                    } else {
-                        // 未ログインの場合
-                        if (loginButton) {
-                            loginButton.innerHTML = '<i class="fas fa-right-to-bracket me-1"></i>ログイン';
-                            loginButton.onclick = () => window.Clerk.openSignIn();
-                        }
-                        if (signupButton) {
-                            signupButton.style.display = 'inline-block';
+                        // Clerkが利用可能かチェック
+                        if (window.Clerk && typeof window.Clerk.openUserProfile === 'function') {
+                            try {
+                                window.Clerk.openUserProfile();
+                                console.log('プロフィール画面を開きました');
+                            } catch (error) {
+                                console.error('プロフィール画面を開く際にエラーが発生しました:', error);
+                                alert('プロフィール画面を開けませんでした。');
+                            }
+                        } else {
+                            console.error('Clerkが利用できません');
+                            alert('プロフィール機能が利用できません。');
                         }
                     }
-                }
-            </script>
+
+                    // UIの更新関数
+                    function updateUI() {
+                        const user = window.Clerk.user;
+                        const loginButton = document.querySelector('button[onclick="window.Clerk.openSignIn()"]');
+                        const signupButton = document.querySelector('button[onclick="window.Clerk.openSignUp()"]');
+
+                        if (user) {
+                            // ログイン済みの場合
+                            if (loginButton) {
+                                loginButton.innerHTML = '<i class="fas fa-user me-1"></i>';
+                                loginButton.onclick = handleUserProfile;
+                            }
+                            if (signupButton) {
+                                signupButton.style.display = 'none';
+                            }
+                        } else {
+                            // 未ログインの場合
+                            if (loginButton) {
+                                loginButton.innerHTML = '<i class="fas fa-right-to-bracket me-1"></i>ログイン';
+                                loginButton.onclick = () => window.Clerk.openSignIn();
+                            }
+                            if (signupButton) {
+                                signupButton.style.display = 'inline-block';
+                            }
+                        }
+                    }
+                </script>
 </body>
 
 </html>

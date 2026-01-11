@@ -21,6 +21,7 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="/display-cards.css">
+        <link rel="stylesheet" href="/navbar.css">
 
         <style>
             .privacy-header {
@@ -311,11 +312,7 @@
                             </div>
                         </div>
 
-                        <div class="text-center mt-5">
-                            <a href="/" class="back-button">
-                                <i class="fas fa-arrow-left me-2"></i>ホームに戻る
-                            </a>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -323,93 +320,64 @@
     </section>
 
     <!-- フッター -->
-    <footer class="bg-dark text-white py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center mb-2">
-                        <img src="/logo.png" alt="Stock with" height="30" class="me-2">
-                        <h5 class="mb-0">Stock with</h5>
-                    </div>
-                    <p class="text-muted">株式投資学習プラットフォーム</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <div class="mb-2">
-                        <a href="/privacy" class="text-muted text-decoration-none me-3">
-                            <i class="fas fa-shield-alt me-1"></i>プライバシーポリシー
-                        </a>
-                        <a href="/terms" class="text-muted text-decoration-none me-3">
-                            <i class="fas fa-file-contract me-1"></i>利用規約
-                        </a>
-                        <a href="/commercial-disclosure" class="text-muted text-decoration-none me-3">
-                            <i class="fas fa-balance-scale me-1"></i>特定商取引法に基づく表記
-                        </a>
-                        <a href="/notice" class="text-muted text-decoration-none">
-                            <i class="fas fa-bullhorn me-1"></i>電子公告
-                        </a>
-                    </div>
-                    <p class="text-muted mb-0">&copy; 2025 Stock with株式会社. All rights reserved.</p>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <%- include('partials/global-footer', { isHome: false }) %>
 
-    <!-- JavaScriptの最適化読み込み -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" defer></script>
+        <!-- JavaScriptの最適化読み込み -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" defer></script>
 
-    <!-- Clerk認証スクリプト（最適化版） -->
-    <script>
-        window.Clerk = window.Clerk || {};
-        window.Clerk.publishableKey = '<%= publishableKey || "" %>';
-    </script>
-    <% if (publishableKey) { %>
-        <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>"
-            src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
-        <% } %>
-            <script>
-                // Clerkの初期化とユーザー状態管理（index.ejsと同じ方式）
-                window.addEventListener('load', async () => {
-                    try {
-                        await window.Clerk.load();
-                        console.log('Clerk loaded successfully');
-                        updateUI();
-
-                        // Clerkの初期化完了後にリスナーを設定
-                        window.Clerk.addListener(({ user }) => {
+        <!-- Clerk認証スクリプト（最適化版） -->
+        <script>
+            window.Clerk = window.Clerk || {};
+            window.Clerk.publishableKey = '<%= publishableKey || "" %>';
+        </script>
+        <% if (publishableKey) { %>
+            <script async crossorigin="anonymous" data-clerk-publishable-key="<%= publishableKey %>"
+                src="https://<%= publishableKey.split('_')[1] %>.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+            <% } %>
+                <script>
+                    // Clerkの初期化とユーザー状態管理（index.ejsと同じ方式）
+                    window.addEventListener('load', async () => {
+                        try {
+                            await window.Clerk.load();
+                            console.log('Clerk loaded successfully');
                             updateUI();
-                        });
-                    } catch (error) {
-                        console.error('Error loading Clerk:', error);
-                    }
-                });
 
-                // UIの更新関数
-                function updateUI() {
-                    const user = window.Clerk.user;
-                    const loginButton = document.querySelector('button[onclick="window.Clerk.openSignIn()"]');
-                    const signupButton = document.querySelector('button[onclick="window.Clerk.openSignUp()"]');
+                            // Clerkの初期化完了後にリスナーを設定
+                            window.Clerk.addListener(({ user }) => {
+                                updateUI();
+                            });
+                        } catch (error) {
+                            console.error('Error loading Clerk:', error);
+                        }
+                    });
 
-                    if (user) {
-                        // ログイン済みの場合
-                        if (loginButton) {
-                            loginButton.innerHTML = '<i class="fas fa-user me-1"></i>' + (user.firstName || 'ユーザー');
-                            loginButton.onclick = () => window.Clerk.openUserProfile();
-                        }
-                        if (signupButton) {
-                            signupButton.style.display = 'none';
-                        }
-                    } else {
-                        // 未ログインの場合
-                        if (loginButton) {
-                            loginButton.innerHTML = '<i class="fas fa-right-to-bracket me-1"></i>ログイン';
-                            loginButton.onclick = () => window.Clerk.openSignIn();
-                        }
-                        if (signupButton) {
-                            signupButton.style.display = 'inline-block';
+                    // UIの更新関数
+                    function updateUI() {
+                        const user = window.Clerk.user;
+                        const loginButton = document.querySelector('button[onclick="window.Clerk.openSignIn()"]');
+                        const signupButton = document.querySelector('button[onclick="window.Clerk.openSignUp()"]');
+
+                        if (user) {
+                            // ログイン済みの場合
+                            if (loginButton) {
+                                loginButton.innerHTML = '<i class="fas fa-user me-1"></i>' + (user.firstName || 'ユーザー');
+                                loginButton.onclick = () => window.Clerk.openUserProfile();
+                            }
+                            if (signupButton) {
+                                signupButton.style.display = 'none';
+                            }
+                        } else {
+                            // 未ログインの場合
+                            if (loginButton) {
+                                loginButton.innerHTML = '<i class="fas fa-right-to-bracket me-1"></i>ログイン';
+                                loginButton.onclick = () => window.Clerk.openSignIn();
+                            }
+                            if (signupButton) {
+                                signupButton.style.display = 'inline-block';
+                            }
                         }
                     }
-                }
-            </script>
+                </script>
 </body>
 
 </html>
