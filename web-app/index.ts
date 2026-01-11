@@ -342,10 +342,22 @@ app.get('/articles', async (req, res) => {
     article.category && article.category.includes('stock')
   );
 
+  // 週次レポート: categoryに 'report' が含まれる
+  const reportArticles = articlesWithLikes.filter(article =>
+    article.category && article.category.includes('report')
+  );
+
+  // その他: categoryに 'other' が含まれる
+  const otherArticles = articlesWithLikes.filter(article =>
+    article.category && article.category.includes('other')
+  );
+
   res.render('articles/index', {
     articles: articlesWithLikes, // 後方互換性のため残す
     featuredArticles,
     stockArticles,
+    reportArticles,
+    otherArticles,
     user,
     publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
   });
@@ -1207,8 +1219,29 @@ app.get('/articles', async (req, res) => {
       return { ...article, likes };
     }));
 
+    // カテゴリごとに分類
+    const featuredArticles = articlesWithLikes.filter(article =>
+      !article.category || article.category.length === 0 || article.category.includes('featured')
+    );
+
+    const stockArticles = articlesWithLikes.filter(article =>
+      article.category && article.category.includes('stock')
+    );
+
+    const reportArticles = articlesWithLikes.filter(article =>
+      article.category && article.category.includes('report')
+    );
+
+    const otherArticles = articlesWithLikes.filter(article =>
+      article.category && article.category.includes('other')
+    );
+
     res.render('articles/index', {
       articles: articlesWithLikes,
+      featuredArticles,
+      stockArticles,
+      reportArticles,
+      otherArticles,
       user,
       isGuest: !userId,
       publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''

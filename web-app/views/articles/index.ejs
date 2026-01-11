@@ -30,10 +30,11 @@
         <main class="site-main">
             <div class="container">
                 <%- include('../partials/navigation', { path: '/articles' }) %>
-                    <h1 class="page-title">記事一覧</h1>
 
-                    <% if ((featuredArticles && featuredArticles.length> 0) || (snsArticles && snsArticles.length > 0))
-                        { %>
+
+                    <% if ((featuredArticles && featuredArticles.length> 0) || (stockArticles && stockArticles.length >
+                        0) || (reportArticles && reportArticles.length > 0) || (otherArticles && otherArticles.length >
+                        0)) { %>
 
                         <!-- 今日の注目記事セクション -->
                         <% if (featuredArticles && featuredArticles.length> 0) { %>
@@ -55,7 +56,6 @@
                                                             <h3 class="article-title">
                                                                 <%= article.title %>
                                                             </h3>
-
                                                             <div class="article-meta">
                                                                 <span class="article-date">
                                                                     <i class="fas fa-calendar-alt"></i>
@@ -72,10 +72,6 @@
                                                                     <% } else { %>
                                                                         <span class="badge badge-free">無料</span>
                                                                         <% } %>
-                                                            </div>
-
-                                                            <div class="article-introduction">
-                                                                <%= article.excerpt %>
                                                             </div>
                                                         </div>
                                             </a>
@@ -106,7 +102,6 @@
                                                                     <h3 class="article-title">
                                                                         <%= article.title %>
                                                                     </h3>
-
                                                                     <div class="article-meta">
                                                                         <span class="article-date">
                                                                             <i class="fas fa-calendar-alt"></i>
@@ -126,10 +121,6 @@
                                                                                 <span class="badge badge-free">無料</span>
                                                                                 <% } %>
                                                                     </div>
-
-                                                                    <div class="article-introduction">
-                                                                        <%= article.excerpt %>
-                                                                    </div>
                                                                 </div>
                                                     </a>
                                                 </article>
@@ -138,9 +129,114 @@
                                     </section>
                                     <% } %>
 
-                                        <% } else { %>
-                                            <p class="no-articles">記事はまだありません。</p>
+                                        <!-- その他セクション -->
+                                        <% if (otherArticles && otherArticles.length> 0) { %>
+                                            <section class="theme-section">
+                                                <div class="theme-header">
+                                                    <h2 class="theme-title">その他 <i class="fas fa-chevron-right"></i>
+                                                    </h2>
+                                                </div>
+                                                <div class="articles-horizontal-scroller">
+                                                    <% otherArticles.forEach(article=> { %>
+                                                        <article class="article-card compact">
+                                                            <a href="/articles/<%= article.id %>" class="article-link">
+                                                                <% if (article.thumbnail) { %>
+                                                                    <div class="article-thumbnail-wrapper">
+                                                                        <img src="<%= article.thumbnail.url %>"
+                                                                            alt="<%= article.title %>"
+                                                                            class="article-thumbnail">
+                                                                    </div>
+                                                                    <% } %>
+                                                                        <div class="article-content">
+                                                                            <h3 class="article-title">
+                                                                                <%= article.title %>
+                                                                            </h3>
+                                                                            <div class="article-meta">
+                                                                                <span class="article-date">
+                                                                                    <i class="fas fa-calendar-alt"></i>
+                                                                                    <%= new
+                                                                                        Date(article.publishedAt).toLocaleDateString('ja-JP')
+                                                                                        %>
+                                                                                </span>
+                                                                                <span class="article-likes">
+                                                                                    <i class="fas fa-heart"
+                                                                                        style="color: #ff4757;"></i>
+                                                                                    <%= article.likes ?
+                                                                                        article.likes.count : 0 %>
+                                                                                </span>
+                                                                                <% if (article.isPaid) { %>
+                                                                                    <span
+                                                                                        class="badge badge-paid">有料</span>
+                                                                                    <% } else { %>
+                                                                                        <span
+                                                                                            class="badge badge-free">無料</span>
+                                                                                        <% } %>
+                                                                            </div>
+                                                                        </div>
+                                                            </a>
+                                                        </article>
+                                                        <% }); %>
+                                                </div>
+                                            </section>
                                             <% } %>
+
+                                                <!-- 週次レポートセクション -->
+                                                <% if (reportArticles && reportArticles.length> 0) { %>
+                                                    <section class="theme-section">
+                                                        <div class="theme-header">
+                                                            <h2 class="theme-title">週次レポート <i
+                                                                    class="fas fa-chevron-right"></i></h2>
+                                                        </div>
+                                                        <div class="articles-horizontal-scroller">
+                                                            <% reportArticles.forEach(article=> { %>
+                                                                <article class="article-card compact">
+                                                                    <a href="/articles/<%= article.id %>"
+                                                                        class="article-link">
+                                                                        <% if (article.thumbnail) { %>
+                                                                            <div class="article-thumbnail-wrapper">
+                                                                                <img src="<%= article.thumbnail.url %>"
+                                                                                    alt="<%= article.title %>"
+                                                                                    class="article-thumbnail">
+                                                                            </div>
+                                                                            <% } %>
+                                                                                <div class="article-content">
+                                                                                    <h3 class="article-title">
+                                                                                        <%= article.title %>
+                                                                                    </h3>
+                                                                                    <div class="article-meta">
+                                                                                        <span class="article-date">
+                                                                                            <i
+                                                                                                class="fas fa-calendar-alt"></i>
+                                                                                            <%= new
+                                                                                                Date(article.publishedAt).toLocaleDateString('ja-JP')
+                                                                                                %>
+                                                                                        </span>
+                                                                                        <span class="article-likes">
+                                                                                            <i class="fas fa-heart"
+                                                                                                style="color: #ff4757;"></i>
+                                                                                            <%= article.likes ?
+                                                                                                article.likes.count : 0
+                                                                                                %>
+                                                                                        </span>
+                                                                                        <% if (article.isPaid) { %>
+                                                                                            <span
+                                                                                                class="badge badge-paid">有料</span>
+                                                                                            <% } else { %>
+                                                                                                <span
+                                                                                                    class="badge badge-free">無料</span>
+                                                                                                <% } %>
+                                                                                    </div>
+                                                                                </div>
+                                                                    </a>
+                                                                </article>
+                                                                <% }); %>
+                                                        </div>
+                                                    </section>
+                                                    <% } %>
+
+                                                        <% } else { %>
+                                                            <p class="no-articles">記事はまだありません。</p>
+                                                            <% } %>
             </div>
         </main>
 
