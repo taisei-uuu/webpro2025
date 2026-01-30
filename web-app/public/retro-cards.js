@@ -65,7 +65,7 @@ class RetroCards {
       scrollElement.style.overflowX = 'scroll';
       scrollElement.style.scrollbarWidth = 'auto';
       scrollElement.style.scrollbarColor = '#007bff #e2e8f0';
-      
+
       // 少しスクロールしてスクロールバーを表示させる
       setTimeout(() => {
         scrollElement.scrollLeft = 1;
@@ -89,7 +89,7 @@ class RetroCards {
     // Lock body scroll - CSSクラスを使用する安全な方法
     const scrollY = window.scrollY;
     document.body.dataset.scrollY = scrollY.toString();
-    
+
     // CSSクラスを追加してスクロールをロック
     document.body.classList.add('body-scroll-lock');
     document.body.style.top = `-${scrollY}px`;
@@ -131,14 +131,14 @@ class RetroCards {
 
     // Restore body scroll - CSSクラスを使用する安全な方法
     const scrollY = parseInt(document.body.dataset.scrollY || '0', 10);
-    
+
     // CSSクラスを削除してスクロールを復元
     document.body.classList.remove('body-scroll-lock');
     document.body.style.top = '';
-    
+
     // データ属性もクリア
     delete document.body.dataset.scrollY;
-    
+
     // スクロール位置を復元
     window.scrollTo({ top: scrollY, behavior: 'instant' });
 
@@ -147,10 +147,10 @@ class RetroCards {
     if (modal) {
       modal.querySelector('.retro-modal-backdrop').classList.add('retro-modal-exit-active');
       modal.querySelector('.retro-modal-content').classList.add('retro-modal-exit-active');
-      
+
       setTimeout(() => {
         modal.remove();
-        
+
         // モーダル削除後にフォントサイズを強制的にリセット
         this.resetFontSizes();
       }, 300);
@@ -167,7 +167,7 @@ class RetroCards {
         element.style.fontSize = computedStyle.fontSize;
       }
     });
-    
+
     // 少し遅延してから元に戻す
     setTimeout(() => {
       allElements.forEach(element => {
@@ -185,11 +185,11 @@ function generateCardsData(lessonTitle) {
     console.log('No stage pattern found in lesson title:', lessonTitle);
     return [];
   }
-  
+
   const stage = match[1];
   const lesson = match[2];
   const basePath = `/Stage${stage}/${stage}-${lesson}`;
-  
+
   // Define card data for each lesson
   const cardDataMap = {
     'Stage1-1': [
@@ -295,10 +295,10 @@ function generateCardsData(lessonTitle) {
       { name: "柔軟性の維持", designation: "Step 7: 適応力", description: "市場の変化に柔軟に対応し、必要に応じて戦略を調整します。" }
     ]
   };
-  
+
   const lessonKey = `Stage${stage}-${lesson}`;
   const cardData = cardDataMap[lessonKey] || [];
-  
+
   return cardData.map((card, index) => ({
     ...card,
     backgroundImage: `${basePath}/${index + 1}.png`
@@ -306,19 +306,19 @@ function generateCardsData(lessonTitle) {
 }
 
 // Initialize cards when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   setTimeout(() => {
     const container = document.getElementById('retro-cards-container');
     if (!container) return;
 
     const lessonTitleElement = document.querySelector('.lesson-title');
     if (!lessonTitleElement) return;
-    
+
     const lessonTitle = lessonTitleElement.textContent.trim();
     const cardsData = generateCardsData(lessonTitle);
-    
+
     if (cardsData.length === 0) {
-      container.innerHTML = '<p>このレッスンにはカードがありません。</p>';
+      container.style.display = 'none';
       return;
     }
 

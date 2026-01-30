@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
-import { client, Article, getArticles } from './lib/microcms';
+import { client, Article, getArticles, getLessonBySlug } from './lib/microcms';
 // import { getAuth } from '@clerk/express'; // Duplicate import
 import session from 'express-session';
 import Stripe from 'stripe';
@@ -1847,6 +1847,30 @@ app.get('/lessons/:slug', async (req, res) => {
 
       // Phase2/3の場合はPhase別テーブルから取得
       lesson = await getPhaseLessonBySlug(phase, slug);
+    }
+
+    // MicroCMSからコンテンツを取得してマージ (ハイブリッド構成)
+    try {
+      const cmsLesson = await getLessonBySlug(slug);
+      if (cmsLesson && lesson) {
+        // MicroCMSのデータを優先して上書き
+        lesson.title = cmsLesson.title;
+        // @ts-ignore: Prismaの型定義にはないが、EJSには渡せる
+        lesson.content = cmsLesson.content;
+
+        if (cmsLesson.videoId) {
+          // @ts-ignore
+          lesson.videoId = cmsLesson.videoId;
+        }
+
+        if (cmsLesson.slides && cmsLesson.slides.length > 0) {
+          // @ts-ignore
+          lesson.slides = cmsLesson.slides;
+        }
+      }
+    } catch (error) {
+      console.error('MicroCMS fetch error:', error);
+      // エラーが出てもDBのデータだけで表示を続行
     }
 
     if (!lesson) {
