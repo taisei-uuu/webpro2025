@@ -35,28 +35,11 @@
         <link rel="stylesheet" href="/navbar.css">
         <style>
             .hero-section {
-                background: url('/summer_back.png') no-repeat center center;
-                background-size: cover;
-                color: white;
-                padding: 100px 0;
-                position: relative;
+                background-color: #fff;
+                color: #333;
+                padding: 80px 0;
                 margin-top: 76px;
                 overflow: visible;
-                /* カードがはみ出ても良いように */
-            }
-
-            .hero-section::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                /* background: rgba(30, 64, 175, 0.3); */
-                /* 青みがかったオーバーレイも一時的に無効化（必要なら戻す） */
-                /* backdrop-filter: blur(2px); */
-                /* ぼかしを削除 */
-                pointer-events: none;
             }
 
             .hero-card {
@@ -221,6 +204,60 @@
                     padding: 6px;
                 }
             }
+
+            /* 3D Button Styles */
+            .hero-btn-start {
+                background-color: #0d6efd;
+                /* Bootstrap Primary */
+                color: white;
+                border: none;
+                border-bottom: 5px solid #0a58ca;
+                /* Darker Blue for 3D effect */
+                border-radius: 50px;
+                padding: 1rem 3rem;
+                font-weight: bold;
+                transition: all 0.1s ease;
+            }
+
+            .hero-btn-start:hover {
+                background-color: #0b5ed7;
+                /* Bootstrap Primary Hover */
+                color: white;
+                margin-top: -2px;
+                border-bottom-width: 7px;
+            }
+
+            .hero-btn-start:active {
+                margin-top: 3px;
+                border-bottom-width: 2px;
+            }
+
+            .hero-btn-login {
+                background-color: transparent;
+                color: #0d6efd;
+                /* Bootstrap Primary */
+                border: 2px solid #e5e7eb;
+                border-bottom: 5px solid #e5e7eb;
+                border-radius: 50px;
+                padding: 1rem 3rem;
+                font-weight: bold;
+                transition: all 0.1s ease;
+            }
+
+            .hero-btn-login:hover {
+                background-color: #f8fafc;
+                border-color: #d1d5db;
+                border-bottom: 7px solid #d1d5db;
+                color: #0a58ca;
+                /* Darker Blue */
+                margin-top: -2px;
+            }
+
+            .hero-btn-login:active {
+                margin-top: 3px;
+                border-bottom-width: 2px;
+                border-color: #d1d5db;
+            }
         </style>
 </head>
 <script src="/in-app-browser-detector.js"></script>
@@ -270,42 +307,29 @@
     <!-- ヒーローセクション -->
     <section class="hero-section">
         <div class="container">
-            <div class="row justify-content-center align-items-center" style="min-height: 500px;">
-                <!-- 左カード：学習 -->
-                <div class="col-md-5 mb-4 mb-md-0">
-                    <a href="/learning" class="hero-card learning-card text-center p-5 text-decoration-none d-block">
-                        <div class="icon-wrapper mb-4">
-                            <i class="fas fa-graduation-cap fa-3x text-primary"></i>
-                        </div>
-                        <h2 class="h3 fw-bold mb-3 text-dark">投資の<span
-                                class="marker-highlight-blue">「いろは」</span>、<br>順番に学べます。</h2>
-                        <p class="text-muted mb-4">
-                            0から迷わずデビューできる、<br>最短ルートの学習ガイド。
-                        </p>
-                        <span class="btn btn-primary btn-lg rounded-pill px-5 hero-btn">
-                            学習を始める <i class="fas fa-arrow-right ms-2"></i>
-                        </span>
-                    </a>
+            <div class="row align-items-center justify-content-center" style="min-height: 500px;">
+                <!-- 左側：画像 -->
+                <div class="col-lg-6 mb-5 mb-lg-0 text-center">
+                    <img src="/sw-penguin.png?" alt="Stock with Character" class="img-fluid" style="max-height: 400px;">
                 </div>
 
-                <!-- 中央スペーサー（必要に応じて） -->
-                <div class="col-md-1"></div>
-
-                <!-- 右カード：記事 -->
-                <div class="col-md-5">
-                    <a href="/articles" class="hero-card article-card text-center p-5 text-decoration-none d-block">
-                        <div class="icon-wrapper mb-4">
-                            <i class="fas fa-book-open fa-3x text-primary"></i>
-                        </div>
-                        <h2 class="h3 fw-bold mb-3 text-dark"><span
-                                class="marker-highlight-blue">「これどうする？」</span>を、<br>ピンポイントで。</h2>
-                        <p class="text-muted mb-4">
-                            「いくらで始めた？」「失敗談は？」<br>教科書には載っていない本音の話。
-                        </p>
-                        <span class="btn btn-primary btn-lg rounded-pill px-5 hero-btn">
-                            記事を探す <i class="fas fa-search ms-2"></i>
-                        </span>
-                    </a>
+                <!-- 右側：テキストとボタン -->
+                <div class="col-lg-6 text-center text-lg-start ps-lg-5">
+                    <h1 class="display-5 fw-bold mb-4" style="color: #000; line-height: 1.4;">
+                        株式投資への一歩を<br>踏み出そう
+                    </h1>
+                    <div class="d-flex flex-column flex-sm-row justify-content-center justify-content-lg-start gap-3">
+                        <a href="/learning"
+                            class="btn hero-btn-start text-decoration-none d-inline-flex align-items-center justify-content-center"
+                            style="letter-spacing: 1px;">
+                            スタート
+                        </a>
+                        <button onclick="window.Clerk.openSignIn()"
+                            class="btn hero-btn-login d-inline-flex align-items-center justify-content-center"
+                            style="letter-spacing: 1px;">
+                            ログイン
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -329,20 +353,14 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6 text-center">
-                    <img src="/Cat_nomoney.png" alt="お金が無い猫" class="img-fluid" style="max-width: 300px;">
+                    <img src="/penguin-nomoney.png" alt="お金が無い猫" class="img-fluid" style="max-width: 300px;">
                 </div>
                 <div class="col-lg-6 text-center">
                     <h2 class="display-4 fw-bold mb-4" style="color: #3b82f6;">お金が無い？</h2>
                     <p class="lead fs-3 mb-0" style="line-height: 1.6;">
                         大丈夫。Stock withは<br>
-                        初級編 <span class="fw-bold" style="font-size: 1.5em; color: #fbbf24;">無料</span><br>
-                        以降月額 <span class="fw-bold" style="font-size: 1.5em; color: #fbbf24;">300円</span> で学べる
+                        必要最低限の知識は<span class="fw-bold" style="font-size: 1.5em; color: #fbbf24;">無料</span><br>で学べる
                     </p>
-                    <div class="mt-3">
-                        <span class="badge bg-success fs-6 px-3 py-2">
-                            <i class="fas fa-gift me-1"></i>現時点ではずっと無料です！
-                        </span>
-                    </div>
                 </div>
             </div>
         </div>
@@ -360,7 +378,7 @@
                     </p>
                 </div>
                 <div class="col-lg-6 text-center">
-                    <img src="/dog_cat_next.png" alt="学習方法" class="img-fluid" style="max-width: 300px;">
+                    <img src="/penguin-nexticeburg.png" alt="学習方法" class="img-fluid" style="max-width: 300px;">
                 </div>
             </div>
         </div>
@@ -371,7 +389,7 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6 text-center">
-                    <img src="/cat_athome.png" alt="家にいる猫" class="img-fluid" style="max-width: 300px;">
+                    <img src="/penguin-athome.png" alt="家にいる猫" class="img-fluid" style="max-width: 300px;">
                 </div>
                 <div class="col-lg-6 text-center">
                     <h2 class="display-4 fw-bold mb-4" style="color: #3b82f6;">損をするのが怖い？</h2>
