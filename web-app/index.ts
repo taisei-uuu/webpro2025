@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
-import { client, Article, getArticles, getLessonBySlug } from './lib/microcms';
+import { client, Article, getArticles, getLessonBySlug, getLessons } from './lib/microcms';
 // import { getAuth } from '@clerk/express'; // Duplicate import
 import session from 'express-session';
 import Stripe from 'stripe';
@@ -870,128 +870,6 @@ app.get('/privacy', (req, res) => {
   }
 });
 
-// Phase2ページ
-app.get('/phase2', async (req, res) => {
-  try {
-    // 認証状態を取得
-    const { userId, sessionId } = getUserIdentifier(req);
-
-    // ユーザー情報を取得（ログイン済みの場合のみ）
-    let user: any = null;
-    if (userId && process.env.CLERK_SECRET_KEY) {
-      try {
-        user = await clerkClient.users.getUser(userId.toString());
-      } catch (error) {
-        console.error('Error fetching user from Clerk:', error);
-      }
-    }
-
-    if (!userId) {
-      return res.redirect('/subscription?plan=required');
-    }
-
-    // サブスクリプションチェック
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      include: { subscriptions: true }
-    });
-    // @ts-ignore
-    const isSubscribed = dbUser?.subscriptions.some(s => s.status === 'active' || s.status === 'trialing');
-
-    if (!isSubscribed) {
-      return res.redirect('/subscription?plan=required');
-    }
-
-    const phase1Progress = await getPhase1Progress(userId);
-
-    // Phase2のレッスンデータを取得
-    const phase2Lessons = await getPhaseLessons(2);
-
-    // Phase2のレッスンをチャプター別にグループ化
-    const phase2Chapters = phase2Lessons.reduce((acc: any[], lesson: any) => {
-      let chapter = acc.find(c => c.chapter === lesson.chapter);
-      if (!chapter) {
-        chapter = {
-          chapter: lesson.chapter,
-          title: `Stage ${lesson.chapter}`,
-          lessons: [],
-          totalQuestions: 0,
-          clearedQuestions: 0,
-          progressPercentage: 0
-        };
-        acc.push(chapter);
-      }
-      chapter.lessons.push(lesson);
-      chapter.totalQuestions += lesson.questions.length;
-      return acc;
-    }, []);
-
-    res.render('phase2', {
-      user: user,
-      isGuest: !userId,
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
-      phase1Progress: phase1Progress,
-      phase2Lessons: phase2Lessons,
-      chapters: phase2Chapters
-    });
-  } catch (error) {
-    console.error('Error in /phase2 route:', error);
-    res.status(500).render('error', {
-      message: 'ページの読み込み中にエラーが発生しました。',
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
-    });
-  }
-});
-
-// Phase3ページ
-app.get('/phase3', async (req, res) => {
-  try {
-    // 認証状態を取得
-    const { userId, sessionId } = getUserIdentifier(req);
-
-    // ユーザー情報を取得（ログイン済みの場合のみ）
-    let user: any = null;
-    if (userId && process.env.CLERK_SECRET_KEY) {
-      try {
-        user = await clerkClient.users.getUser(userId.toString());
-      } catch (error) {
-        console.error('Error fetching user from Clerk:', error);
-      }
-    }
-
-    if (!userId) {
-      return res.redirect('/subscription?plan=required');
-    }
-
-    // サブスクリプションチェック
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      include: { subscriptions: true }
-    });
-    // @ts-ignore
-    const isSubscribed = dbUser?.subscriptions.some(s => s.status === 'active' || s.status === 'trialing');
-
-    if (!isSubscribed) {
-      return res.redirect('/subscription?plan=required');
-    }
-
-    const phase1Progress = await getPhase1Progress(userId);
-
-    res.render('phase3', {
-      user: user,
-      isGuest: !userId,
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
-      phase1Progress: phase1Progress
-    });
-  } catch (error) {
-    console.error('Error in /phase3 route:', error);
-    res.status(500).render('error', {
-      message: 'ページの読み込み中にエラーが発生しました。',
-      publishableKey: process.env.CLERK_PUBLISHABLE_KEY
-    });
-  }
-});
-
 // 利用規約ページ
 app.get('/terms', (req, res) => {
   try {
@@ -1071,6 +949,16 @@ app.get('/learning', async (req, res) => {
       5: '投資家のスタイルついて学ぼう',
     };
 
+    // MicroCMSからレッスン情報を取得してマッピング
+    let cmsLessonsMap = new Map();
+    try {
+      const cmsLessons = await getLessons();
+      cmsLessons.forEach((l: any) => {
+        if (l.contentId) cmsLessonsMap.set(l.contentId, l);
+        if (l.slug) cmsLessonsMap.set(l.slug, l);
+      });
+    } catch (e) { console.error('CMS Fetch Error', e); }
+
     // 章ごとにレッスンをグループ化
     const chapters = lessonsWithQuestions.reduce((acc, lesson) => {
       const chapterNum = lesson.chapter;
@@ -1083,14 +971,23 @@ app.get('/learning', async (req, res) => {
           clearedQuestions: 0,
         };
       }
-      acc[chapterNum].lessons.push(lesson);
+
+      // MicroCMSのデータをマージ
+      const cmsData = cmsLessonsMap.get(lesson.slug);
+      const mergedLesson = {
+        ...lesson,
+        thumbnail: cmsData?.thumbnail,
+        title: cmsData?.title || lesson.title // CMSのタイトルを優先
+      };
+
+      acc[chapterNum].lessons.push(mergedLesson);
       acc[chapterNum].totalQuestions += lesson.questions.length;
       acc[chapterNum].clearedQuestions += lesson.questions.filter(q => clearedQuestionIds.has(q.id)).length;
       return acc;
     }, {} as Record<number, {
       chapter: number;
       title: string;
-      lessons: typeof lessonsWithQuestions;
+      lessons: (typeof lessonsWithQuestions[0] & { thumbnail?: any })[];
       totalQuestions: number;
       clearedQuestions: number;
     }>);
@@ -1102,39 +999,15 @@ app.get('/learning', async (req, res) => {
     }));
 
     // はじめにを追加
-    const stage0Chapter = {
-      chapter: 0,
-      title: 'はじめに',
-      lessons: [{
-        id: 'stage0-intro',
-        title: 'はじめに',
-        slug: 'stage0-intro',
-        chapter: 0,
-        questions: []
-      }],
-      totalQuestions: 0,
-      clearedQuestions: 0,
-      progressPercentage: 0
-    };
 
-    // おわりにを追加
-    const endingChapter = {
-      chapter: 999, // 最後に表示されるように大きな数字
-      title: 'おわりに',
-      lessons: [{
-        id: 'ending-intro',
-        title: 'おわりに',
-        slug: 'ending-intro',
-        chapter: 999,
-        questions: []
-      }],
-      totalQuestions: 0,
-      clearedQuestions: 0,
-      progressPercentage: 0
-    };
 
-    // はじめにを最初に、おわりにを最後に追加
-    const chaptersWithProgress = [stage0Chapter, ...processedChapters, endingChapter];
+    // おわりにを追加 (Chapter 6として扱うことでStage 5とStage 7の間に表示)
+
+
+    // チャプターを結合してソート
+    const chaptersWithProgress = [
+      ...processedChapters
+    ].sort((a, b) => a.chapter - b.chapter);
 
     // Phase1の総問題数を計算（現在の全レッスンの問題数）
     const totalQuestions = lessonsWithQuestions.reduce((total, lesson) => total + lesson.questions.length, 0);
@@ -1814,40 +1687,24 @@ app.get('/lessons/:slug', async (req, res) => {
       console.log('Guest mode: Progress disabled for lesson');
     }
 
-    // レッスンのPhaseを判定して適切なテーブルを使用
-    const phase = getPhaseFromLessonId(slug);
+    // レッスンのPhaseを判定せず、すべてPhase1Lessonテーブル（統合済み）から取得
+    const phase = 1; // 常にPhase 1扱い（DB統合済みのため）
     let lesson;
 
-    if (phase === 1) {
-      // Phase1の場合はPhase1テーブルから取得
-      lesson = await prisma.phase1Lesson.findUnique({
-        where: { slug },
-        include: {
-          questions: {
-            include: {
-              options: true,
-            },
+    // Phase1Lessonテーブルから取得（Phase 2/3もここに統合されている）
+    lesson = await prisma.phase1Lesson.findUnique({
+      where: { slug },
+      include: {
+        questions: {
+          include: {
+            options: true,
           },
         },
-      });
-    } else {
-      // Phase2/3の場合はサブスクリプションチェック
-      if (!userId) {
-        return res.redirect('/subscription?plan=required');
-      }
-      const dbUser = await prisma.user.findUnique({
-        where: { clerkId: userId },
-        include: { subscriptions: true }
-      });
-      const isSubscribed = dbUser?.subscriptions.some(s => s.status === 'active' || s.status === 'trialing');
+      },
+    });
 
-      if (!isSubscribed) {
-        return res.redirect('/subscription?plan=required');
-      }
-
-      // Phase2/3の場合はPhase別テーブルから取得
-      lesson = await getPhaseLessonBySlug(phase, slug);
-    }
+    // Phase 2/3の古いチェックロジックとテーブル参照を削除
+    // ...
 
     // MicroCMSからコンテンツを取得してマージ (ハイブリッド構成)
     try {
@@ -1885,22 +1742,10 @@ app.get('/lessons/:slug', async (req, res) => {
     const nextLessonId = lesson.id + 1;
 
     try {
-      if (phase === 1) {
-        // Phase1の場合はPhase1テーブルから取得
-        nextLesson = await prisma.phase1Lesson.findUnique({
-          where: { id: nextLessonId }
-        });
-      } else {
-        // Phase2/3の場合はPhase別のテーブルから取得
-        const tables = getPhaseTables(phase);
-        if (tables.lesson) {
-          // @ts-ignore
-          nextLesson = await tables.lesson.findUnique({
-            where: { id: lesson.nextLessonId },
-            include: { questions: true }
-          });
-        }
-      }
+      // 常にPhase1Lessonテーブルから次のレッスンを取得
+      nextLesson = await prisma.phase1Lesson.findUnique({
+        where: { id: nextLessonId }
+      });
     } catch (error) {
       console.error('Error fetching next lesson:', error);
       // 次のレッスンの取得に失敗しても処理を続行

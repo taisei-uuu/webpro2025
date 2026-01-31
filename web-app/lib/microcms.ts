@@ -50,6 +50,11 @@ export type Lesson = {
   slug?: string; // 旧仕様 (後方互換用)
   contentId?: string; // ユーザー定義ID (例: stage1-1)
   videoId?: string;
+  thumbnail?: {
+    url: string;
+    height: number;
+    width: number;
+  };
   slides?: {
     url: string;
     height: number;

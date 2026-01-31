@@ -23,7 +23,7 @@ async function main() {
         console.log("\n--------------------------------");
 
         // Test with specific query (assuming the user might have set stage1-1 either as ID or Slug)
-        const testSlug = "stage1-1";
+        const testSlug = "stage3-1";
         console.log(`\n2. Attempting to fetch lesson by slug/id: "${testSlug}"...`);
 
         const lesson = await getLessonBySlug(testSlug);
