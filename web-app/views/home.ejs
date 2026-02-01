@@ -205,31 +205,49 @@
                 }
             }
 
-            /* 3D Button Styles */
+            /* Sea Effect Button Animation */
+            @keyframes seaShimmer {
+                0% {
+                    background-position: 0% 50%;
+                }
+
+                50% {
+                    background-position: 100% 50%;
+                }
+
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
             .hero-btn-start {
-                background-color: #0d6efd;
-                /* Bootstrap Primary */
+                /* Deep Sea Gradient */
+                background: linear-gradient(-45deg, #0243C8, #0093E9, #80D0C7, #0243C8);
+                background-size: 400% 400%;
+                animation: seaShimmer 6s ease infinite;
+
                 color: white;
                 border: none;
-                border-bottom: 5px solid #0a58ca;
-                /* Darker Blue for 3D effect */
                 border-radius: 50px;
-                padding: 1rem 3rem;
-                font-weight: bold;
-                transition: all 0.1s ease;
+                padding: 1rem 3.5rem;
+                font-weight: 700;
+
+                /* Watery Glow */
+                box-shadow: 0 4px 15px rgba(0, 147, 233, 0.4);
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
             }
 
             .hero-btn-start:hover {
-                background-color: #0b5ed7;
-                /* Bootstrap Primary Hover */
+                transform: translateY(-3px) scale(1.02);
+                box-shadow: 0 8px 25px rgba(0, 147, 233, 0.6);
                 color: white;
-                margin-top: -2px;
-                border-bottom-width: 7px;
             }
 
             .hero-btn-start:active {
-                margin-top: 3px;
-                border-bottom-width: 2px;
+                transform: translateY(1px);
+                box-shadow: 0 2px 10px rgba(0, 147, 233, 0.4);
             }
 
             .hero-btn-login {
@@ -316,13 +334,13 @@
                 <!-- 右側：テキストとボタン -->
                 <div class="col-lg-6 text-center text-lg-start ps-lg-5">
                     <h1 class="display-5 fw-bold mb-4" style="color: #000; line-height: 1.4;">
-                        株式投資への一歩を<br>踏み出そう
+                        飛び込め、<br>資本主義の海。
                     </h1>
                     <div class="d-flex flex-column flex-sm-row justify-content-center justify-content-lg-start gap-3">
                         <a href="/learning"
                             class="btn hero-btn-start text-decoration-none d-inline-flex align-items-center justify-content-center"
                             style="letter-spacing: 1px;">
-                            スタート
+                            飛び込む
                         </a>
                         <button onclick="window.Clerk.openSignIn()"
                             class="btn hero-btn-login d-inline-flex align-items-center justify-content-center"
@@ -402,30 +420,7 @@
         </div>
     </section>
 
-    <!-- CTAセクション -->
-    <section class="py-5 text-white cta-section" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);">
-        <div class="container text-center">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <h2 class="display-5 fw-bold mb-4 section-title">今すぐ学習を始めませんか？</h2>
-                    <p class="lead mb-4">
-                        無料でアカウントを作成して、株式投資の学習を始めましょう。
-                    </p>
-                    <button onclick="window.Clerk.openSignUp()" class="btn btn-light btn-lg me-3">
-                        <i class="fas fa-user-plus me-2"></i>無料で始める
-                    </button>
-                    <a href="/learning" class="btn btn-outline-light btn-lg">
-                        <i class="fas fa-play me-2"></i>学習プラットフォームへ
-                    </a>
-                    <!-- Stripe関連（コメントアウト）
-                    <a href="/subscription" class="btn btn-warning btn-lg">
-                        <i class="fas fa-crown me-2"></i>プレミアムプラン
-                    </a>
-                    -->
-                </div>
-            </div>
-        </div>
-    </section>
+
 
     <!-- ABOUT USセクション -->
     <section id="about" class="py-5 bg-light">
