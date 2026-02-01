@@ -2603,6 +2603,43 @@ body {
     transform: scale(1.05);
 }
 
+/* Stamp Overlay Styles */
+.stamp-overlay {
+    position: absolute;
+    top: 5px;
+    /* Moved down to avoid top clipping */
+    right: 5px;
+    /* Moved left to avoid right clipping */
+    width: 65px;
+    /* Slightly smaller to fit better */
+    height: 65px;
+    z-index: 10;
+    pointer-events: none;
+    transform: rotate(15deg);
+    opacity: 0.9;
+    /* Shadow removed as requested */
+}
+
+.article-thumbnail-wrapper {
+    position: relative;
+    overflow: hidden;
+    /* Changed to hidden to clip nicely at rounded corners, but stamp is moved inside */
+    padding-top: 65%;
+    /* Taller aspect ratio */
+    background: #ffffff;
+    /* White background */
+}
+
+.article-thumbnail {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
 .article-content {
     padding: 1.5rem;
     display: flex;

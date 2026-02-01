@@ -115,33 +115,40 @@
                                         <% recommendedLessons.forEach(lesson=> { %>
                                             <article class="article-card compact">
                                                 <a href="/lessons/<%= lesson.slug %>" class="article-link">
-                                                    <div class="article-thumbnail-wrapper">
-                                                        <% if (lesson.thumbnail && lesson.thumbnail.url) { %>
-                                                            <img src="<%= lesson.thumbnail.url %>"
-                                                                alt="<%= lesson.title %>" class="article-thumbnail"
-                                                                style="object-fit: contain; background-color: #f1f5f9;">
-                                                            <% } else { %>
-                                                                <div
-                                                                    style="width: 100%; height: 100%; background: #f8fafc; display: flex; align-items: center; justify-content: center;">
-                                                                    <i class="fas fa-book-open"
-                                                                        style="font-size: 3rem; color: #cbd5e1;"></i>
-                                                                </div>
-                                                                <% } %>
-                                                    </div>
+                                                    <% const isCleared=lesson.questions && lesson.questions.length> 0 &&
+                                                        clearedQuestionIds && lesson.questions.every(q =>
+                                                        clearedQuestionIds.has(q.id));
+                                                        %>
+                                                        <div class="article-thumbnail-wrapper">
+                                                            <% if (lesson.thumbnail && lesson.thumbnail.url) { %>
+                                                                <img src="<%= lesson.thumbnail.url %>"
+                                                                    alt="<%= lesson.title %>" class="article-thumbnail"
+                                                                    style="object-fit: contain; background-color: #ffffff;">
+                                                                <% } else { %>
+                                                                    <div
+                                                                        style="width: 100%; height: 100%; background: #ffffff; display: flex; align-items: center; justify-content: center;">
+                                                                        <i class="fas fa-book-open"
+                                                                            style="font-size: 3rem; color: #cbd5e1;"></i>
+                                                                    </div>
+                                                                    <% } %>
 
-                                                    <div class="article-content"
-                                                        style="display: flex; flex-direction: column; flex-grow: 1;">
-                                                        <h3 class="article-title">
-                                                            <%= lesson.title %>
-                                                        </h3>
-
-                                                        <div class="article-meta" style="margin-top: auto;">
-                                                            <span class="article-date">
-                                                                <i class="fas fa-question-circle"></i>
-                                                                <%= lesson.questions ? lesson.questions.length : 0 %>問
-                                                            </span>
+                                                                        <!-- Stamp Overlay -->
+                                                                        <% if (isCleared) { %>
+                                                                            <img src="/sumi.png" class="stamp-overlay"
+                                                                                alt="Completed">
+                                                                            <% } else { %>
+                                                                                <img src="/mi.png" class="stamp-overlay"
+                                                                                    alt="Incomplete"
+                                                                                    style="opacity: 0.8;">
+                                                                                <% } %>
                                                         </div>
-                                                    </div>
+
+                                                        <div class="article-content"
+                                                            style="display: flex; flex-direction: column; flex-grow: 1;">
+                                                            <h3 class="article-title">
+                                                                <%= lesson.title %>
+                                                            </h3>
+                                                        </div>
                                                 </a>
                                             </article>
                                             <% }); %>
@@ -173,63 +180,50 @@
                                                     <% chapter.lessons.forEach(lesson=> { %>
                                                         <article class="article-card compact">
                                                             <a href="/lessons/<%= lesson.slug %>" class="article-link">
-                                                                <div class="article-thumbnail-wrapper">
-                                                                    <% if (lesson.thumbnail && lesson.thumbnail.url) {
-                                                                        %>
-                                                                        <img src="<%= lesson.thumbnail.url %>"
-                                                                            alt="<%= lesson.title %>"
-                                                                            class="article-thumbnail"
-                                                                            style="object-fit: contain; background-color: #f1f5f9;">
-                                                                        <% } else { %>
-                                                                            <div
-                                                                                style="width: 100%; height: 100%; background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%); display: flex; align-items: center; justify-content: center;">
-                                                                                <i class="fas fa-book-open"
-                                                                                    style="font-size: 3rem; color: #94a3b8;"></i>
-                                                                            </div>
-                                                                            <% } %>
-                                                                </div>
+                                                                <% const isCleared=lesson.questions &&
+                                                                    lesson.questions.length> 0 && clearedQuestionIds &&
+                                                                    lesson.questions.every(q =>
+                                                                    clearedQuestionIds.has(q.id));
+                                                                    %>
+                                                                    <div class="article-thumbnail-wrapper">
+                                                                        <% if (lesson.thumbnail && lesson.thumbnail.url)
+                                                                            { %>
+                                                                            <img src="<%= lesson.thumbnail.url %>"
+                                                                                alt="<%= lesson.title %>"
+                                                                                class="article-thumbnail"
+                                                                                style="object-fit: contain; background-color: #ffffff;">
+                                                                            <% } else { %>
+                                                                                <div
+                                                                                    style="width: 100%; height: 100%; background: #ffffff; display: flex; align-items: center; justify-content: center;">
+                                                                                    <i class="fas fa-book-open"
+                                                                                        style="font-size: 3rem; color: #94a3b8;"></i>
+                                                                                </div>
+                                                                                <% } %>
 
-                                                                <div class="article-content"
-                                                                    style="display: flex; flex-direction: column; flex-grow: 1;">
-                                                                    <h3 class="article-title">
-                                                                        <%= lesson.title %>
-                                                                    </h3>
-
-                                                                    <div class="article-description"
-                                                                        style="font-size: 0.8em; color: #64748b; margin-bottom: 0.5rem; flex-grow: 1;">
-                                                                        <!-- Description if available, or just space -->
+                                                                                    <!-- Stamp Overlay -->
+                                                                                    <% if (isCleared) { %>
+                                                                                        <img src="/sumi.png"
+                                                                                            class="stamp-overlay"
+                                                                                            alt="Completed">
+                                                                                        <% } else { %>
+                                                                                            <img src="/mi.png"
+                                                                                                class="stamp-overlay"
+                                                                                                alt="Incomplete"
+                                                                                                style="opacity: 0.8;">
+                                                                                            <% } %>
                                                                     </div>
 
-                                                                    <div class="article-meta" style="margin-top: auto;">
-                                                                        <span class="article-date">
-                                                                            <i class="fas fa-question-circle"></i>
-                                                                            <%= lesson.questions ?
-                                                                                lesson.questions.length : 0 %>問
-                                                                        </span>
+                                                                    <div class="article-content"
+                                                                        style="display: flex; flex-direction: column; flex-grow: 1;">
+                                                                        <h3 class="article-title">
+                                                                            <%= lesson.title %>
+                                                                        </h3>
 
-                                                                        <% const isCleared=lesson.questions &&
-                                                                            lesson.questions.length> 0 &&
-                                                                            clearedQuestionIds &&
-                                                                            lesson.questions.every(q =>
-                                                                            clearedQuestionIds.has(q.id));
-                                                                            const clearedCount = lesson.questions &&
-                                                                            clearedQuestionIds ?
-                                                                            lesson.questions.filter(q =>
-                                                                            clearedQuestionIds.has(q.id)).length : 0;
-                                                                            %>
-
-                                                                            <% if (isCleared) { %>
-                                                                                <span class="badge badge-paid"
-                                                                                    style="background-color: #10b981; color: white; padding: 0.25em 0.6em; border-radius: 999px; font-size: 0.75em;">CLEAR</span>
-                                                                                <% } else if (clearedCount> 0) { %>
-                                                                                    <span class="badge badge-free"
-                                                                                        style="background-color: #f59e0b; color: white; padding: 0.25em 0.6em; border-radius: 999px; font-size: 0.75em;">挑戦中</span>
-                                                                                    <% } else { %>
-                                                                                        <span class="badge badge-free"
-                                                                                            style="background-color: #94a3b8; color: white; padding: 0.25em 0.6em; border-radius: 999px; font-size: 0.75em;">未完了</span>
-                                                                                        <% } %>
+                                                                        <div class="article-description"
+                                                                            style="font-size: 0.8em; color: #64748b; margin-bottom: 0.5rem; flex-grow: 1;">
+                                                                            <!-- Description if available, or just space -->
+                                                                        </div>
                                                                     </div>
-                                                                </div>
                                                             </a>
                                                         </article>
                                                         <% }); %>
