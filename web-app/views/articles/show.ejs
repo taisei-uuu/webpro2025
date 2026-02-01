@@ -43,13 +43,13 @@
                                     <i class="fas fa-calendar-alt"></i>
                                     <%= new Date(article.publishedAt).toLocaleDateString('ja-JP') %>
                                 </div>
-                                <button class="like-button <%= likes.hasLiked ? 'active' : '' %>"
+                                <!-- <button class="like-button <%= likes.hasLiked ? 'active' : '' %>"
                                     onclick="toggleLike('<%= article.id %>')">
                                     <i class="<%= likes.hasLiked ? 'fas' : 'far' %> fa-heart"></i>
                                     <span class="like-count">
                                         <%= likes.count %>
                                     </span>
-                                </button>
+                                </button> -->
                             </div>
                         </header>
 
@@ -267,14 +267,14 @@
                         </div>
 
                         <div class="article-footer">
-                            <button class="like-button <%= likes.hasLiked ? 'active' : '' %>"
+                            <!-- <button class="like-button <%= likes.hasLiked ? 'active' : '' %>"
                                 onclick="toggleLike('<%= article.id %>')">
                                 <i class="<%= likes.hasLiked ? 'fas' : 'far' %> fa-heart"></i>
                                 <span>いいね！</span>
                                 <span class="like-count">
                                     <%= likes.count %>
                                 </span>
-                            </button>
+                            </button> -->
                             <a href="/articles" class="btn btn-outline">
                                 <i class="fas fa-arrow-left"></i> 記事一覧に戻る
                             </a>
@@ -427,7 +427,7 @@
                     }
                 }
             </script>
-            <script>
+            <!-- <script>
                 async function toggleLike(articleId) {
                     // ログインチェック
                     if (!window.Clerk || !window.Clerk.user) {
@@ -485,7 +485,7 @@
                         alert('エラーが発生しました。');
                     }
                 }
-            </script>
+            </script> -->
 </body>
 
 </html>
