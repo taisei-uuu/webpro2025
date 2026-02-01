@@ -1038,10 +1038,40 @@ app.get('/learning', async (req, res) => {
           totalQuestions: totalQuestions,
           clearedQuestionIds: clearedQuestionIds,
           phase1Progress: phase1Progress,
+          recommendedLessons: [], // エラー時は推奨レッスンなし
           publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
         });
       }
     }
+
+    // --- 推奨レッスン計算ロジック ---
+    let recommendedLessons: any[] = [];
+    console.log('Calculating recommended lessons...');
+
+    // 全レッスンをフラットな配列にする
+    const allLessons = chaptersWithProgress
+      .flatMap(chapter => chapter.lessons)
+    // ChapterとLessonのID/順番でソートされている前提 (chaptersWithProgressはChapter順、lessonsはgetPhase1LessonsでOrder順になっているはず)
+    // 必要であればここでさらにソート
+
+    // 未クリアのレッスンを抽出
+    const incompleteLessons = allLessons.filter(lesson => {
+      // 問題がないレッスンは「完了」と見なさない（あるいは読み物として完了とみなすか？一旦問題がある前提で、問題未クリアなら未完了とする）
+      // 問題が0問のレッスン(はじめになど)は除外するか、あるいは常に表示しないか
+      if (!lesson.questions || lesson.questions.length === 0) return false;
+
+      // すべての問題がクリア済みかチェック
+      const isAllCleared = lesson.questions.every(q => clearedQuestionIds.has(q.id));
+
+      // 未完了（未クリアの問題がある）場合のみ残す
+      return !isAllCleared;
+    });
+
+    // 最初の3つを取得
+    recommendedLessons = incompleteLessons.slice(0, 3);
+
+    // もし全てクリアしていたら空配列になる
+    // ----------------------------
 
     res.render('index', {
       chapters: chaptersWithProgress,
@@ -1050,6 +1080,7 @@ app.get('/learning', async (req, res) => {
       totalQuestions: totalQuestions,
       clearedQuestionIds: clearedQuestionIds,
       phase1Progress: phase1Progress,
+      recommendedLessons: recommendedLessons,
       publishableKey: process.env.CLERK_PUBLISHABLE_KEY || ''
     });
   } catch (error) {

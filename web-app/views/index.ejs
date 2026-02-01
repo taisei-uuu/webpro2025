@@ -59,16 +59,7 @@
                     </div>
                     <% } %>
 
-                        <!-- プロトタイプ注意書き -->
-                        <div class="prototype-notice">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <div>
-                                <strong>現在はまだプロトタイプ（試作段階）です！</strong><br>
-                                そのため、ログインしたとしても、進捗機能が保存されない場合や、突然リセットされる場合があります！その他さまざまな不具合が見られる可能性があるのでご理解ください！！<br>
-                                <br>
-                                <strong>また、Phase2以降も現在開発中ですので、課金の際は十分お気をつけください。</strong>
-                            </div>
-                        </div>
+
 
                         <%- include('partials/navigation', { path: '/learning' }) %>
 
@@ -108,103 +99,157 @@
                 </div>
             </div> -->
 
-                            <% chapters.forEach((chapter, index)=> { %>
-                                <% if (chapter.lessons && chapter.lessons.length> 0) { %>
-                                    <section class="theme-section">
-                                        <div class="theme-header">
-                                            <h2 class="theme-title">
-                                                <% if (chapter.chapter===0) { %>
-                                                    <%= chapter.title %>
-                                                        <% } else if (chapter.chapter===999) { %>
-                                                            <%= chapter.title %>
-                                                                <% } else { %>
-                                                                    Stage <%= chapter.chapter %> <span
-                                                                            style="font-size: 0.7em; margin-left: 10px; color: #666; font-weight: normal;">
-                                                                            <%= chapter.title %>
-                                                                        </span>
-                                                                        <% } %>
-                                                                            <i class="fas fa-chevron-right"
-                                                                                style="font-size: 0.8em; margin-left: 0.5rem; color: #64748b;"></i>
-                                            </h2>
-                                        </div>
 
-                                        <div class="articles-horizontal-scroller">
-                                            <% chapter.lessons.forEach(lesson=> { %>
-                                                <article class="article-card compact">
-                                                    <a href="/lessons/<%= lesson.slug %>" class="article-link">
-                                                        <div class="article-thumbnail-wrapper">
-                                                            <% if (lesson.thumbnail && lesson.thumbnail.url) { %>
-                                                                <img src="<%= lesson.thumbnail.url %>"
-                                                                    alt="<%= lesson.title %>" class="article-thumbnail"
-                                                                    style="object-fit: contain; background-color: #f1f5f9;">
-                                                                <% } else { %>
-                                                                    <div
-                                                                        style="width: 100%; height: 100%; background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%); display: flex; align-items: center; justify-content: center;">
-                                                                        <i class="fas fa-book-open"
-                                                                            style="font-size: 3rem; color: #94a3b8;"></i>
-                                                                    </div>
-                                                                    <% } %>
+                            <!-- おすすめレッスンセクション -->
+                            <!-- おすすめレッスンセクション -->
+                            <% if (typeof recommendedLessons !=='undefined' && recommendedLessons &&
+                                recommendedLessons.length> 0) { %>
+                                <section class="theme-section">
+                                    <div class="theme-header">
+                                        <h2 class="theme-title">
+                                            あなたへのオススメ
+                                        </h2>
+                                    </div>
+
+                                    <div class="articles-horizontal-scroller">
+                                        <% recommendedLessons.forEach(lesson=> { %>
+                                            <article class="article-card compact">
+                                                <a href="/lessons/<%= lesson.slug %>" class="article-link">
+                                                    <div class="article-thumbnail-wrapper">
+                                                        <% if (lesson.thumbnail && lesson.thumbnail.url) { %>
+                                                            <img src="<%= lesson.thumbnail.url %>"
+                                                                alt="<%= lesson.title %>" class="article-thumbnail"
+                                                                style="object-fit: contain; background-color: #f1f5f9;">
+                                                            <% } else { %>
+                                                                <div
+                                                                    style="width: 100%; height: 100%; background: #f8fafc; display: flex; align-items: center; justify-content: center;">
+                                                                    <i class="fas fa-book-open"
+                                                                        style="font-size: 3rem; color: #cbd5e1;"></i>
+                                                                </div>
+                                                                <% } %>
+                                                    </div>
+
+                                                    <div class="article-content"
+                                                        style="display: flex; flex-direction: column; flex-grow: 1;">
+                                                        <h3 class="article-title">
+                                                            <%= lesson.title %>
+                                                        </h3>
+
+                                                        <div class="article-meta" style="margin-top: auto;">
+                                                            <span class="article-date">
+                                                                <i class="fas fa-question-circle"></i>
+                                                                <%= lesson.questions ? lesson.questions.length : 0 %>問
+                                                            </span>
                                                         </div>
-
-                                                        <div class="article-content"
-                                                            style="display: flex; flex-direction: column; flex-grow: 1;">
-                                                            <h3 class="article-title">
-                                                                <%= lesson.title %>
-                                                            </h3>
-
-                                                            <div class="article-description"
-                                                                style="font-size: 0.8em; color: #64748b; margin-bottom: 0.5rem; flex-grow: 1;">
-                                                                <!-- Description if available, or just space -->
-                                                            </div>
-
-                                                            <div class="article-meta" style="margin-top: auto;">
-                                                                <span class="article-date">
-                                                                    <i class="fas fa-question-circle"></i>
-                                                                    <%= lesson.questions ? lesson.questions.length : 0
-                                                                        %>問
-                                                                </span>
-
-                                                                <% const isCleared=lesson.questions &&
-                                                                    lesson.questions.length> 0 &&
-                                                                    clearedQuestionIds && lesson.questions.every(q =>
-                                                                    clearedQuestionIds.has(q.id));
-                                                                    const clearedCount = lesson.questions &&
-                                                                    clearedQuestionIds ? lesson.questions.filter(q =>
-                                                                    clearedQuestionIds.has(q.id)).length : 0;
-                                                                    %>
-
-                                                                    <% if (isCleared) { %>
-                                                                        <span class="badge badge-paid"
-                                                                            style="background-color: #10b981; color: white; padding: 0.25em 0.6em; border-radius: 999px; font-size: 0.75em;">CLEAR</span>
-                                                                        <% } else if (clearedCount> 0) { %>
-                                                                            <span class="badge badge-free"
-                                                                                style="background-color: #f59e0b; color: white; padding: 0.25em 0.6em; border-radius: 999px; font-size: 0.75em;">挑戦中</span>
-                                                                            <% } else { %>
-                                                                                <span class="badge badge-free"
-                                                                                    style="background-color: #94a3b8; color: white; padding: 0.25em 0.6em; border-radius: 999px; font-size: 0.75em;">未完了</span>
-                                                                                <% } %>
-                                                            </div>
-                                                        </div>
-                                                    </a>
-                                                </article>
-                                                <% }); %>
-                                        </div>
-                                    </section>
-                                    <% } %>
-                                        <% }); %>
-
-
-
-                                            <!-- 株価分析ツールへのリンク -->
-                                            <div class="tools-container"
-                                                style="text-align: center; margin-bottom: 3rem;">
-                                                <a href="https://stock-tool-nq6o.onrender.com" target="_blank"
-                                                    class="phase2-button"
-                                                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                                                    <i class="fas fa-chart-line"></i>
-                                                    株価分析ツールを開く
+                                                    </div>
                                                 </a>
-                                            </div>
+                                            </article>
+                                            <% }); %>
+                                    </div>
+                                </section>
+                                <% } %>
+
+                                    <% chapters.forEach((chapter, index)=> { %>
+                                        <% if (chapter.lessons && chapter.lessons.length> 0) { %>
+                                            <section class="theme-section">
+                                                <div class="theme-header">
+                                                    <h2 class="theme-title">
+                                                        <% if (chapter.chapter===0) { %>
+                                                            <%= chapter.title %>
+                                                                <% } else if (chapter.chapter===999) { %>
+                                                                    <%= chapter.title %>
+                                                                        <% } else { %>
+                                                                            Stage <%= chapter.chapter %> <span
+                                                                                    style="font-size: 0.7em; margin-left: 10px; color: #666; font-weight: normal;">
+                                                                                    <%= chapter.title %>
+                                                                                </span>
+                                                                                <% } %>
+                                                                                    <i class="fas fa-chevron-right"
+                                                                                        style="font-size: 0.8em; margin-left: 0.5rem; color: #64748b;"></i>
+                                                    </h2>
+                                                </div>
+
+                                                <div class="articles-horizontal-scroller">
+                                                    <% chapter.lessons.forEach(lesson=> { %>
+                                                        <article class="article-card compact">
+                                                            <a href="/lessons/<%= lesson.slug %>" class="article-link">
+                                                                <div class="article-thumbnail-wrapper">
+                                                                    <% if (lesson.thumbnail && lesson.thumbnail.url) {
+                                                                        %>
+                                                                        <img src="<%= lesson.thumbnail.url %>"
+                                                                            alt="<%= lesson.title %>"
+                                                                            class="article-thumbnail"
+                                                                            style="object-fit: contain; background-color: #f1f5f9;">
+                                                                        <% } else { %>
+                                                                            <div
+                                                                                style="width: 100%; height: 100%; background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%); display: flex; align-items: center; justify-content: center;">
+                                                                                <i class="fas fa-book-open"
+                                                                                    style="font-size: 3rem; color: #94a3b8;"></i>
+                                                                            </div>
+                                                                            <% } %>
+                                                                </div>
+
+                                                                <div class="article-content"
+                                                                    style="display: flex; flex-direction: column; flex-grow: 1;">
+                                                                    <h3 class="article-title">
+                                                                        <%= lesson.title %>
+                                                                    </h3>
+
+                                                                    <div class="article-description"
+                                                                        style="font-size: 0.8em; color: #64748b; margin-bottom: 0.5rem; flex-grow: 1;">
+                                                                        <!-- Description if available, or just space -->
+                                                                    </div>
+
+                                                                    <div class="article-meta" style="margin-top: auto;">
+                                                                        <span class="article-date">
+                                                                            <i class="fas fa-question-circle"></i>
+                                                                            <%= lesson.questions ?
+                                                                                lesson.questions.length : 0 %>問
+                                                                        </span>
+
+                                                                        <% const isCleared=lesson.questions &&
+                                                                            lesson.questions.length> 0 &&
+                                                                            clearedQuestionIds &&
+                                                                            lesson.questions.every(q =>
+                                                                            clearedQuestionIds.has(q.id));
+                                                                            const clearedCount = lesson.questions &&
+                                                                            clearedQuestionIds ?
+                                                                            lesson.questions.filter(q =>
+                                                                            clearedQuestionIds.has(q.id)).length : 0;
+                                                                            %>
+
+                                                                            <% if (isCleared) { %>
+                                                                                <span class="badge badge-paid"
+                                                                                    style="background-color: #10b981; color: white; padding: 0.25em 0.6em; border-radius: 999px; font-size: 0.75em;">CLEAR</span>
+                                                                                <% } else if (clearedCount> 0) { %>
+                                                                                    <span class="badge badge-free"
+                                                                                        style="background-color: #f59e0b; color: white; padding: 0.25em 0.6em; border-radius: 999px; font-size: 0.75em;">挑戦中</span>
+                                                                                    <% } else { %>
+                                                                                        <span class="badge badge-free"
+                                                                                            style="background-color: #94a3b8; color: white; padding: 0.25em 0.6em; border-radius: 999px; font-size: 0.75em;">未完了</span>
+                                                                                        <% } %>
+                                                                    </div>
+                                                                </div>
+                                                            </a>
+                                                        </article>
+                                                        <% }); %>
+                                                </div>
+                                            </section>
+                                            <% } %>
+                                                <% }); %>
+
+
+
+                                                    <!-- 株価分析ツールへのリンク -->
+                                                    <div class="tools-container"
+                                                        style="text-align: center; margin-bottom: 3rem;">
+                                                        <a href="https://stock-tool-nq6o.onrender.com" target="_blank"
+                                                            class="phase2-button"
+                                                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                                                            <i class="fas fa-chart-line"></i>
+                                                            株価分析ツールを開く
+                                                        </a>
+                                                    </div>
             </div>
         </main>
 
