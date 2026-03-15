@@ -28,7 +28,10 @@ export type Article = {
 export const getArticles = async () => {
   const data = await client.getList<Article>({
     endpoint: "articles",
-    queries: { orders: "-publishedAt" },
+    queries: { 
+      orders: "-publishedAt",
+      limit: 100
+    },
   });
   return data.contents;
 };
