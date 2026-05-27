@@ -947,7 +947,11 @@ app.get('/learning', async (req, res) => {
       3: 'NISAや税金について学ぼう',
       4: '株の買い方について学ぼう',
       5: '投資家のスタイルついて学ぼう',
-      6: 'テクニカル分析について学ぼう', // Added for Stage 6
+      6: 'テクニカル分析について学ぼう',
+      7: 'リスク管理と売買ルール',
+      8: 'さまざまな投資商品',
+      9: 'マクロ・ファンダメンタル分析',
+      10: '投資家の心理',
     };
 
     // MicroCMSからレッスン情報を取得してマッピング
@@ -962,8 +966,7 @@ app.get('/learning', async (req, res) => {
 
     // 章ごとにレッスンをグループ化
     const chapters = lessonsWithQuestions.reduce((acc, lesson) => {
-      // Fix: Map Chapter 7 to 6 explicitly as per user request
-      const chapterNum = lesson.chapter === 7 ? 6 : lesson.chapter;
+      const chapterNum = lesson.chapter;
 
       if (!acc[chapterNum]) {
         acc[chapterNum] = {

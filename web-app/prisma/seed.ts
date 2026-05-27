@@ -32,13 +32,12 @@ async function main() {
 
   // 既存レッスンデータをチェック
   const existingPhase1Lessons = await prisma.phase1Lesson.count();
-  const existingPhase2Lessons = await prisma.phase2Lesson.count();
 
   // FORCE_RESET環境変数で強制リセットを制御
   const forceReset = process.env.FORCE_RESET === 'true';
 
-  if ((existingPhase1Lessons > 0 || existingPhase2Lessons > 0) && !forceReset) {
-    console.log(`Found existing lessons (Phase1: ${existingPhase1Lessons}, Phase2: ${existingPhase2Lessons}).`);
+  if (existingPhase1Lessons > 0 && !forceReset) {
+    console.log(`Found existing lessons: ${existingPhase1Lessons}.`);
     console.log("Running in SAFE MODE. Existing data will be preserved.");
     console.log("New lessons will be added. Existing lessons will be updated (content only).");
     console.log('To force reset, set FORCE_RESET=true environment variable');
@@ -46,14 +45,6 @@ async function main() {
 
   if (forceReset) {
     console.log("FORCE_RESET=true detected. Proceeding with full reset...");
-
-    // Phase 2の既存データをクリア
-    await prisma.phase2QuizAttempt.deleteMany();
-    await prisma.phase2ClearedQuestion.deleteMany();
-    await prisma.phase2Progress.deleteMany();
-    await prisma.phase2Option.deleteMany();
-    await prisma.phase2Question.deleteMany();
-    await prisma.phase2Lesson.deleteMany();
 
     // Phase 1の既存データをクリア
     await prisma.phase1QuizAttempt.deleteMany();
@@ -77,7 +68,7 @@ async function main() {
       },
     });
     console.log(`Created user with id: ${user.id}`);
-  } else if (existingPhase1Lessons === 0 && existingPhase2Lessons === 0) {
+  } else if (existingPhase1Lessons === 0) {
     console.log("No existing lessons found. Proceeding with initial seed...");
     // テストユーザーを作成（Clerkを使用するため、パスワードは不要）
     // 既存ユーザーがいない場合のみ作成
@@ -332,6 +323,258 @@ async function main() {
         },
       ],
     },
+    // Stage 6: テクニカル分析について学ぼう (続き)
+    {
+      chapter: 6,
+      title: "Stage6-2. RSIで買われすぎのサインを掴もう！",
+      slug: "stage6-2",
+      content: "",
+      videoId: null,
+      videoTitle: null,
+      questions: [
+        {
+          text: "RSI（相対力指数）が70以上になった場合、一般的に何を示すと考えられますか？",
+          options: [
+            { text: "買われすぎのサイン", isCorrect: true },
+            { text: "売られすぎのサイン", isCorrect: false },
+            { text: "トレンドの継続", isCorrect: false },
+            { text: "出来高の増加", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    {
+      chapter: 6,
+      title: "Stage6-3. PERとPBRで割安株を見つけよう！",
+      slug: "stage6-3",
+      content: "",
+      videoId: null,
+      videoTitle: null,
+      questions: [
+        {
+          text: "PER（株価収益率）が同業他社と比べて低い場合、一般的にどう解釈されますか？",
+          options: [
+            { text: "割安である可能性がある", isCorrect: true },
+            { text: "割高である可能性がある", isCorrect: false },
+            { text: "業績が悪い", isCorrect: false },
+            { text: "株価が下落している", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    {
+      chapter: 6,
+      title: "Stage6-4. ROEで稼ぐ力を見抜こう！",
+      slug: "stage6-4",
+      content: "",
+      videoId: null,
+      videoTitle: null,
+      questions: [
+        {
+          text: "ROE（自己資本利益率）は何を示す指標ですか？",
+          options: [
+            { text: "株主から預かった資本でどれだけ効率よく利益を上げているか", isCorrect: true },
+            { text: "企業の総資産に対する利益の割合", isCorrect: false },
+            { text: "株価の上昇率", isCorrect: false },
+            { text: "配当金の利回り", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    // Stage 7: リスク管理と売買ルール
+    {
+      chapter: 7,
+      title: "Stage7-1. 資産配分で守りを固めよう！",
+      slug: "stage7-1",
+      content: "",
+      videoId: null,
+      videoTitle: null,
+      questions: [
+        {
+          text: "資産配分（アセットアロケーション）の主な目的はどれですか？",
+          options: [
+            { text: "リスクを分散させ、安定したリターンを目指すこと", isCorrect: true },
+            { text: "短期間で最大の利益を得ること", isCorrect: false },
+            { text: "1つの銘柄に集中して投資すること", isCorrect: false },
+            { text: "税金を節約すること", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    {
+      chapter: 7,
+      title: "Stage7-2. 分散投資でリスクを減らそう！",
+      slug: "stage7-2",
+      content: "",
+      videoId: null,
+      videoTitle: null,
+      questions: [
+        {
+          text: "分散投資の主なメリットはどれですか？",
+          options: [
+            { text: "特定の投資先が下落しても、全体への影響を抑えられる", isCorrect: true },
+            { text: "必ず利益が出る", isCorrect: false },
+            { text: "管理するコストがかからない", isCorrect: false },
+            { text: "元本が保証される", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    {
+      chapter: 7,
+      title: "Stage7-3. 売買ルールを作ろう！",
+      slug: "stage7-3",
+      content: "",
+      videoId: null,
+      videoTitle: null,
+      questions: [
+        {
+          text: "売買ルールをあらかじめ決めておく最大のメリットはどれですか？",
+          options: [
+            { text: "感情に左右されず、冷静な判断ができる", isCorrect: true },
+            { text: "必ず利益が出る", isCorrect: false },
+            { text: "取引回数が増える", isCorrect: false },
+            { text: "損失がゼロになる", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    // Stage 8: さまざまな投資商品
+    {
+      chapter: 8,
+      title: "Stage8-1. インデックスファンドに投資しよう！",
+      slug: "stage8-1",
+      content: "",
+      videoId: null,
+      videoTitle: null,
+      questions: [
+        {
+          text: "インデックスファンドの特徴として正しいものはどれですか？",
+          options: [
+            { text: "日経平均やS&P500などの指数に連動することを目標とする", isCorrect: true },
+            { text: "ファンドマネージャーが銘柄を積極的に選定する", isCorrect: false },
+            { text: "元本が保証されている", isCorrect: false },
+            { text: "少数の銘柄に集中投資する", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    {
+      chapter: 8,
+      title: "Stage8-2. 米国株に投資しよう！",
+      slug: "stage8-2",
+      content: "",
+      videoId: null,
+      videoTitle: null,
+      questions: [
+        {
+          text: "日本から米国株に投資する際に、国内株にはない追加のリスクはどれですか？",
+          options: [
+            { text: "為替リスク（円とドルの為替変動）", isCorrect: true },
+            { text: "株価が下がるリスク", isCorrect: false },
+            { text: "企業が倒産するリスク", isCorrect: false },
+            { text: "流動性リスク", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    {
+      chapter: 8,
+      title: "Stage8-3. 高配当株に投資しよう！",
+      slug: "stage8-3",
+      content: "",
+      videoId: null,
+      videoTitle: null,
+      questions: [
+        {
+          text: "高配当株に投資する主な魅力はどれですか？",
+          options: [
+            { text: "定期的な配当収入が得られること", isCorrect: true },
+            { text: "株価が必ず上昇すること", isCorrect: false },
+            { text: "税金がかからないこと", isCorrect: false },
+            { text: "元本割れが起きないこと", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    {
+      chapter: 8,
+      title: "Stage8-4. REITに投資してみよう！",
+      slug: "stage8-4",
+      content: "",
+      videoId: null,
+      videoTitle: null,
+      questions: [
+        {
+          text: "REIT（リート）とはどのような投資商品ですか？",
+          options: [
+            { text: "投資家から集めた資金で不動産を運用し、収益を分配する投資信託", isCorrect: true },
+            { text: "金や原油などのコモディティに投資する商品", isCorrect: false },
+            { text: "外国債券に投資する商品", isCorrect: false },
+            { text: "AIが自動売買する仕組み", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    // Stage 9: マクロ・ファンダメンタル分析
+    {
+      chapter: 9,
+      title: "Stage9-1. 経済指標について学ぼう！",
+      slug: "stage9-1",
+      content: "",
+      videoId: null,
+      videoTitle: null,
+      questions: [
+        {
+          text: "国の経済規模や成長率を示す最も代表的な経済指標はどれですか？",
+          options: [
+            { text: "GDP（国内総生産）", isCorrect: true },
+            { text: "日経平均株価", isCorrect: false },
+            { text: "消費者物価指数（CPI）", isCorrect: false },
+            { text: "政策金利", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    {
+      chapter: 9,
+      title: "Stage9-2. 決算について学ぼう！",
+      slug: "stage9-2",
+      content: "",
+      videoId: null,
+      videoTitle: null,
+      questions: [
+        {
+          text: "決算発表で株価が大きく動く主な理由はどれですか？",
+          options: [
+            { text: "市場の期待値と実際の業績との差（サプライズ）", isCorrect: true },
+            { text: "決算が発表されると必ず株価が上がるから", isCorrect: false },
+            { text: "決算期には株の売買が禁止されるから", isCorrect: false },
+            { text: "配当金が支払われるから", isCorrect: false },
+          ],
+        },
+      ],
+    },
+    // Stage 10: 投資家の心理
+    {
+      chapter: 10,
+      title: "Stage10-1. 投資心理学について学ぼう！",
+      slug: "stage10-1",
+      content: "",
+      videoId: null,
+      videoTitle: null,
+      questions: [
+        {
+          text: "「利益を得る喜びより、同額の損失による痛みの方が大きく感じる」という投資家の心理的傾向を何と言いますか？",
+          options: [
+            { text: "損失回避バイアス", isCorrect: true },
+            { text: "確証バイアス", isCorrect: false },
+            { text: "ハーディング（群集心理）", isCorrect: false },
+            { text: "アンカリング効果", isCorrect: false },
+          ],
+        },
+      ],
+    },
   ];
 
   for (const data of lessonsWithQuestions) {
@@ -373,67 +616,42 @@ async function main() {
   }
 
   // ==========================================
-  // Phase 2 Lessons
+  // Stage 6-1 (Phase1Lessonテーブルに統合)
   // ==========================================
-  const phase2LessonsWithQuestions = [
-    // Stage 6: テクニカル分析について学ぼう
-    {
-      chapter: 6,
-      title: "Stage6-1. 移動平均線について学ぼう",
-      slug: "stage6-1",
-      content: "移動平均線は、テクニカル分析の基本となる指標の一つです。過去の一定期間の価格の平均値を線で結んだもので、トレンドの方向性を把握するのに役立ちます。\n\n## 移動平均線の詳細解説\n\n下のカードをクリックして、移動平均線について詳しく学びましょう。\n\n<div id=\"retro-cards-container\"></div>\n\n### 移動平均線の基本\n\n1. **短期線と長期線**\n   • 短期線：5日、25日移動平均線など\n   • 長期線：75日、200日移動平均線など\n   • 短期線が長期線より上にあると上昇トレンド\n   • 短期線が長期線より下にあると下落トレンド\n\n2. **ゴールデンクロスとデッドクロス**\n   • ゴールデンクロス：短期線が長期線を下から上に突き抜ける\n   • デッドクロス：短期線が長期線を上から下に突き抜ける\n   • これらはトレンド転換のシグナルとして注目される\n\n3. **移動平均線の活用方法**\n   • トレンドの方向性を確認\n   • サポート・レジスタンスラインとして機能\n   • 買い時・売り時の判断材料",
-      videoId: null, // 動画IDは後で設定
-      videoTitle: "移動平均線について",
-      questions: [
-        {
-          text: "移動平均線の短期線が長期線を下から上に突き抜けることは一般的に何を示すと考えられる？",
-          options: [
-            { text: "下落トレンドへの転換", isCorrect: false },
-            { text: "上昇トレンドへの転換", isCorrect: true },
-            { text: "トレンドの継続", isCorrect: false },
-            { text: "この世の終わり", isCorrect: false },
-          ],
-        },
-      ],
-    },
-  ];
+  const stage61 = {
+    chapter: 6,
+    title: "Stage6-1. 移動平均線について学ぼう",
+    slug: "stage6-1",
+    content: "移動平均線は、テクニカル分析の基本となる指標の一つです。過去の一定期間の価格の平均値を線で結んだもので、トレンドの方向性を把握するのに役立ちます。\n\n## 移動平均線の詳細解説\n\n下のカードをクリックして、移動平均線について詳しく学びましょう。\n\n<div id=\"retro-cards-container\"></div>\n\n### 移動平均線の基本\n\n1. **短期線と長期線**\n   • 短期線：5日、25日移動平均線など\n   • 長期線：75日、200日移動平均線など\n   • 短期線が長期線より上にあると上昇トレンド\n   • 短期線が長期線より下にあると下落トレンド\n\n2. **ゴールデンクロスとデッドクロス**\n   • ゴールデンクロス：短期線が長期線を下から上に突き抜ける\n   • デッドクロス：短期線が長期線を上から下に突き抜ける\n   • これらはトレンド転換のシグナルとして注目される\n\n3. **移動平均線の活用方法**\n   • トレンドの方向性を確認\n   • サポート・レジスタンスラインとして機能\n   • 買い時・売り時の判断材料",
+    videoId: null as string | null,
+    videoTitle: "移動平均線について",
+    questions: [
+      {
+        text: "移動平均線の短期線が長期線を下から上に突き抜けることは一般的に何を示すと考えられる？",
+        options: [
+          { text: "下落トレンドへの転換", isCorrect: false },
+          { text: "上昇トレンドへの転換", isCorrect: true },
+          { text: "トレンドの継続", isCorrect: false },
+          { text: "この世の終わり", isCorrect: false },
+        ],
+      },
+    ],
+  };
 
-  for (const data of phase2LessonsWithQuestions) {
-    const { questions, ...lessonData } = data;
-
-    // 既存のレッスンがあるか確認
-    const existingLesson = await prisma.phase2Lesson.findUnique({
-      where: { slug: lessonData.slug },
+  const { questions: s61questions, ...s61lessonData } = stage61;
+  const existingS61 = await prisma.phase1Lesson.findUnique({ where: { slug: stage61.slug } });
+  if (existingS61) {
+    console.log(`Updating existing lesson: ${stage61.slug}`);
+    await prisma.phase1Lesson.update({ where: { slug: stage61.slug }, data: s61lessonData });
+  } else {
+    console.log(`Creating new lesson: ${stage61.slug}`);
+    const lesson = await prisma.phase1Lesson.create({
+      data: {
+        ...s61lessonData,
+        questions: { create: s61questions.map((q) => ({ text: q.text, options: { create: q.options } })) },
+      },
     });
-
-    if (existingLesson) {
-      // 既存のレッスンがある場合は、内容のみ更新（問題は更新しない）
-      console.log(`Updating existing Phase2 lesson: ${lessonData.slug}`);
-      await prisma.phase2Lesson.update({
-        where: { slug: lessonData.slug },
-        data: {
-          ...lessonData,
-          // questionsは更新しないことで、既存のIDと進捗を保持
-        },
-      });
-    } else {
-      // 新規レッスンの場合は、問題も含めて作成
-      console.log(`Creating new Phase2 lesson: ${lessonData.slug}`);
-      const lesson = await prisma.phase2Lesson.create({
-        data: {
-          ...lessonData,
-          questions: {
-            create: questions.map((q) => ({
-              text: q.text,
-              options: {
-                create: q.options,
-              },
-            })),
-          },
-        },
-      });
-      console.log(`Created Phase2 lesson with id: ${lesson.id}`);
-    }
+    console.log(`Created lesson with id: ${lesson.id}`);
   }
 
   console.log(`Seeding finished.`);
