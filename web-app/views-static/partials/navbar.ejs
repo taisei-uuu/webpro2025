@@ -1,0 +1,33 @@
+<!-- ナビゲーションバー -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+    <div class="container">
+        <a class="navbar-brand text-primary" href="/">
+            <img src="/logo.png" alt="Stock with" height="40" class="me-2">
+            STOCK&nbsp;<span class="brand-with">WITH</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="メニューを開く">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="<%= isHome ? '#about' : '/#about' %>">
+                        <i class="fas fa-info-circle me-1"></i>
+                        ABOUT US
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                        href="https://www.instagram.com/utsubo_zmoney?igsh=NTJsa3pkZnZzNXd1&utm_source=qr"
+                        target="_blank" rel="noopener noreferrer" title="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-primary ms-3" href="/articles">記事を読む</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

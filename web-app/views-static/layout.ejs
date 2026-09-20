@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <%- include('partials/analytics') %>
+    <%- headExtra %>
+</head>
+
+<body<%= bodyClass ? ' class="' + bodyClass + '"' : '' %>>
+    <%- include('partials/navbar', { isHome }) %>
+
+    <%- content %>
+
+    <%- include('partials/footer', { isHome, year }) %>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <%- bodyScripts %>
+</body>
+
+</html>

@@ -1,0 +1,4 @@
+{
+  "_comment": "microCMS の有料記事ID → 移行先の note 記事URL の対応表。ここに書いた記事は、旧URL /articles/<id> から note へ 301 リダイレクトされる。未記載の有料記事は /articles へ 301 される。",
+  "links": {}
+}

@@ -1,0 +1,136 @@
+<!-- メインコンテンツ -->
+<div class="container py-5">
+    <!-- ページタイトル -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary mb-3">
+            <i class="fas fa-bullhorn me-3"></i>電子公告
+        </h1>
+        <p class="lead text-muted">
+            Stock with株式会社の重要な情報をお知らせいたします。定期的にご確認いただき、最新の情報をお見逃しなく。
+        </p>
+    </div>
+
+    <% if (notices.length > 0) { %>
+        <!-- 検索・フィルター -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <label for="searchInput" class="visually-hidden">公告を検索</label>
+                            <input type="text" id="searchInput" class="form-control" placeholder="公告を検索...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="typeFilter" class="visually-hidden">種類で絞り込む</label>
+                        <select id="typeFilter" class="form-select">
+                            <option value="">すべての種類</option>
+                            <% types.forEach(function (t) { %>
+                                <option value="<%= t.value %>"><%= t.label %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="yearFilter" class="visually-hidden">年で絞り込む</label>
+                        <select id="yearFilter" class="form-select">
+                            <option value="">すべての年</option>
+                            <% years.forEach(function (y) { %>
+                                <option value="<%= y %>"><%= y %>年</option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+    <!-- 公告一覧 -->
+    <div id="noticesContainer">
+        <% if (notices.length > 0) { %>
+            <% notices.forEach(function (notice) { %>
+                <div class="notice-card card mb-4" data-type="<%= notice.type %>" data-year="<%= notice.year %>"
+                    data-title="<%= notice.title.toLowerCase() %>" data-content="<%= notice.content.toLowerCase() %>">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="notice-type badge me-2 <%= notice.badgeClass %>">
+                                        <i class="fas <%= notice.iconClass %> me-1"></i>
+                                        <%= notice.typeLabel %>
+                                    </span>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        <time datetime="<%= notice.publishedAtIso %>"><%= notice.publishedAtLabel %></time>
+                                    </small>
+                                </div>
+                                <h2 class="card-title h5 mb-2">
+                                    <%= notice.title %>
+                                </h2>
+                                <p class="card-text text-muted">
+                                    <%= notice.excerpt %>
+                                </p>
+                                <% if (notice.attachments.length > 0) { %>
+                                    <small class="text-muted">
+                                        <i class="fas fa-paperclip me-1"></i>
+                                        <%= notice.attachments.length %>個の添付ファイル
+                                    </small>
+                                <% } %>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <button type="button" class="btn btn-primary js-toggle-notice"
+                                    data-target="notice-<%= notice.id %>" aria-expanded="false"
+                                    aria-controls="notice-<%= notice.id %>">
+                                    <i class="fas fa-eye me-1"></i>詳細を見る
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 詳細表示エリア（初期状態では非表示。JS無効時は常時表示される） -->
+                        <div id="notice-<%= notice.id %>" class="notice-detail border-top pt-3 mt-3">
+                            <div class="card-text">
+                                <div class="notice-body"><%= notice.content %></div>
+                            </div>
+                            <% if (notice.attachments.length > 0) { %>
+                                <div class="mt-3">
+                                    <h3 class="fw-bold h6">
+                                        <i class="fas fa-paperclip me-1"></i>添付ファイル
+                                    </h3>
+                                    <div class="list-group">
+                                        <% notice.attachments.forEach(function (attachment) { %>
+                                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-file-pdf text-danger me-2"></i>
+                                                    <span class="fw-medium"><%= attachment.name %></span>
+                                                    <% if (attachment.size) { %>
+                                                        <small class="text-muted ms-2">(<%= attachment.size %>)</small>
+                                                    <% } %>
+                                                </div>
+                                                <a href="<%= attachment.url %>" class="btn btn-sm btn-outline-primary"
+                                                    target="_blank" rel="noopener">
+                                                    <i class="fas fa-download me-1"></i>ダウンロード
+                                                </a>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+
+            <p id="noNoticeMatch" class="text-center text-muted py-5" hidden>
+                <i class="fas fa-search me-2"></i>条件に一致する公告はありません。
+            </p>
+        <% } else { %>
+            <div class="text-center py-5">
+                <i class="fas fa-inbox text-muted" style="font-size: 4rem;"></i>
+                <h2 class="mt-3 text-muted h3">公告がありません</h2>
+                <p class="text-muted">現在、表示する公告がありません。</p>
+            </div>
+        <% } %>
+    </div>
+</div>

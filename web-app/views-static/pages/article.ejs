@@ -1,0 +1,52 @@
+<main class="site-main">
+    <div class="container">
+        <nav aria-label="パンくず" style="margin-bottom: 1rem;">
+            <a href="/articles" class="text-muted text-decoration-none">
+                <i class="fas fa-chevron-left me-1"></i>記事一覧へ戻る
+            </a>
+        </nav>
+
+        <article class="article-container">
+            <header class="article-header">
+                <h1 class="article-title"><%= article.title %></h1>
+                <div class="article-meta-row">
+                    <div class="article-date">
+                        <i class="fas fa-calendar-alt"></i>
+                        <time datetime="<%= article.publishedAtIso %>"><%= article.publishedAtLabel %></time>
+                    </div>
+                </div>
+            </header>
+
+            <div class="article-content">
+                <% if (article.thumbnail) { %>
+                    <div class="article-main-image">
+                        <img src="<%= article.thumbnail.url %>" alt="" width="<%= article.thumbnail.width %>"
+                            height="<%= article.thumbnail.height %>">
+                    </div>
+                <% } %>
+
+                <% if (article.introduction) { %>
+                    <div class="article-introduction">
+                        <%- article.introduction %>
+                    </div>
+                <% } %>
+
+                <% if (article.body) { %>
+                    <div class="article-body">
+                        <%- article.body %>
+                    </div>
+                <% } %>
+            </div>
+        </article>
+
+        <% if (noteProfileUrl) { %>
+            <aside class="article-note-cta">
+                <h2>投資の実践記録は note で公開中</h2>
+                <p>週ごとの売買判断と反省を、note で有料マガジンとして公開しています。</p>
+                <a href="<%= noteProfileUrl %>" class="btn btn-primary" target="_blank" rel="noopener">
+                    note を見る<i class="fas fa-external-link-alt ms-2"></i>
+                </a>
+            </aside>
+        <% } %>
+    </div>
+</main>

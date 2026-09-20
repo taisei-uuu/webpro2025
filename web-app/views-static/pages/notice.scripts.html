@@ -1,0 +1,54 @@
+<script>
+    (function () {
+        'use strict';
+
+        var details = Array.prototype.slice.call(document.querySelectorAll('.notice-detail'));
+
+        // JSが動く環境でのみ折りたたむ。無効な環境では本文が開いたまま残る。
+        details.forEach(function (el) { el.hidden = true; });
+
+        document.querySelectorAll('.js-toggle-notice').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var target = document.getElementById(button.dataset.target);
+                if (!target) return;
+
+                var willOpen = target.hidden;
+                target.hidden = !willOpen;
+                button.setAttribute('aria-expanded', String(willOpen));
+                button.innerHTML = willOpen
+                    ? '<i class="fas fa-eye-slash me-1"></i>詳細を閉じる'
+                    : '<i class="fas fa-eye me-1"></i>詳細を見る';
+            });
+        });
+
+        // 検索・フィルター
+        var searchInput = document.getElementById('searchInput');
+        var typeFilter = document.getElementById('typeFilter');
+        var yearFilter = document.getElementById('yearFilter');
+        var emptyMessage = document.getElementById('noNoticeMatch');
+        if (!searchInput || !typeFilter || !yearFilter) return;
+
+        function filterNotices() {
+            var term = searchInput.value.toLowerCase();
+            var type = typeFilter.value;
+            var year = yearFilter.value;
+            var visible = 0;
+
+            document.querySelectorAll('.notice-card').forEach(function (card) {
+                var matches =
+                    (!term || card.dataset.title.indexOf(term) > -1 || card.dataset.content.indexOf(term) > -1) &&
+                    (!type || card.dataset.type === type) &&
+                    (!year || card.dataset.year === year);
+
+                card.hidden = !matches;
+                if (matches) visible++;
+            });
+
+            if (emptyMessage) emptyMessage.hidden = visible > 0;
+        }
+
+        searchInput.addEventListener('input', filterNotices);
+        typeFilter.addEventListener('change', filterNotices);
+        yearFilter.addEventListener('change', filterNotices);
+    })();
+</script>

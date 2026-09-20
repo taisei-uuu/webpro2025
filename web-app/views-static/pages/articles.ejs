@@ -1,0 +1,81 @@
+<main class="site-main">
+    <div class="container">
+        <header class="theme-header" style="margin-bottom: 1.5rem;">
+            <h1 class="theme-title">記事</h1>
+        </header>
+
+        <% if (sections.length === 0 && noteArticles.length === 0) { %>
+            <p class="no-articles">記事はまだありません。</p>
+        <% } %>
+
+        <%# --- 自社サイト掲載の記事（microCMS） --- %>
+        <% sections.forEach(function (section) { %>
+            <section class="theme-section">
+                <div class="theme-header">
+                    <h2 class="theme-title"><%= section.title %> <i class="fas fa-chevron-right"></i></h2>
+                </div>
+                <div class="articles-horizontal-scroller">
+                    <% section.articles.forEach(function (article) { %>
+                        <article class="article-card compact">
+                            <a href="/articles/<%= article.id %>" class="article-link">
+                                <% if (article.thumbnail) { %>
+                                    <div class="article-thumbnail-wrapper">
+                                        <img src="<%= article.thumbnail.url %>" alt="" class="article-thumbnail"
+                                            loading="lazy" width="<%= article.thumbnail.width %>"
+                                            height="<%= article.thumbnail.height %>">
+                                    </div>
+                                <% } %>
+                                <div class="article-content">
+                                    <h3 class="article-title"><%= article.title %></h3>
+                                    <div class="article-meta">
+                                        <span class="article-date">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <time datetime="<%= article.publishedAtIso %>"><%= article.publishedAtLabel %></time>
+                                        </span>
+                                        <span class="badge badge-free">無料</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </article>
+                    <% }); %>
+                </div>
+            </section>
+        <% }); %>
+
+        <%# --- note で販売中の記事（RSSから自動取得） --- %>
+        <% if (noteArticles.length > 0) { %>
+            <section class="theme-section">
+                <div class="theme-header">
+                    <h2 class="theme-title">note で販売中 <i class="fas fa-chevron-right"></i></h2>
+                </div>
+                <p class="text-muted" style="margin-bottom: 1rem;">
+                    投資の実践記録は note で公開しています。
+                    <a href="<%= noteProfileUrl %>" target="_blank" rel="noopener">note のページを見る</a>
+                </p>
+                <div class="articles-horizontal-scroller">
+                    <% noteArticles.forEach(function (article) { %>
+                        <article class="article-card compact">
+                            <a href="<%= article.url %>" class="article-link" target="_blank" rel="noopener">
+                                <% if (article.thumbnail) { %>
+                                    <div class="article-thumbnail-wrapper">
+                                        <img src="<%= article.thumbnail %>" alt="" class="article-thumbnail" loading="lazy">
+                                    </div>
+                                <% } %>
+                                <div class="article-content">
+                                    <h3 class="article-title"><%= article.title %></h3>
+                                    <div class="article-meta">
+                                        <span class="article-date">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <time datetime="<%= article.publishedAtIso %>"><%= article.publishedAtLabel %></time>
+                                        </span>
+                                        <span class="badge badge-paid">note<i class="fas fa-external-link-alt ms-1"></i></span>
+                                    </div>
+                                </div>
+                            </a>
+                        </article>
+                    <% }); %>
+                </div>
+            </section>
+        <% } %>
+    </div>
+</main>
