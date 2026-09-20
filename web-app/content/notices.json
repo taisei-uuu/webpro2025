@@ -1,4 +1,4 @@
 {
-  "_comment": "電子公告のデータ。microCMS に notices エンドポイントを作る（Phase 2）までの暫定ソース。microCMS 側が存在すればそちらが優先され、このファイルは無視される。type は important / financial / business / legal / other のいずれか。",
+  "_comment": "電子公告のデータ。microCMS に notices エンドポイントを作る（Phase 2）までの暫定ソース。microCMS 側が存在すればそちらが優先され、このファイルは無視される。publishedDate は法定の掲載日（microCMS が自動生成する publishedAt とは別物）。type は important / financial / business / legal / other のいずれか。attachments[].url は /notices/xxx.pdf のように public/notices/ 配下への相対パスで指定する。",
   "notices": []
 }

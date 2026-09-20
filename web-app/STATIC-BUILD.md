@@ -23,6 +23,21 @@ npm run build:static   # → dist/
 | `views-static/pages/*.ejs` | 動的ページ（記事・電子公告・404） |
 | `content/notices.json` | 電子公告データ（microCMS に移すまでの暫定ソース） |
 | `content/note-links.json` | 有料記事ID → note URL の対応表。旧URLの301に使う |
+| `public/notices/` | 公告の添付PDFの実体。`public/notices/README.md` に運用手順 |
+
+## 電子公告の2つの注意点
+
+**掲載日は `publishedDate` を使う。`publishedAt` ではない。**
+microCMS は `publishedAt` を自動で作るため同名フィールドを定義できず、しかもその値は
+「microCMS に登録した日」になる。過去の公告を後から入力すると法定の掲載日がずれるので、
+専用の `publishedDate` フィールドを立てている。並び順も `publishedDate` で指定する。
+欠けている公告があればビルドを失敗させる（`publishedAt` で代用しない）。
+
+**添付PDFは microCMS に置けない。** Hobby プランはファイルフィールドが使えず、画像
+フィールドは PDF を受け付けない。そのため実体は `public/notices/` に置き、microCMS の
+`attachment.url`（テキスト）には `/notices/xxx.pdf` のような相対パスを入れる。
+追加費用がかからず、Git の履歴にも残る。`url` が `/` で始まる場合はビルド時に実体の
+有無を検証し、無ければ失敗する。
 
 ## 環境変数
 
@@ -38,6 +53,8 @@ npm run build:static   # → dist/
 壊れたものを黙って公開しないことを優先している。
 
 - **記事の取得に失敗 → ビルド失敗。** 記事ゼロのサイトを公開しない
+- **公告に `publishedDate` が無い → ビルド失敗。** 掲載日のずれた公告を出さない
+- **公告の添付PDFの実体が無い → ビルド失敗。** 「添付あり」表示でリンクが404を防ぐ
 - **microCMS に `notices` があるのにエラー → ビルド失敗。** 法定公告を黙って落とさない
 - **microCMS に `notices` がまだ無い → `content/notices.json` を使う。** Phase 2 までの橋渡し。
   microCMS 側にエンドポイントを作れば、コード変更なしで自動的にそちらが優先される

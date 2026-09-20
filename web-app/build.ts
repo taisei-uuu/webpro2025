@@ -40,6 +40,7 @@ const ASSET_EXCLUDES = [
   /^display-cards\.js$/,    // #display-cards は残るページに存在しない
   /^in-app-browser-detector\.js$/, // Clerk認証対策の警告バナー。静的サイトでは不要
   /^script\.js$/,           // 0バイト
+  /\.md$/,                  // public/ 内の説明用README（配信対象ではない）
 ];
 
 const NOTICE_TYPES = [
@@ -79,7 +80,12 @@ type Notice = {
   title: string;
   content: string;
   type: string;
-  publishedAt: string;
+  /**
+   * 法定の掲載日。microCMS が自動で作る publishedAt（＝microCMSに登録した日）とは別物で、
+   * そちらを使うと過去の公告の掲載日がずれるため、必ずこのフィールドを見ること。
+   * microCMS 側は publishedAt を予約済みで同名フィールドを定義できないので、名前も分けてある。
+   */
+  publishedDate: string;
   isActive?: boolean;
   attachments?: Attachment[];
 };
@@ -141,15 +147,35 @@ async function fetchArticles(): Promise<Article[]> {
  * microCMS が「在るのに壊れている」場合は握りつぶさずビルドを失敗させる — 法定公告を黙って落とさないため。
  */
 async function fetchNotices(): Promise<Notice[]> {
-  const page = await microcms<Notice>('notices', 'limit=100&orders=-publishedAt');
+  // 並び順も publishedDate で指定する。microCMS の publishedAt で並べると
+  // 「登録した順」になり、過去分をあとから入力したときに順序が狂う。
+  const page = await microcms<Notice>('notices', 'limit=100&orders=-publishedDate');
   if (page) {
     log(`電子公告: microCMS から ${page.contents.length}件`);
-    return page.contents;
+    return validateNotices(page.contents, 'microCMS');
   }
 
   const local = readJson<{ notices: Notice[] }>('notices.json');
   log(`電子公告: microCMS に notices が無いため content/notices.json から ${local.notices.length}件`);
-  return local.notices;
+  return validateNotices(local.notices, 'content/notices.json');
+}
+
+/**
+ * 公告の掲載日を検証する。
+ * microCMS は publishedAt を必ず自動で埋めるので、publishedDate が空でも
+ * 「それっぽい日付」が取れてしまう。黙って代用すると掲載日がずれた公告を
+ * 出すことになるため、欠けていたらビルドを止める。
+ */
+function validateNotices(notices: Notice[], source: string): Notice[] {
+  const bad = notices.filter((n) => !n.publishedDate || isNaN(+new Date(n.publishedDate)));
+  if (bad.length > 0) {
+    const list = bad.map((n) => `    - ${n.id}: ${n.title}（publishedDate=${JSON.stringify(n.publishedDate)}）`);
+    throw new Error(
+      `${source} の公告に掲載日(publishedDate)が無いか不正です:\n${list.join('\n')}\n` +
+      `  法定公告の掲載日なので、microCMS の publishedAt で代用せず publishedDate を入力してください。`
+    );
+  }
+  return notices;
 }
 
 /** note の RSS。未設定・取得失敗はセクションを出さないだけで、ビルドは止めない。 */
@@ -342,21 +368,33 @@ async function main() {
 
   const activeNotices = notices
     .filter((n) => n.isActive !== false)
-    .sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt))
+    .sort((a, b) => +new Date(b.publishedDate) - +new Date(a.publishedDate))
     .map((n) => {
       const meta = typeMeta(n.type);
       return {
         ...n,
         attachments: n.attachments || [],
-        year: String(new Date(n.publishedAt).getFullYear()),
-        publishedAtIso: new Date(n.publishedAt).toISOString(),
-        publishedAtLabel: formatDate(n.publishedAt),
+        year: String(new Date(n.publishedDate).getFullYear()),
+        publishedAtIso: new Date(n.publishedDate).toISOString(),
+        publishedAtLabel: formatDate(n.publishedDate),
         excerpt: n.content.length > 200 ? `${n.content.slice(0, 200)}…` : n.content,
         typeLabel: meta.label,
         badgeClass: meta.badgeClass,
         iconClass: meta.iconClass,
       };
     });
+
+  // 添付PDFの実体は microCMS ではなく public/notices/ に置く（Hobbyプランはファイル
+  // フィールドが使えず、画像フィールドはPDFを受け付けないため）。url はそこへの相対パス。
+  // 実体が無いまま公告を出すと「添付あり」と表示されてリンクが404になるので、ここで止める。
+  const missingPdfs = activeNotices.flatMap((n) =>
+    n.attachments
+      .filter((a) => a.url.startsWith('/') && !fs.existsSync(path.join(PUBLIC, a.url.slice(1))))
+      .map((a) => `    - ${n.title} → ${a.url}（public${a.url} が無い）`)
+  );
+  if (missingPdfs.length > 0) {
+    throw new Error(`公告の添付ファイルの実体が見つかりません:\n${missingPdfs.join('\n')}`);
+  }
 
   await write('notice.html', await renderLayout({
     headExtra: readFragment('notice.head.html'),
