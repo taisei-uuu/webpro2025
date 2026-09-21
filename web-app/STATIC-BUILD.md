@@ -25,7 +25,7 @@ npm run build:static   # → dist/
 | `content/note-links.json` | 有料記事ID → note URL の対応表。旧URLの301に使う |
 | `public/notices/` | 公告の添付PDFの実体。`public/notices/README.md` に運用手順 |
 
-## 電子公告の2つの注意点
+## 電子公告の注意点
 
 **掲載日は `publishedDate` を使う。`publishedAt` ではない。**
 microCMS は `publishedAt` を自動で作るため同名フィールドを定義できず、しかもその値は
@@ -38,6 +38,14 @@ microCMS は `publishedAt` を自動で作るため同名フィールドを定�
 `attachment.url`（テキスト）には `/notices/xxx.pdf` のような相対パスを入れる。
 追加費用がかからず、Git の履歴にも残る。`url` が `/` で始まる場合はビルド時に実体の
 有無を検証し、無ければ失敗する。
+
+**`isActive` が未設定の公告は非公開扱い。** microCMS 側で必須にしていないため、
+未設定は false として扱う。ただし黙って落とすと「登録したのに公告が出ない」に
+気づけないので、除外した公告はビルドログに警告として列挙する。
+
+**`content` はリッチエディタ（HTML文字列）。** エスケープせずそのまま挿入する。
+一覧の抜粋と検索用インデックスは、タグを落としたプレーンテキストから作る
+（HTMLのまま切ると途中でタグが千切れるため）。
 
 ## 環境変数
 
@@ -80,12 +88,28 @@ Cloudflare Pages は `/foo.html` を `/foo` でも配信するので、現行URL
 | 項目 | 値 |
 |---|---|
 | Root directory | `web-app` |
-| Build command | `npm ci && npm run build:static` |
+| Build command | `npm ci --ignore-scripts && npm run build:static` |
 | Build output directory | `dist` |
 | 環境変数 | `MICROCMS_SERVICE_DOMAIN` / `MICROCMS_API_KEY`（+ 任意で `NOTE_USERNAME`） |
 
-> `npm ci` が `@prisma/client` の postinstall を走らせるぶん少し遅い。Phase 7 で
-> Prisma を依存から外せば解消する。ビルド自体は通る。
+> **`--ignore-scripts` が必要な理由。** `package.json` は Render の Node アプリと共用
+> しているため、`prisma` / `@prisma/engines` / `@clerk/shared` の install スクリプトが
+> 走る。静的ビルドはどれも使わないうえ、Prisma のエンジン取得は CI 環境でハングしうる。
+> `--ignore-scripts` で 202MB → 166MB、実測 6.3秒。`esbuild` の postinstall も飛ぶが、
+> バイナリは optionalDependencies 側から入るため `tsx` は問題なく動く（検証済み）。
+> Render 側は `buildCommand` で `npx prisma generate` を明示的に呼んでいるので影響を受けない。
+
+### Phase 7 で依存を絞るときの目安
+
+`build.ts` が import しているのは `dotenv` / `ejs` と Node 標準モジュールだけ。
+`index.ts` を削除したあとは、`dependencies` を次の3つまで落とせる。
+
+```json
+"dependencies": { "dotenv": "^17.1.0", "ejs": "^3.1.10", "tsx": "^4.20.3" }
+```
+
+この構成で実測: インストール12パッケージ / node_modules 14MB / 3秒（現状は170パッケージ・202MB）。
+検証済みで、`build:static` は問題なく通る。
 
 デプロイ後、microCMS の Webhook を Pages の Deploy Hook に繋ぐこと。繋がないと
 記事や公告を公開してもサイトに反映されない。

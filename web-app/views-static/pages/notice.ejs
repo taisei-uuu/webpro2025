@@ -52,7 +52,7 @@
         <% if (notices.length > 0) { %>
             <% notices.forEach(function (notice) { %>
                 <div class="notice-card card mb-4" data-type="<%= notice.type %>" data-year="<%= notice.year %>"
-                    data-title="<%= notice.title.toLowerCase() %>" data-content="<%= notice.content.toLowerCase() %>">
+                    data-title="<%= notice.title.toLowerCase() %>" data-content="<%= notice.searchText %>">
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-8">
@@ -91,7 +91,8 @@
                         <!-- 詳細表示エリア（初期状態では非表示。JS無効時は常時表示される） -->
                         <div id="notice-<%= notice.id %>" class="notice-detail border-top pt-3 mt-3">
                             <div class="card-text">
-                                <div class="notice-body"><%= notice.content %></div>
+                                <%# content は microCMS のリッチエディタが出力する HTML なのでそのまま挿す %>
+                                <div class="notice-body"><%- notice.content %></div>
                             </div>
                             <% if (notice.attachments.length > 0) { %>
                                 <div class="mt-3">

@@ -101,6 +101,23 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
+/** リッチエディタのHTMLから、抜粋・検索用のプレーンテキストを作る。 */
+function stripTags(html: string): string {
+  return html
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|h[1-6]|li|tr)>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 function readFragment(name: string): string {
   return fs.readFileSync(path.join(PAGES, name), 'utf8');
 }
@@ -366,18 +383,31 @@ async function main() {
   const typeMeta = (type: string) =>
     NOTICE_TYPES.find((t) => t.value === type) || NOTICE_TYPES[NOTICE_TYPES.length - 1];
 
+  // isActive は microCMS 側で必須にしていないため、未設定は false（非公開）として扱う。
+  // ただし黙って落とすと「登録したのに公告が出ない」に気づけないので、除外した分は警告に出す。
+  const hidden = notices.filter((n) => n.isActive !== true);
+  if (hidden.length > 0) {
+    warn(`isActive が未設定のため非公開にした公告が ${hidden.length}件あります:`);
+    hidden.forEach((n) => warn(`     - ${n.title}（公開するには microCMS で isActive をオンに）`));
+  }
+
   const activeNotices = notices
-    .filter((n) => n.isActive !== false)
+    .filter((n) => n.isActive === true)
     .sort((a, b) => +new Date(b.publishedDate) - +new Date(a.publishedDate))
     .map((n) => {
       const meta = typeMeta(n.type);
+      const plain = stripTags(n.content);
       return {
         ...n,
         attachments: n.attachments || [],
         year: String(new Date(n.publishedDate).getFullYear()),
         publishedAtIso: new Date(n.publishedDate).toISOString(),
         publishedAtLabel: formatDate(n.publishedDate),
-        excerpt: n.content.length > 200 ? `${n.content.slice(0, 200)}…` : n.content,
+        // content はリッチエディタ（HTML文字列）なので、抜粋と検索用はタグを落とした
+        // プレーンテキストを使う。HTMLのまま切ると途中でタグが千切れる。
+        excerpt: plain.length > 200 ? `${plain.slice(0, 200)}…` : plain,
+        // 属性値に入れるので改行は潰す（HTMLパーサ側で正規化されて検索がずれるため）
+        searchText: plain.replace(/\s+/g, ' ').toLowerCase(),
         typeLabel: meta.label,
         badgeClass: meta.badgeClass,
         iconClass: meta.iconClass,

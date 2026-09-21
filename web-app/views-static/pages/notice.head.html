@@ -14,8 +14,26 @@
         display: none;
     }
 
-    .notice-body {
-        white-space: pre-wrap;
+    /* content はリッチエディタのHTML。段落や表がそのまま入る */
+    .notice-body> :last-child {
+        margin-bottom: 0;
+    }
+
+    .notice-body table {
+        width: 100%;
+        margin-bottom: 1rem;
+        border-collapse: collapse;
+    }
+
+    .notice-body th,
+    .notice-body td {
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .notice-body img {
+        max-width: 100%;
+        height: auto;
     }
 
     body {
