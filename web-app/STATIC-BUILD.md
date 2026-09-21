@@ -8,9 +8,8 @@ npm run build:static   # → dist/
 
 ## いまの状態
 
-**既存の `index.ts` と `views/` には一切触っていない。** Render 上の Node アプリは
-移行が完了する（Phase 6）まで並走させる必要があるため、両方が同じリポジトリから
-ビルドできる状態を保っている。静的サイト側は `build.ts` + `views-static/` だけで完結する。
+Render の Node アプリは廃止済み。`index.ts` / `views/` / `prisma/` / `lib/` は削除され、
+このリポジトリは静的サイト専用になっている。`build.ts` + `views-static/` だけで完結する。
 
 ## ファイル構成
 
@@ -19,9 +18,9 @@ npm run build:static   # → dist/
 | `build.ts` | ビルダー本体。データ取得 → HTML生成 → 検証 |
 | `views-static/layout.ejs` | 全ページ共通の外枠 |
 | `views-static/partials/` | ナビ・フッター・head メタ |
-| `views-static/pages/*.body.html` | 既存 `views/` から機械抽出した本文（トップ・法務3点） |
+| `views-static/pages/*.body.html` | 本文（トップ・法務3点）。旧 `views/` から機械抽出したもの |
 | `views-static/pages/*.ejs` | 動的ページ（記事・電子公告・404） |
-| `content/notices.json` | 電子公告データ（microCMS に移すまでの暫定ソース） |
+| `content/notices.json` | 電子公告のフォールバック（microCMS に `notices` があるため通常は未使用） |
 | `content/note-links.json` | 有料記事ID → note URL の対応表。旧URLの301に使う |
 | `public/notices/` | 公告の添付PDFの実体。`public/notices/README.md` に運用手順 |
 
@@ -64,8 +63,8 @@ microCMS は `publishedAt` を自動で作るため同名フィールドを定�
 - **公告に `publishedDate` が無い → ビルド失敗。** 掲載日のずれた公告を出さない
 - **公告の添付PDFの実体が無い → ビルド失敗。** 「添付あり」表示でリンクが404を防ぐ
 - **microCMS に `notices` があるのにエラー → ビルド失敗。** 法定公告を黙って落とさない
-- **microCMS に `notices` がまだ無い → `content/notices.json` を使う。** Phase 2 までの橋渡し。
-  microCMS 側にエンドポイントを作れば、コード変更なしで自動的にそちらが優先される
+- **microCMS に `notices` が無い → `content/notices.json` を使う。** 現在は microCMS 側に
+  エンドポイントがあるため、このフォールバックは動いていない
 - **note の RSS 取得に失敗 → 警告のみ、ビルドは続行。** note セクションが出ないだけ
 - **サイト内リンクの参照先が無い → ビルド失敗。** 画像やCSSの取りこぼしは静かに壊れるため
 
@@ -83,33 +82,18 @@ Cloudflare Pages は `/foo.html` を `/foo` でも配信するので、現行URL
 廃止したURLは `dist/_redirects` で301転送する（`/learning` `/lessons/*` `/subscription`
 `/admin/*` `/search` と、有料記事17件）。
 
-## Cloudflare Pages の設定（Phase 4）
+## Cloudflare Pages の設定
 
 | 項目 | 値 |
 |---|---|
 | Root directory | `web-app` |
-| Build command | `npm ci --ignore-scripts && npm run build:static` |
+| Build command | `npm ci && npm run build:static` |
 | Build output directory | `dist` |
 | 環境変数 | `MICROCMS_SERVICE_DOMAIN` / `MICROCMS_API_KEY`（+ 任意で `NOTE_USERNAME`） |
 
-> **`--ignore-scripts` が必要な理由。** `package.json` は Render の Node アプリと共用
-> しているため、`prisma` / `@prisma/engines` / `@clerk/shared` の install スクリプトが
-> 走る。静的ビルドはどれも使わないうえ、Prisma のエンジン取得は CI 環境でハングしうる。
-> `--ignore-scripts` で 202MB → 166MB、実測 6.3秒。`esbuild` の postinstall も飛ぶが、
-> バイナリは optionalDependencies 側から入るため `tsx` は問題なく動く（検証済み）。
-> Render 側は `buildCommand` で `npx prisma generate` を明示的に呼んでいるので影響を受けない。
-
-### Phase 7 で依存を絞るときの目安
-
-`build.ts` が import しているのは `dotenv` / `ejs` と Node 標準モジュールだけ。
-`index.ts` を削除したあとは、`dependencies` を次の3つまで落とせる。
-
-```json
-"dependencies": { "dotenv": "^17.1.0", "ejs": "^3.1.10", "tsx": "^4.20.3" }
-```
-
-この構成で実測: インストール12パッケージ / node_modules 14MB / 3秒（現状は170パッケージ・202MB）。
-検証済みで、`build:static` は問題なく通る。
+> 依存は `dotenv` / `ejs` / `tsx` の3つだけなので、`npm ci` は16パッケージ・40MB・
+> 実測2.2秒で終わる。`--ignore-scripts` は不要（Render と package.json を共用していた頃は
+> Prisma の install スクリプトを避けるために付けていたが、その依存はもう無い）。
 
 デプロイ後、microCMS の Webhook を Pages の Deploy Hook に繋ぐこと。繋がないと
 記事や公告を公開してもサイトに反映されない。
